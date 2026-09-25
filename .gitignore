@@ -21,6 +21,10 @@ backend/db.sqlite3
 # Pictures people upload (avatars, story covers).
 backend/media/
 
+# Installed JavaScript packages (anywhere in the project). Anyone
+# gets them back with "npm install".
+node_modules/
+
 # Editor / OS clutter
 .vscode/
 .DS_Store
