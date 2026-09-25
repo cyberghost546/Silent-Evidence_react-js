@@ -397,3 +397,97 @@ export function getLeaderboard(tab = 'all') {
 export function getFeed(sort = 'newest') {
     return authRequest(`/api/stories/feed/?sort=${sort}`)
 }
+
+
+// --- My Lists, Reading History, My Stories (logged in) ---
+
+// Your saved stories, as story cards. Last saved first.
+export function getSavedStories() {
+    return authRequest('/api/stories/saved/')
+}
+
+// [ { last_read_at, story: {...card...} }, ... ] newest first.
+export function getReadingHistory() {
+    return authRequest('/api/stories/history/')
+}
+
+export function clearReadingHistory() {
+    return authRequest('/api/stories/history/', 'DELETE')
+}
+
+// Everything you wrote, drafts too:
+// [ { id, title, category, status, views, like_count, comment_count, ... } ]
+export function getMyStories() {
+    return authRequest('/api/stories/mine/')
+}
+
+// isPublished = true (publish) or false (back to draft).
+// Answers with the updated row.
+export function setStoryPublished(id, isPublished) {
+    const data = new FormData()
+    data.append('is_published', isPublished)
+    return authRequest(`/api/stories/${id}/manage/`, 'PATCH', data)
+}
+
+export function deleteMyStory(id) {
+    return authRequest(`/api/stories/${id}/manage/`, 'DELETE')
+}
+
+
+// --- Search (anyone) ---
+
+// { stories: [...cards...], authors: [ { username, avatar, story_count } ] }
+// encodeURIComponent: turns spaces and symbols into URL-safe text
+// ("red house" -> "red%20house").
+export function searchSite(query) {
+    return authRequest(`/api/search/?q=${encodeURIComponent(query)}`)
+}
+
+
+// --- Co-author invites (logged in) ---
+
+// { received: [...], sent: [...] }
+// Each: { id, story_id, story_title, from_user, to_user, status, created_at }
+export function getInvites() {
+    return authRequest('/api/invites/')
+}
+
+export function sendInvite(storyId, username) {
+    const data = new FormData()
+    data.append('story_id', storyId)
+    data.append('username', username)
+    return authRequest('/api/invites/', 'POST', data)
+}
+
+// answer = 'accept' or 'decline'
+export function answerInvite(id, answer) {
+    return authRequest(`/api/invites/${id}/${answer}/`, 'POST')
+}
+
+export function cancelInvite(id) {
+    return authRequest(`/api/invites/${id}/`, 'DELETE')
+}
+
+
+// --- Messages (logged in) ---
+
+// [ { username, avatar, last_message: {...}, unread }, ... ]
+export function getConversations() {
+    return authRequest('/api/messages/')
+}
+
+// { username, avatar, blocked, messages: [ { id, body, created_at, is_mine } ] }
+export function getConversation(username) {
+    return authRequest(`/api/messages/${username}/`)
+}
+
+export function sendMessage(username, body) {
+    const data = new FormData()
+    data.append('body', body)
+    return authRequest(`/api/messages/${username}/`, 'POST', data)
+}
+
+// { unread: 3 } - for the red number on the header's Messages icon.
+export function getUnreadCount() {
+    return authRequest('/api/messages/unread/')
+}

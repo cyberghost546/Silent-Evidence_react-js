@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { CalendarDays, PenLine, Settings, Lock, Link as LinkIcon } from 'lucide-react'
+import { CalendarDays, PenLine, Settings, Lock, MessageCircle, Link as LinkIcon } from 'lucide-react'
 import { getProfile, getStories, followAuthor, mediaUrl } from '../../api/client'
 import { useAuth } from '../../hooks/useAuth'
 import { useRequireLogin } from '../../hooks/useRequireLogin'
@@ -208,6 +208,17 @@ function ProfilePage() {
                                 </Link>
                             </div>
                         ) : (
+                            <div className='flex gap-3'>
+                            {/* Only logged-in visitors can send messages. */}
+                            {user && (
+                                <Link
+                                    to={`/messages/${profile.username}`}
+                                    className='flex items-center gap-2 rounded-lg border border-slate-700 px-4 py-2 text-sm text-gray-300 transition-colors hover:border-slate-500 hover:text-white'
+                                >
+                                    <MessageCircle className='h-4 w-4' />
+                                    Message
+                                </Link>
+                            )}
                             <button
                                 type='button'
                                 onClick={handleFollow}
@@ -219,6 +230,7 @@ function ProfilePage() {
                             >
                                 {profile.is_following ? 'Following' : 'Follow'}
                             </button>
+                            </div>
                         )}
                     </div>
 

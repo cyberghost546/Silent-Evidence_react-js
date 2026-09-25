@@ -19,6 +19,13 @@ import SlideDashboard from './components/SlideDashboard/SlideDashboard'
 import SettingsPage from './components/SettingsPage/SettingsPage'
 import LeaderboardPage from './components/LeaderboardPage/LeaderboardPage'
 import FeedPage from './components/FeedPage/FeedPage'
+import MyListsPage from './components/MyListsPage/MyListsPage'
+import HistoryPage from './components/HistoryPage/HistoryPage'
+import MyStoriesPage from './components/MyStoriesPage/MyStoriesPage'
+import InvitesPage from './components/InvitesPage/InvitesPage'
+import MessagesPage from './components/MessagesPage/MessagesPage'
+import SearchPage from './components/SearchPage/SearchPage'
+import InfoPage from './components/InfoPage/InfoPage'
 import './App.css'
 
 function App() {
@@ -103,6 +110,29 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        {/* ----- Pages from the user menu: logged in only ----- */}
+        {/* The same <ProtectedRoute> wrapper as above, once per page. */}
+        <Route path='/lists' element={<ProtectedRoute><MyListsPage /></ProtectedRoute>} />
+        <Route path='/history' element={<ProtectedRoute><HistoryPage /></ProtectedRoute>} />
+        <Route path='/my-stories' element={<ProtectedRoute><MyStoriesPage /></ProtectedRoute>} />
+        <Route path='/invites' element={<ProtectedRoute><InvitesPage /></ProtectedRoute>} />
+
+        {/* Two URLs, one page: the list alone, or the list + a chat.
+            MessagesPage reads :username with useParams(). */}
+        <Route path='/messages' element={<ProtectedRoute><MessagesPage /></ProtectedRoute>} />
+        <Route path='/messages/:username' element={<ProtectedRoute><MessagesPage /></ProtectedRoute>} />
+
+        {/* Anyone can search. The words go in the URL: /search?q=house */}
+        <Route path='/search' element={<SearchPage />} />
+
+        {/* The text pages: /about, /privacy, /terms, /cookies...
+            ONE route for all of them - InfoPage looks up :page in
+            infoPages.js, and shows "Page not found" for anything
+            that isn't there. React Router always prefers an exact
+            path (like /search above) over a :placeholder, so this
+            never steals another page's URL. */}
+        <Route path='/:page' element={<InfoPage />} />
 
         {/* Anyone can see who's on top - no ProtectedRoute. */}
         <Route path='/leaderboard' element={<LeaderboardPage />} />

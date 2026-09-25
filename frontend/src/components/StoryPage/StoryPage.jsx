@@ -190,7 +190,19 @@ function StoryPage() {
                             {initials}
                         </span>
                         <div>
-                            <p className='font-semibold text-red-400'>{story.author}</p>
+                            {/* The author (and co-authors, if anyone accepted
+                                a Co-author Invite), each a link to their profile. */}
+                            <p className='font-semibold text-red-400'>
+                                <Link to={`/profile/${story.author}`} className='hover:text-red-300'>{story.author}</Link>
+                                {/* story.coauthors = ['night_owl', ...] or [].
+                                    Each one gets " & name" after the author. */}
+                                {story.coauthors?.map(name => (
+                                    <span key={name} className='text-gray-400'>
+                                        {' & '}
+                                        <Link to={`/profile/${name}`} className='text-red-400 hover:text-red-300'>{name}</Link>
+                                    </span>
+                                ))}
+                            </p>
                             {/* flex-wrap: on a phone the details wrap onto a
                                 second line instead of squashing together. */}
                             <p className='flex flex-wrap items-center gap-x-2 text-xs text-gray-500'>
