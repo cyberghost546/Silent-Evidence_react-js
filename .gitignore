@@ -1,0 +1,26 @@
+# ---------------------------------------------------------------
+# Files git should NOT keep track of. (frontend/.gitignore has the
+# React ones: node_modules, dist...)
+# ---------------------------------------------------------------
+
+# Python turns every .py file into a compiled .pyc in __pycache__.
+# They're made again automatically, and change on every run - so
+# they would show up in every commit for no reason.
+__pycache__/
+*.pyc
+
+# The Python virtual environment (the installed packages).
+# Anyone can make their own with: python -m venv venv
+venv/
+
+# The database. It's YOUR local data (users, password hashes,
+# stories), not code. Everyone else builds their own with
+# "python manage.py migrate".
+backend/db.sqlite3
+
+# Pictures people upload (avatars, story covers).
+backend/media/
+
+# Editor / OS clutter
+.vscode/
+.DS_Store
