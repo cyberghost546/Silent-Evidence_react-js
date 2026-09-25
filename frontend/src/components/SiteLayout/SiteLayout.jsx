@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router-dom'
 import Header from '../Header/Header'
 import Footer from '../Footer/Footer'
+import BackToTop from '../BackToTop/BackToTop'
 
 
 // ---------------------------------------------------------------
@@ -24,6 +25,9 @@ function SiteLayout() {
             </main>
 
             <Footer />
+
+            {/* The round "back to top" button - on every public page. */}
+            <BackToTop />
         </div>
     )
 }

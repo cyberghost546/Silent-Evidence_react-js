@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom'
 import { Eye, BookOpen } from 'lucide-react'
 import { getStory, getStories, mediaUrl } from '../../api/client'
 import { pluralize, formatLongDate, splitParagraphs } from '../../utils/format'
+import { stripFormatting } from '../../utils/storyFormat'
 import Breadcrumbs from '../Breadcrumbs/Breadcrumbs'
 import SectionHeading from '../StorySections/SectionHeading'
 import StoryCard from '../StorySections/StoryCard'
@@ -135,7 +136,9 @@ function StoryPage() {
     crumbs.push({ label: story.title })
 
     // Listen reads the title first, then one paragraph at a time.
-    const speechPieces = [story.title, ...splitParagraphs(story.body)]
+    // stripFormatting removes the **bold** / ## marks first, so the
+    // voice doesn't read them out.
+    const speechPieces = [story.title, ...splitParagraphs(stripFormatting(story.body))]
 
     // The first other story is the recommendation, the rest go in the
     // "More from..." grid at the bottom.

@@ -64,11 +64,20 @@ export function AuthProvider({ children }) {
         setUser(null)
     }
 
+    // Ask Django again "who is logged in?". The Settings page calls
+    // this after you change your username or avatar (so the Header
+    // shows the new one), and after deleting your account (Django
+    // then answers "nobody" -> null).
+    async function refreshUser() {
+        const data = await getCurrentUser()
+        setUser(data)
+    }
+
     // `value` is what useAuth() hands back to components.
     // {children} = whatever is between <AuthProvider> and
     // </AuthProvider> in main.jsx (the whole app).
     return (
-        <AuthContext.Provider value={{ user, loading, login, signup, logout }}>
+        <AuthContext.Provider value={{ user, loading, login, signup, logout, refreshUser }}>
             {children}
         </AuthContext.Provider>
     )

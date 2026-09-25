@@ -19,7 +19,8 @@
 /* Chrome, Edge and Safari use these pseudo-elements instead.
    Both sets are needed to cover every browser. */
 .dropdown-scroll::-webkit-scrollbar {
-    width: 6px;
+    width: 6px;   /* for things that scroll up and down */
+    height: 6px;  /* for things that scroll sideways (the mood chips) */
 }
 
 /* The track is the groove the bar slides in. Transparent = invisible. */

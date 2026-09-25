@@ -194,6 +194,30 @@ export function logoutRequest() {
 }
 
 
+
+// --- Authors ---
+
+// The "Authors to Follow" row. Uses authRequest so Django can say
+// is_following: true / false for YOU (logged out = always false).
+// [ { username, story_count, follower_count, is_following }, ... ]
+export function getAuthors(limit = 6) {
+    return authRequest(`/api/accounts/authors/?limit=${limit}`)
+}
+
+// Everything for the top of a profile page (see ProfileView in
+// accounts/views.py). authRequest so Django knows if it's YOUR
+// profile (is_me) and if you follow them (is_following).
+// Throws with .status 404 if there's no such user.
+export function getProfile(username) {
+    return authRequest(`/api/accounts/profile/${username}/`)
+}
+
+// Click once = follow, again = unfollow.
+// Answers { following, follower_count }.
+export function followAuthor(username) {
+    return authRequest(`/api/accounts/authors/${username}/follow/`, 'POST')
+}
+
 // --- Likes, saves and comments (logged in) ---
 
 // Click once = like, again = unlike. Answers { liked, like_count }.
@@ -220,6 +244,55 @@ export function postComment(storyId, body) {
 }
 
 
+
+// --- Writing stories (logged in) ---
+
+// formData, not a plain object, because it can carry a cover image
+// file. Answers with the new story, including its id.
+export function createStory(formData) {
+    return authRequest('/api/stories/new/', 'POST', formData)
+}
+
+
+// --- Last Words (the quote wall on the homepage) ---
+
+// Anyone can read them. [ { id, author, body, created_at }, ... ]
+export function getLastWords() {
+    return getJSON('/api/last-words/')
+}
+
+// Logged in only. Answers with the new quote, same shape as above.
+export function postLastWord(body) {
+    const data = new FormData()
+    data.append('body', body)
+    return authRequest('/api/last-words/', 'POST', data)
+}
+
+
+// --- Contact page ---
+
+// Anyone can send one (no login needed). `form` is
+// { name, email, subject, message }. authRequest because it adds the
+// CSRF token, which Django needs if the sender IS logged in.
+// A 429 error means "too many messages - try again later".
+export function sendContactMessage(form) {
+    const data = new FormData()
+    data.append('name', form.name)
+    data.append('email', form.email)
+    data.append('subject', form.subject)
+    data.append('message', form.message)
+    return authRequest('/api/contact/', 'POST', data)
+}
+
+
+// --- Author Dashboard (logged in) ---
+
+// All the numbers for YOUR stories. days = 7 or 30 (the charts and
+// the "last X days" boxes). See AuthorStatsView in stories/views.py.
+export function getAuthorStats(days = 30) {
+    return authRequest(`/api/author/stats/?days=${days}`)
+}
+
 // --- Dashboard (admin only) ---
 
 // Numbers, chart data and recent lists for the Overview page.
@@ -245,4 +318,82 @@ export function updateSlide(id, formData) {
 
 export function deleteSlide(id) {
     return authRequest(`/api/dashboard/slides/${id}/`, 'DELETE')
+}
+
+
+// --- Settings page (logged in) ---
+
+// Everything the Settings page shows, in one object:
+// { username, email, avatar, bio, website, content_access,
+//   fear_moods, reading_speed, weekly_digest, comment_digest,
+//   profile_theme, avatar_border, is_private }
+export function getSettings() {
+    return authRequest('/api/accounts/settings/')
+}
+
+// Change SOME settings. `changes` is a plain object with only the
+// fields you want to change: { bio: 'Hi' } or { weekly_digest: false }.
+// Answers with ALL the settings again (the updated version).
+//
+// We turn it into FormData because the avatar can be a file.
+export function updateSettings(changes) {
+    const data = new FormData()
+    for (const [key, value] of Object.entries(changes)) {
+        data.append(key, value)
+    }
+    return authRequest('/api/accounts/settings/', 'PATCH', data)
+}
+
+export function changePassword(currentPassword, newPassword) {
+    const data = new FormData()
+    data.append('current_password', currentPassword)
+    data.append('new_password', newPassword)
+    return authRequest('/api/accounts/change-password/', 'POST', data)
+}
+
+// Deletes the account for good (and logs out).
+export function deleteAccount(password) {
+    const data = new FormData()
+    data.append('password', password)
+    return authRequest('/api/accounts/delete/', 'POST', data)
+}
+
+// [ 'troll99', ... ] - usernames you blocked.
+export function getBlockedUsers() {
+    return authRequest('/api/accounts/blocks/')
+}
+
+// Both answer with the new list.
+export function blockUser(username) {
+    const data = new FormData()
+    data.append('username', username)
+    return authRequest('/api/accounts/blocks/', 'POST', data)
+}
+
+export function unblockUser(username) {
+    return authRequest(`/api/accounts/blocks/${username}/`, 'DELETE')
+}
+
+// Everything the site has about you, as one big object.
+export function exportMyData() {
+    return authRequest('/api/accounts/export/')
+}
+
+
+// --- Leaderboard (anyone) ---
+
+// tab = 'all' or 'elite'. Most likes first:
+// [ { rank, username, avatar, story_count, follower_count,
+//     total_likes, total_views, is_elite }, ... ]
+export function getLeaderboard(tab = 'all') {
+    return getJSON(`/api/accounts/leaderboard/?tab=${tab}`)
+}
+
+
+// --- My Feed (logged in) ---
+
+// Stories by the authors you follow. sort = 'newest' or 'popular'.
+// { following: [ { username, avatar }, ... ], stories: [ ...cards ] }
+export function getFeed(sort = 'newest') {
+    return authRequest(`/api/stories/feed/?sort=${sort}`)
 }

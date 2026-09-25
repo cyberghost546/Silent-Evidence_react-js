@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom'
-import { MessageCircleMore, Bell } from 'lucide-react'
+import { MessageCircleMore } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import UserMenu from '../UserMenu/UserMenu'
+import NotificationMenu from '../NotificationMenu/NotificationMenu'
 import CategoryDropdown from '../CategoryDropdown/CategoryDropdown'
 import NavDropdown from '../NavDropdown/NavDropdown'
 
@@ -142,9 +143,8 @@ function Header() {
                         <Link to='/messages' aria-label='Messages' className={ICON_BUTTON}>
                             <MessageCircleMore className='w-5 h-5' />
                         </Link>
-                        <Link to='/notifications' aria-label='Notifications' className={ICON_BUTTON}>
-                            <Bell className='w-5 h-5' />
-                        </Link>
+                        {/* The bell + dropdown lives in its own component. */}
+                        <NotificationMenu />
                         <UserMenu user={user} onLogout={logout} />
                     </>
                 ) : (

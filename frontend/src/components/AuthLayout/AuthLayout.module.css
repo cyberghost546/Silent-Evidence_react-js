@@ -1,0 +1,30 @@
+/* ---------------------------------------------------------------
+   AuthLayout.module.css - a CSS Module (see SignUp.module.css for
+   how they work). The shared look of the Log In and Sign Up pages:
+   the dark page and the glowing card.
+
+   The pages import it too, for the card:
+       import authStyles from '../AuthLayout/AuthLayout.module.css'
+       <form className={`${authStyles.card} ...`}>
+   --------------------------------------------------------------- */
+
+
+/* The whole page: very dark, a little lighter in the middle, and a
+   faint red glow coming up from the bottom edge. Two gradients
+   stacked with a comma - the first one is on top. */
+.page {
+    background:
+        radial-gradient(ellipse at 50% 110%, rgba(127, 29, 29, 0.35) 0%, transparent 55%),
+        radial-gradient(ellipse at 50% 40%, #0b1120 0%, #020617 70%);
+}
+
+
+/* The card: a dark gradient + a red glow around it.
+   0 0 = no offset, so the glow spreads evenly on all 4 sides.
+   80px = how far out it fades.
+   rgba(220, 38, 38, 0.35) = Tailwind's red-600 at 35% strength.
+   Try 0.6 for a stronger glow, 0.15 for a subtle one. */
+.card {
+    background: linear-gradient(180deg, #1a1b26 0%, #111520 100%);
+    box-shadow: 0 0 80px rgba(220, 38, 38, 0.35);
+}

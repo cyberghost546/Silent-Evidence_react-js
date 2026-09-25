@@ -7,10 +7,10 @@
 
    Use it in the JSX like this:
        import styles from './SignUp.module.css'
-       <div className={styles.card}>
+       <div className={styles.divider}>
 
    Mix it with Tailwind in a template string:
-       <div className={`${styles.card} rounded-2xl p-9`}>
+       <div className={`${styles.divider} my-6 text-xs`}>
 
    Rule of thumb for this project:
      - Tailwind for everyday stuff: spacing, colours, sizes, flex.
@@ -21,17 +21,9 @@
    --------------------------------------------------------------- */
 
 
-/* The card: a dark gradient + the red glow around it. */
-.card {
-    /* Slightly lighter at the top, darker at the bottom. */
-    background: linear-gradient(180deg, #1a1b26 0%, #111520 100%);
-
-    /* 0 0 = no offset, so the glow spreads evenly on all 4 sides.
-       80px = how far out it fades.
-       rgba(220, 38, 38, 0.35) = Tailwind's red-600 at 35% strength.
-       Try 0.6 for a stronger glow, 0.15 for a subtle one. */
-    box-shadow: 0 0 80px rgba(220, 38, 38, 0.35);
-}
+/* (The glowing card used to live here. It moved to
+   AuthLayout/AuthLayout.module.css, so Log In and Sign Up share
+   ONE copy - see authStyles.card in SignUp.jsx.) */
 
 
 /* "——————  or register with email  ——————"

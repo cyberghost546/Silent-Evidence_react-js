@@ -1,4 +1,4 @@
-import { splitParagraphs } from '../../utils/format'
+import { parseStory, parseInline } from '../../utils/storyFormat'
 
 
 // The text sizes the reader can pick (ReadingToolbar), as Tailwind
@@ -11,14 +11,32 @@ const SIZE_CLASSES = {
 
 
 // ---------------------------------------------------------------
-// The story text itself. Used on the page AND in Focus mode, so the
-// paragraph logic lives in one place.
+// One line of text with **bold**, *italic* and __underline__ drawn.
+// parseInline() (utils/storyFormat.js) splits it into pieces, and
+// each piece becomes the right tag.
+// ---------------------------------------------------------------
+function InlineText({ text }) {
+    return parseInline(text).map((piece, index) => {
+        if (piece.style === 'bold') return <strong key={index} className='font-bold text-white'>{piece.text}</strong>
+        if (piece.style === 'italic') return <em key={index}>{piece.text}</em>
+        if (piece.style === 'underline') return <u key={index}>{piece.text}</u>
+        return <span key={index}>{piece.text}</span>
+    })
+}
+
+
+// ---------------------------------------------------------------
+// The story text itself. Used on the story page, in Focus mode, and
+// as the Preview on the Write a Story page - so the logic lives in
+// one place.
 //
 // Usage:
 //   <StoryBody body={story.body} size='large' />
 // ---------------------------------------------------------------
 function StoryBody({ body, size = 'normal' }) {
-    const paragraphs = splitParagraphs(body)
+    // Text -> blocks (paragraphs, headings, lists...). See
+    // utils/storyFormat.js for the rules.
+    const blocks = parseStory(body)
 
     return (
         // The text goes in as plain text, NEVER as HTML
@@ -26,14 +44,50 @@ function StoryBody({ body, size = 'normal' }) {
         // would let them sneak a <script> in. As plain text, React
         // shows "<script>" as harmless letters.
         <div className={`space-y-6 text-gray-200 ${SIZE_CLASSES[size] || SIZE_CLASSES.normal}`}>
-            {/* key={index} is OK here - the usual "use the id, not the
-                position" rule is about lists that can be reordered or
-                edited. Paragraphs never move, and they don't have ids.
-                whitespace-pre-line keeps single line breaks inside a
-                paragraph (poems, dialogue). */}
-            {paragraphs.map((paragraph, index) => (
-                <p key={index} className='whitespace-pre-line'>{paragraph}</p>
-            ))}
+            {/* key={index} is OK here - the blocks never get reordered
+                and don't have ids. One if per block type. */}
+            {blocks.map((block, index) => {
+                if (block.type === 'h2') {
+                    return <h2 key={index} className='pt-2 text-2xl font-bold text-white'><InlineText text={block.text} /></h2>
+                }
+
+                if (block.type === 'h3') {
+                    return <h3 key={index} className='text-xl font-bold text-white'><InlineText text={block.text} /></h3>
+                }
+
+                if (block.type === 'hr') {
+                    return <hr key={index} className='border-gray-700' />
+                }
+
+                if (block.type === 'quote') {
+                    // whitespace-pre-line keeps the line breaks inside the quote.
+                    return (
+                        <blockquote key={index} className='whitespace-pre-line border-l-4 border-red-600 pl-4 italic text-gray-300'>
+                            <InlineText text={block.text} />
+                        </blockquote>
+                    )
+                }
+
+                if (block.type === 'list') {
+                    // Same list, two possible tags: <ol> numbers it, <ul> uses dots.
+                    const ListTag = block.ordered ? 'ol' : 'ul'
+                    return (
+                        <ListTag key={index} className={`space-y-1 pl-6 ${block.ordered ? 'list-decimal' : 'list-disc'}`}>
+                            {block.items.map((item, itemIndex) => (
+                                <li key={itemIndex}><InlineText text={item} /></li>
+                            ))}
+                        </ListTag>
+                    )
+                }
+
+                // Normal paragraph. whitespace-pre-line keeps single line
+                // breaks inside a paragraph (poems, dialogue).
+                return (
+                    <p key={index} className='whitespace-pre-line'>
+                        <InlineText text={block.text} />
+                    </p>
+                )
+            })}
         </div>
     )
 }

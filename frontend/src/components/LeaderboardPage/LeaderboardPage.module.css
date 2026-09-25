@@ -1,0 +1,17 @@
+/* ---------------------------------------------------------------
+   The dark band at the top of the Leaderboard with a soft red glow.
+
+   Why a CSS Module and not Tailwind? You CAN write gradients in
+   Tailwind, but with two layered backgrounds the class becomes one
+   unreadable line. Here each layer gets its own line and comment.
+
+   Two backgrounds stacked in ONE property - the first one listed is
+   drawn on TOP:
+     1. a red glow, an ellipse at the top centre that fades out
+     2. the plain dark navy underneath
+   --------------------------------------------------------------- */
+.hero {
+    background:
+        radial-gradient(ellipse at top, rgba(127, 29, 29, 0.45), transparent 60%),
+        #020617;
+}

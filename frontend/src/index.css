@@ -13,3 +13,47 @@
    Pick one CSS framework per project - mixing them causes exactly
    this kind of "why is my class ignored?" bug.
    --------------------------------------------------------------- */
+
+
+/* ---------------------------------------------------------------
+   THE PAGE SCROLLBAR (the one on the right edge of the window).
+
+   A red bar on a dark track, to match the site. Same idea as
+   .dropdown-scroll in NavDropdown.css, but on <html> so it styles
+   the WHOLE page's scrollbar.
+
+   Two sets again, because browsers disagree:
+     - Firefox: scrollbar-color (and scrollbar-width)
+     - Chrome, Edge, Safari: the ::-webkit-scrollbar pseudo-elements
+   --------------------------------------------------------------- */
+/* Firefox only. @supports not selector(...) = "browsers that DON'T
+   know ::-webkit-scrollbar". New Chrome ignores the ::-webkit- rules
+   below if scrollbar-color is set, so Chrome must not see it. */
+@supports not selector(::-webkit-scrollbar) {
+    html {
+        scrollbar-color: #dc2626 #020617; /* thumb (red-600), track (slate-950) */
+        scrollbar-width: thin;
+    }
+}
+
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+/* The track = the groove the bar slides in. */
+::-webkit-scrollbar-track {
+    background: #020617;
+}
+
+/* The thumb = the part you drag. The border in the track colour
+   makes it look thinner and "floating", with rounded ends. */
+::-webkit-scrollbar-thumb {
+    background-color: #dc2626;
+    border: 2px solid #020617;
+    border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: #ef4444; /* red-500, a bit brighter */
+}

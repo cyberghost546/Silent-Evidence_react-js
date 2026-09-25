@@ -5,6 +5,7 @@ import {
     LogOut, ChevronDown,
 } from 'lucide-react'
 import { useDropdown } from '../../hooks/useDropdown'
+import Avatar from '../Avatar/Avatar'
 
 // The red "dropdown-scroll" scrollbar from NavDropdown - built to be
 // reused on anything that scrolls. Importing it here makes sure it's
@@ -67,9 +68,6 @@ function UserMenu({ user, onLogout }) {
     // need to write that logic a second time.
     const { open, toggle, close, ref } = useDropdown()
 
-    // 'christopher' -> 'CH'
-    const initials = user.username.slice(0, 2).toUpperCase()
-
     // Take out the admin-only rows for normal users.
     // .map() goes over the groups, .filter() goes over the items in
     // each group - so the result has the same two-group shape.
@@ -92,10 +90,9 @@ function UserMenu({ user, onLogout }) {
                 aria-label='Account menu'
                 className='flex items-center gap-1.5'
             >
-                {/* ring-2 = a coloured outline around the circle. */}
-                <span className='flex h-10 w-10 items-center justify-center rounded-full bg-red-600 text-sm font-bold text-white ring-2 ring-red-900'>
-                    {initials}
-                </span>
+                {/* Your photo, or your initials on a red circle
+                    (components/Avatar/Avatar.jsx). */}
+                <Avatar username={user.username} image={user.avatar} />
 
                 {/* Spins upside down while the menu is open. */}
                 <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`} />

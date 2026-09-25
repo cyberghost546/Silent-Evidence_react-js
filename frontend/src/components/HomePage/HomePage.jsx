@@ -1,6 +1,9 @@
 import SlideShow from '../SlideShow/SlideShow'
 import StorySections from '../StorySections/StorySections'
 import CategoryGrid from '../CategoryGrid/CategoryGrid'
+import HomeFeed from '../HomeFeed/HomeFeed'
+import WriteCallToAction from '../HomeFeed/WriteCallToAction'
+import LastWords from '../HomeFeed/LastWords'
 
 
 // The homepage ("/") is just its sections stacked top to bottom.
@@ -21,7 +24,16 @@ function HomePage() {
             <div className='space-y-20 bg-gray-900 px-4 py-14'>
                 <StorySections />
                 <CategoryGrid />
+
+                {/* Authors, Latest Stories and the sidebar
+                    (Trending, Horror Calendar...). See HomeFeed.jsx. */}
+                <HomeFeed />
             </div>
+
+            {/* These two go OUTSIDE the band above, because they have
+                their own full-width backgrounds. */}
+            <WriteCallToAction />
+            <LastWords />
         </>
     )
 }

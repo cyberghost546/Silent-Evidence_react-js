@@ -1,0 +1,71 @@
+/* ---------------------------------------------------------------
+   The avatar border animations for the Appearance preview.
+
+   Why a CSS Module and not Tailwind? Tailwind has a few ready-made
+   animations (animate-pulse, animate-spin), but a glow in the
+   THEME's colour, or a flicker, needs our own @keyframes.
+
+   --theme-color is a CSS variable. The component sets it with
+   style={{ '--theme-color': '#dc2626' }}, so ONE animation works
+   for every theme colour.
+   --------------------------------------------------------------- */
+
+
+/* PULSE GLOW - a soft glow that grows and shrinks. */
+.pulse {
+    animation: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+    0%,
+    100% {
+        box-shadow: 0 0 6px 1px var(--theme-color);
+    }
+    50% {
+        box-shadow: 0 0 22px 6px var(--theme-color);
+    }
+}
+
+
+/* ORBIT RING - a dashed ring that turns around the avatar.
+   It's a separate element ON TOP of the avatar (see the JSX), so
+   the avatar itself doesn't spin. */
+.orbit {
+    position: absolute;
+    inset: -6px;              /* 6px bigger than the avatar on every side */
+    border: 2px dashed var(--theme-color);
+    border-radius: 9999px;
+    animation: orbit-spin 6s linear infinite;
+}
+
+@keyframes orbit-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+
+/* FLICKER - like a broken light bulb: mostly on, sometimes not. */
+.flicker {
+    animation: flicker 3s linear infinite;
+}
+
+@keyframes flicker {
+    0%, 18%, 22%, 25%, 53%, 57%, 100% {
+        box-shadow: 0 0 16px 3px var(--theme-color);
+    }
+    20%, 24%, 55% {
+        box-shadow: none;
+    }
+}
+
+
+/* Some people turn off animations in their computer's settings
+   (motion can make them feel sick). Respect that. */
+@media (prefers-reduced-motion: reduce) {
+    .pulse,
+    .orbit,
+    .flicker {
+        animation: none;
+    }
+}

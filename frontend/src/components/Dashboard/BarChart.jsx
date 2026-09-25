@@ -14,6 +14,11 @@ import styles from './Dashboard.module.css'
 // The trick: every bar's height is a PERCENTAGE of the tallest
 // value. The biggest bar is always (nearly) full height, the others
 // are sized relative to it. So it works for 5 sign-ups or 5,000.
+//
+// LOTS OF BARS (more than 14, e.g. 30 days): there's no room for a
+// number on every bar or a label under every bar. So the chart goes
+// "compact" by itself: thinner gaps, no numbers (hover a bar to see
+// it), and only every 5th label.
 // ---------------------------------------------------------------
 function BarChart({ data, color = 'bg-green-500', legend }) {
     // The biggest value in the list.
@@ -22,19 +27,23 @@ function BarChart({ data, color = 'bg-green-500', legend }) {
     // The extra 1 stops us dividing by zero when every value is 0.
     const max = Math.max(...data.map(item => item.value), 1)
 
+    const compact = data.length > 14
+    const gap = compact ? 'gap-1' : 'gap-3'
+
     return (
         <div>
             {/* ---------- THE BARS ---------- */}
             {/* items-end lines every column up along the bottom. */}
-            <div className={`${styles.chartGrid} flex h-48 items-end gap-3 px-2`}>
+            <div className={`${styles.chartGrid} flex h-48 items-end ${gap} px-2`}>
                 {data.map(item => {
                     // 85 instead of 100 leaves room for the number
                     // sitting on top of the tallest bar.
                     const heightPercent = (item.value / max) * 85
 
                     return (
-                        <div key={item.label} className='flex h-full flex-1 flex-col items-center justify-end'>
-                            <span className='mb-1 text-xs text-gray-400'>{item.value}</span>
+                        // title = the little tooltip when you hover the bar.
+                        <div key={item.label} title={`${item.label}: ${item.value}`} className='flex h-full flex-1 flex-col items-center justify-end'>
+                            {!compact && <span className='mb-1 text-xs text-gray-400'>{item.value}</span>}
 
                             {/* The height changes per bar, so it can't be a
                                 Tailwind class - it goes in style={{ }}.
@@ -53,10 +62,14 @@ function BarChart({ data, color = 'bg-green-500', legend }) {
             {/* ---------- THE LABELS UNDER THE BARS ---------- */}
             {/* Same gap and flex-1 as the bars above, so each label
                 lines up under its own bar. */}
-            <div className='mt-2 flex gap-3 px-2'>
-                {data.map(item => (
-                    <span key={item.label} className='flex-1 text-center text-xs text-gray-500'>
-                        {item.label}
+            <div className={`mt-2 flex ${gap} px-2`}>
+                {/* In compact mode only every 5th label is written;
+                    the others are empty but still take up their space,
+                    so the written ones stay under the right bar.
+                    whitespace-nowrap stops "Sep 24" breaking in two. */}
+                {data.map((item, index) => (
+                    <span key={item.label} className='flex-1 whitespace-nowrap text-center text-xs text-gray-500'>
+                        {!compact || index % 5 === 0 ? item.label : ''}
                     </span>
                 ))}
             </div>
