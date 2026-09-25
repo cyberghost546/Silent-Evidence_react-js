@@ -250,8 +250,34 @@ class ProfileView(APIView):
             and Follow.objects.filter(follower=request.user, following=person).exists()
         )
 
+        # PRIVATE PROFILE (Settings -> Account -> Private Profile):
+        # only their followers (and they themselves) see the details.
+        # Everyone else gets the name, the follow button and a lock.
+        profile = get_profile(person)
+        is_locked = profile.is_private and not is_me and not is_following
+
+        # An empty ImageField has no .url, so check first.
+        avatar = profile.avatar.url if profile.avatar else ''
+
+        if is_locked:
+            return Response({
+                'username': person.username,
+                'avatar': avatar,
+                'date_joined': person.date_joined,
+                'follower_count': person.followers.count(),
+                'is_following': False,
+                'is_me': False,
+                'is_private': True,
+                'is_locked': True,
+            })
+
         return Response({
             'username': person.username,
+            'avatar': avatar,
+            'bio': profile.bio,
+            'website': profile.website,
+            'is_private': profile.is_private,
+            'is_locked': False,
             'date_joined': person.date_joined,
             'story_count': stories.count(),
             'follower_count': person.followers.count(),

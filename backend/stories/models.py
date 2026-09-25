@@ -3,6 +3,7 @@ from django.db import models
 from django.db.models import Q
 from django.utils import timezone
 
+from accounts.models import Follow, Block, get_profile
 from categories.models import Category
 
 
@@ -130,10 +131,21 @@ class Story(models.Model):
         # .split() cuts the text at spaces -> a list of words.
         return len(self.body.split())
 
-    def reading_time(self):
-        # People read roughly 200 words a minute. max(1, ...) so a
-        # very short story says "1 min read", not "0 min read".
-        return max(1, round(self.word_count() / 200))
+    # wpm = "words per minute". The average reader does about 238.
+    # The serializer passes a different number for people who picked
+    # Slow or Fast on the Settings page (see READING_WPM below).
+    # max(1, ...) so a very short story says "1 min read", not "0".
+    def reading_time(self, wpm=238):
+        return max(1, round(self.word_count() / wpm))
+
+
+# Settings page "Reading Speed" -> words per minute.
+# The labels on that page ("~150 wpm") use the same numbers.
+READING_WPM = {
+    'slow': 150,
+    'average': 238,
+    'fast': 350,
+}
 
 
 # ---------------------------------------------------------------
@@ -226,3 +238,62 @@ class LastWord(models.Model):
 
     def __str__(self):
         return f'{self.author}: {self.body[:40]}'
+
+
+# ---------------------------------------------------------------
+# "Which stories can THIS person see?"
+#
+# published_stories() above is the same for everyone. This one also
+# looks at WHO is asking, and uses their Settings page choices:
+#
+#   1. Age & Content Access - hide stories rated above your level
+#   2. Blocked Users        - hide stories by people you blocked
+#   3. Private profiles     - their stories are for their followers
+#                             only (and themselves, of course)
+#
+# Usage in a view:
+#   stories = stories_for(request.user)
+# ---------------------------------------------------------------
+
+# Which ratings each access level may read.
+ALLOWED_RATINGS = {
+    'all': ['all'],
+    'teen': ['all', 'teen'],
+    'mature': ['all', 'teen', 'mature'],
+}
+
+
+def stories_for(user):
+    stories = published_stories()
+
+    # "Written by someone with a private profile". author__profile =
+    # follow the author to their Profile row.
+    by_private_author = Q(author__profile__is_private=True)
+
+    # Logged out: no settings, no follows - just hide private ones.
+    if not user.is_authenticated:
+        return stories.exclude(by_private_author)
+
+    # 1. Content rating. content_rating__in = "is one of these".
+    level = get_profile(user).content_access
+    stories = stories.filter(content_rating__in=ALLOWED_RATINGS[level])
+
+    # 2. Blocked authors. .values('blocked_id') is a list of ids that
+    # Django turns into a sub-query - no extra trip to the database.
+    blocked_ids = Block.objects.filter(blocker=user).values('blocked_id')
+    stories = stories.exclude(author__in=blocked_ids)
+
+    # 3. Private authors: hide them UNLESS it's me or someone I follow.
+    # ~Q(...) means NOT.
+    followed_ids = Follow.objects.filter(follower=user).values('following_id')
+    stories = stories.exclude(by_private_author & ~Q(author=user) & ~Q(author__in=followed_ids))
+
+    return stories
+
+
+# How fast does this user read? (For reading_time above.)
+# Logged out -> the average.
+def wpm_for(user):
+    if not user.is_authenticated:
+        return READING_WPM['average']
+    return READING_WPM[get_profile(user).reading_speed]

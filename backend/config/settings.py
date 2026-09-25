@@ -154,3 +154,12 @@ CSRF_TRUSTED_ORIGINS = [
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+
+# While running "python manage.py test": use a FAST (and weak) way to
+# hash passwords. The real one is slow ON PURPOSE (to make guessing
+# passwords slow), which made the tests take almost 2 minutes.
+# Only for tests - the real site still uses the strong one.
+import sys
+if 'test' in sys.argv:
+    PASSWORD_HASHERS = ['django.contrib.auth.hashers.MD5PasswordHasher']

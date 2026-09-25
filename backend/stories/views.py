@@ -10,7 +10,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from accounts.models import Follow
-from .models import Story, Like, Bookmark, Comment, LastWord, published_stories
+from accounts.models import Block
+from .models import Story, Like, Bookmark, Comment, LastWord, published_stories, stories_for
 from .serializers import StoryCardSerializer, StoryDetailSerializer, StoryWriteSerializer, CommentSerializer, LastWordSerializer
 
 
@@ -36,7 +37,9 @@ class StoryListView(generics.ListAPIView):
     # Instead of a fixed `queryset = ...`, get_queryset() runs on
     # EVERY request, so the query can depend on the URL.
     def get_queryset(self):
-        stories = published_stories().select_related('author', 'category')
+        # stories_for() = only what THIS visitor may see (their content
+        # level, blocked users, private profiles - see stories/models.py).
+        stories = stories_for(self.request.user).select_related('author', 'category')
 
         # request.query_params is a dict of the ?key=value pairs.
         # .get() gives None if the key isn't in the URL.
@@ -107,8 +110,12 @@ class StoryDetailView(generics.RetrieveAPIView):
 
     # A method, not `queryset = ...`, so "is the publish date past?"
     # is checked on every request (see published_stories()).
+    #
+    # stories_for(): a story you may not see (blocked author, too
+    # mature for your setting, private) answers 404 - as if it
+    # doesn't exist.
     def get_queryset(self):
-        return published_stories().select_related('author', 'category')
+        return stories_for(self.request.user).select_related('author', 'category')
 
     # retrieve() is the method RetrieveAPIView runs for a GET. We take
     # over so we can count the view before answering.
@@ -162,7 +169,7 @@ class ToggleLikeView(APIView):
     def post(self, request, pk):
         # Like get_object(), but for an APIView: the story, or a 404.
         # Drafts count as "not found".
-        story = get_object_or_404(published_stories(), pk=pk)
+        story = get_object_or_404(stories_for(request.user), pk=pk)
         liked = toggle(Like, request.user, story)
         return Response({'liked': liked, 'like_count': story.likes.count()})
 
@@ -172,7 +179,7 @@ class ToggleSaveView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, pk):
-        story = get_object_or_404(published_stories(), pk=pk)
+        story = get_object_or_404(stories_for(request.user), pk=pk)
         saved = toggle(Bookmark, request.user, story)
         return Response({'saved': saved})
 
@@ -188,13 +195,20 @@ class CommentListView(generics.ListCreateAPIView):
 
     def get_story(self):
         # self.kwargs holds the values from the URL - here the <int:pk>.
-        return get_object_or_404(published_stories(), pk=self.kwargs['pk'])
+        return get_object_or_404(stories_for(self.request.user), pk=self.kwargs['pk'])
 
     def get_queryset(self):
         # story.comments = all comments pointing at this story (the
         # related_name). select_related('author') fetches the usernames
         # in the same query.
-        return self.get_story().comments.select_related('author')
+        comments = self.get_story().comments.select_related('author')
+
+        # Hide comments by people you blocked (Settings -> Blocked Users).
+        if self.request.user.is_authenticated:
+            blocked_ids = Block.objects.filter(blocker=self.request.user).values('blocked_id')
+            comments = comments.exclude(author__in=blocked_ids)
+
+        return comments
 
     # perform_create runs when a POST passed validation, right before
     # saving. We add the two things the visitor must NOT choose
@@ -212,7 +226,7 @@ class RandomStoryView(APIView):
         # order_by('?') = "shuffle the rows". Fine for a small site;
         # on a table with millions of rows it gets slow, and you'd
         # pick a random id a smarter way.
-        story = published_stories().order_by('?').first()
+        story = stories_for(request.user).order_by('?').first()
 
         if story is None:
             return Response({'detail': 'There are no stories yet.'}, status=404)
@@ -231,7 +245,7 @@ class FeaturedStoriesView(APIView):
         # Never feature a draft.
         # select_related = fetch the author and category in the SAME
         # database query, instead of one extra query each later.
-        published = published_stories().select_related('author', 'category')
+        published = stories_for(request.user).select_related('author', 'category')
 
         # order_by('-updated_at') = most recently edited first, so if
         # two stories are ticked, the one you ticked last wins.
@@ -430,7 +444,7 @@ class FeedView(APIView):
         followed_ids = Follow.objects.filter(follower=request.user).values_list('following_id', flat=True)
 
         # author__in = "the author is one of these".
-        stories = published_stories().filter(author__in=followed_ids).select_related('author', 'category')
+        stories = stories_for(request.user).filter(author__in=followed_ids).select_related('author', 'category')
 
         if request.query_params.get('sort') == 'popular':
             stories = stories.order_by('-views', '-created_at')

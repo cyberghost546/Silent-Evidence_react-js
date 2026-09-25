@@ -202,7 +202,7 @@ function ReadingSpeed({ settings, onSave }) {
                 })}
             </div>
 
-            <p className='mt-4 text-xs text-gray-500'>Your choice is saved to your account.</p>
+            <p className='mt-4 text-xs text-gray-500'>Reading time estimates on stories adjust to your pace.</p>
         </SettingsSection>
     )
 }

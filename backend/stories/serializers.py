@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Story, Comment, LastWord
+from .models import Story, Comment, LastWord, wpm_for
 
 
 # Everything a story CARD needs - not the full body, which could be
@@ -18,13 +18,29 @@ class StoryCardSerializer(serializers.ModelSerializer):
     # DRF calls get_<fieldname>() and sends whatever it returns.
     category = serializers.SerializerMethodField()
 
-    # reading_time is a METHOD on the model. ReadOnlyField calls it
-    # and sends the result.
-    reading_time = serializers.ReadOnlyField()
+    # reading_time depends on who is reading (Slow / Average / Fast
+    # on the Settings page), so we work it out in get_reading_time().
+    reading_time = serializers.SerializerMethodField()
 
     class Meta:
         model = Story
         fields = ['id', 'title', 'excerpt', 'cover_image', 'category', 'author', 'reading_time', 'views', 'created_at']
+
+    # self.context['request'] is there because the view passes it
+    # (generic views do it by themselves). .get() + the check keep it
+    # from crashing if someone ever forgets.
+    def get_reading_time(self, story):
+        request = self.context.get('request')
+        if request is None:
+            return story.reading_time()
+
+        # For a LIST of 20 cards this runs 20 times, but the reader is
+        # the same person every time. So look their speed up once and
+        # remember it on the serializer (self.wpm) - one database
+        # query instead of 20.
+        if not hasattr(self, 'wpm'):
+            self.wpm = wpm_for(request.user)
+        return story.reading_time(self.wpm)
 
     def get_category(self, story):
         if story.category:

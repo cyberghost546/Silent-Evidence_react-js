@@ -14,9 +14,8 @@ import { INPUT_STYLE, FIELD_ERROR_STYLE } from '../../styles/formStyles'
 // Django (Block in accounts/models.py), not a setting. So this
 // component loads and saves the list by itself.
 //
-// NOTE: for now this only keeps the list. Hiding a blocked user's
-// stories and comments is the next step (the story views would
-// need to leave them out).
+// Django then leaves their stories and comments out of everything
+// you see (stories_for() in backend/stories/models.py).
 // ---------------------------------------------------------------
 function BlockedUsers({ onMessage }) {
     // ['troll99', 'spammer'] - just usernames.
@@ -67,7 +66,7 @@ function BlockedUsers({ onMessage }) {
     }
 
     return (
-        <SettingsSection id='blocked' title='Blocked Users' description="Keep a list of users you don't want to interact with.">
+        <SettingsSection id='blocked' title='Blocked Users' description='Block users to hide their stories and comments from you.'>
             <form onSubmit={handleBlock} className='flex gap-3'>
                 <input
                     value={username}

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { CalendarDays, PenLine, Settings } from 'lucide-react'
-import { getProfile, getStories, followAuthor } from '../../api/client'
+import { CalendarDays, PenLine, Settings, Lock, Link as LinkIcon } from 'lucide-react'
+import { getProfile, getStories, followAuthor, mediaUrl } from '../../api/client'
 import { useAuth } from '../../hooks/useAuth'
 import { useRequireLogin } from '../../hooks/useRequireLogin'
 import SectionHeading from '../StorySections/SectionHeading'
@@ -53,6 +53,9 @@ function ProfilePage() {
     const [profile, setProfile] = useState(null)
     const [stories, setStories] = useState([])
 
+    // Changing this number makes the page load again (see useEffect).
+    const [reloadKey, setReloadKey] = useState(0)
+
     // Runs again when the username changes - e.g. clicking from one
     // profile to another. React keeps the same component, so without
     // [username] here it would keep showing the first person.
@@ -76,13 +79,25 @@ function ProfilePage() {
             })
 
         return () => { ignore = true }
-    }, [username])
+
+        // reloadKey is in the list so we can ask for a reload: after
+        // you follow a PRIVATE profile it unlocks, and we need the
+        // full details that Django hid before.
+    }, [username, reloadKey])
 
     async function handleFollow() {
         if (!requireLogin()) return
 
         try {
             const result = await followAuthor(profile.username)
+
+            // Followed a locked (private) profile -> load it again, now
+            // with everything visible. +1 changes reloadKey, and that
+            // re-runs the useEffect above.
+            if (profile.is_locked && result.following) {
+                setReloadKey(reloadKey + 1)
+                return
+            }
             // Copy the profile, change just these two values.
             setProfile({ ...profile, is_following: result.following, follower_count: result.follower_count })
         } catch (error) {
@@ -125,18 +140,59 @@ function ProfilePage() {
                     {/* ----- Avatar + name + buttons ----- */}
                     {/* flex-wrap: on a phone the buttons drop under the name. */}
                     <div className='flex flex-wrap items-center gap-6'>
-                        {/* shadow-[...] = a custom red glow around the circle. */}
-                        <span className='flex h-24 w-24 shrink-0 items-center justify-center rounded-full bg-red-600 text-3xl text-white ring-4 ring-red-900 shadow-[0_0_40px_rgba(220,38,38,0.45)]'>
-                            {initials}
-                        </span>
+                        {/* shadow-[...] = a custom red glow around the circle.
+                            Their photo if they uploaded one (Settings page),
+                            otherwise their initials. */}
+                        {profile.avatar ? (
+                            <img
+                                src={mediaUrl(profile.avatar)}
+                                alt={`${profile.username}'s avatar`}
+                                className='h-24 w-24 shrink-0 rounded-full object-cover ring-4 ring-red-900 shadow-[0_0_40px_rgba(220,38,38,0.45)]'
+                            />
+                        ) : (
+                            <span className='flex h-24 w-24 shrink-0 items-center justify-center rounded-full bg-red-600 text-3xl text-white ring-4 ring-red-900 shadow-[0_0_40px_rgba(220,38,38,0.45)]'>
+                                {initials}
+                            </span>
+                        )}
 
                         <div className='min-w-0 flex-1'>
                             <h1 className='truncate text-3xl font-bold text-white'>{profile.username}</h1>
 
-                            <p className='mt-2 inline-flex items-center gap-1.5 rounded-full border border-slate-700 bg-slate-900/60 px-3 py-1 text-xs text-gray-400'>
-                                <CalendarDays className='h-3.5 w-3.5' />
-                                Member since {memberSince}
-                            </p>
+                            <div className='mt-2 flex flex-wrap items-center gap-2'>
+                                <p className='inline-flex items-center gap-1.5 rounded-full border border-slate-700 bg-slate-900/60 px-3 py-1 text-xs text-gray-400'>
+                                    <CalendarDays className='h-3.5 w-3.5' />
+                                    Member since {memberSince}
+                                </p>
+
+                                {/* A small "Private" chip if they switched
+                                    on Private Profile in Settings. */}
+                                {profile.is_private && (
+                                    <p className='inline-flex items-center gap-1.5 rounded-full border border-amber-800 bg-amber-950/40 px-3 py-1 text-xs text-amber-300'>
+                                        <Lock className='h-3.5 w-3.5' />
+                                        Private
+                                    </p>
+                                )}
+                            </div>
+
+                            {/* Bio and website from the Settings page.
+                                Only drawn when they filled them in. */}
+                            {profile.bio && <p className='mt-3 max-w-xl text-sm text-gray-300'>{profile.bio}</p>}
+                            {profile.website && (
+                                // target='_blank' opens a new tab.
+                                // rel='noopener noreferrer' stops that other
+                                // site from controlling our tab - always add
+                                // it together with target='_blank'.
+                                <a
+                                    href={profile.website}
+                                    target='_blank'
+                                    rel='noopener noreferrer'
+                                    className='mt-2 inline-flex items-center gap-1.5 text-sm text-red-400 hover:text-red-300'
+                                >
+                                    <LinkIcon className='h-3.5 w-3.5' />
+                                    {/* "https://mysite.com/" -> "mysite.com" */}
+                                    {profile.website.replace(/^https?:\/\//, '').replace(/\/$/, '')}
+                                </a>
+                            )}
                         </div>
 
                         {/* YOUR profile: shortcuts. SOMEONE ELSE'S: Follow. */}
@@ -167,7 +223,10 @@ function ProfilePage() {
                     </div>
 
                     {/* ----- The 5 numbers ----- */}
-                    {/* 2 per row on phones, 3 on tablets, all 5 on big screens. */}
+                    {/* 2 per row on phones, 3 on tablets, all 5 on big screens.
+                        Not shown on a locked (private) profile - Django
+                        doesn't even send them. */}
+                    {!profile.is_locked && (
                     <div className='mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5'>
                         <ProfileStat value={profile.story_count} label='Stories' />
                         <ProfileStat value={profile.follower_count} label='Followers' />
@@ -175,6 +234,7 @@ function ProfilePage() {
                         <ProfileStat value={profile.total_views} label='Views' />
                         <ProfileStat value={profile.total_likes} label='Likes' highlight />
                     </div>
+                    )}
                 </div>
             </div>
 
@@ -183,6 +243,16 @@ function ProfilePage() {
                 max-w-5xl on the inside - so both halves line up. */}
             <div className='px-4 py-12'>
             <div className='mx-auto max-w-5xl space-y-12'>
+                {/* A PRIVATE profile you don't follow: a lock message
+                    instead of the map and the stories. */}
+                {profile.is_locked ? (
+                    <div className='rounded-xl border border-slate-800 bg-slate-950 px-6 py-16 text-center'>
+                        <Lock className='mx-auto h-8 w-8 text-gray-500' />
+                        <p className='mt-4 font-semibold text-gray-200'>This profile is private</p>
+                        <p className='mt-2 text-sm text-gray-500'>Follow {profile.username} to see their stories.</p>
+                    </div>
+                ) : (
+                <>
                 <PublicationMap stories={stories} />
 
                 <section>
@@ -209,6 +279,8 @@ function ProfilePage() {
                         </div>
                     )}
                 </section>
+                </>
+                )}
             </div>
             </div>
         </div>
