@@ -27,4 +27,5 @@ urlpatterns = [
     path('api/', include('dashboard.urls')),
     path('api/', include('stories.urls')),
     path('api/', include('contact.urls')),
+    path('api/messages/', include('messaging.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

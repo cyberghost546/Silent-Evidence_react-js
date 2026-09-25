@@ -1,5 +1,6 @@
 from datetime import datetime, time, timedelta
 
+from django.contrib.auth import get_user_model
 from django.db.models import F, Count, Sum, Q
 from django.db.models.functions import TruncDate
 from django.utils import timezone
@@ -11,8 +12,14 @@ from rest_framework.views import APIView
 
 from accounts.models import Follow
 from accounts.models import Block
-from .models import Story, Like, Bookmark, Comment, LastWord, published_stories, stories_for
-from .serializers import StoryCardSerializer, StoryDetailSerializer, StoryWriteSerializer, CommentSerializer, LastWordSerializer
+from .models import (
+    Story, Like, Bookmark, Comment, LastWord, ReadingHistory, CoAuthorInvite,
+    published_stories, stories_for,
+)
+from .serializers import (
+    StoryCardSerializer, StoryDetailSerializer, StoryWriteSerializer, CommentSerializer, LastWordSerializer,
+    MyStorySerializer, CoAuthorInviteSerializer,
+)
 
 
 # GET /api/stories/
@@ -137,6 +144,9 @@ class StoryDetailView(generics.RetrieveAPIView):
 
         # Re-read the new number so the page shows it.
         story.refresh_from_db(fields=['views'])
+
+        # Logged in? Put it in your Reading History.
+        record_reading(request.user, story)
 
         return Response(self.get_serializer(story).data)
 
@@ -475,3 +485,223 @@ class FeedView(APIView):
             # many=True = "this is a LIST of stories, not one".
             'stories': StoryCardSerializer(stories[:60], many=True, context={'request': request}).data,
         })
+
+
+# ---------------------------------------------------------------
+# MY LISTS - the stories you saved ("Save" on a story page).
+# ---------------------------------------------------------------
+
+# GET /api/stories/saved/  -> your saved stories, last saved first.
+class SavedStoriesView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # Start from stories_for() so a story that became invisible
+        # to you (blocked author, now private...) drops off the list.
+        # bookmarks__user = "has a Bookmark row whose user is me".
+        stories = (
+            stories_for(request.user)
+            .filter(bookmarks__user=request.user)
+            .select_related('author', 'category')
+            .order_by('-bookmarks__created_at')
+        )
+        return Response(StoryCardSerializer(stories, many=True, context={'request': request}).data)
+
+
+# ---------------------------------------------------------------
+# READING HISTORY - filled in by StoryDetailView (record_reading).
+# ---------------------------------------------------------------
+
+# Called every time a logged-in user opens a story.
+# update_or_create: "find the row for this user + story and save it
+# again (which moves last_read_at to now), or make it".
+def record_reading(user, story):
+    if user.is_authenticated:
+        ReadingHistory.objects.update_or_create(user=user, story=story)
+
+
+# GET    /api/stories/history/  -> the stories you read, newest first
+#   [ { "last_read_at": "...", "story": {...card...} }, ... ]
+# DELETE /api/stories/history/  -> forget all of it
+class ReadingHistoryView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # Only stories you may still see (same idea as Saved Stories).
+        visible_ids = stories_for(request.user).values('id')
+        rows = (
+            ReadingHistory.objects
+            .filter(user=request.user, story__in=visible_ids)
+            .select_related('story__author', 'story__category')[:100]
+        )
+
+        data = [
+            {
+                'last_read_at': row.last_read_at,
+                'story': StoryCardSerializer(row.story, context={'request': request}).data,
+            }
+            for row in rows
+        ]
+        return Response(data)
+
+    def delete(self, request):
+        ReadingHistory.objects.filter(user=request.user).delete()
+        return Response(status=204)
+
+
+# ---------------------------------------------------------------
+# MY STORIES - everything YOU wrote, drafts included.
+# ---------------------------------------------------------------
+
+# GET /api/stories/mine/
+class MyStoriesView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # Story.objects, NOT published_stories(): your drafts are
+        # yours to see.
+        stories = Story.objects.filter(author=request.user).select_related('category').order_by('-created_at')
+        return Response(MyStorySerializer(stories, many=True).data)
+
+
+# PATCH  /api/stories/5/manage/  { is_published: true/false }
+# DELETE /api/stories/5/manage/
+#
+# Only for YOUR stories: get_object_or_404 with author=request.user
+# answers 404 for someone else's story, so nobody can delete (or
+# even find out about) a story that isn't theirs.
+class ManageStoryView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get_my_story(self, request, pk):
+        return get_object_or_404(Story, pk=pk, author=request.user)
+
+    def patch(self, request, pk):
+        story = self.get_my_story(request, pk)
+
+        # FormData sends every value as TEXT, so true arrives as the
+        # string 'true'. Turn it into a real True / False.
+        story.is_published = request.data.get('is_published') == 'true'
+        story.save()
+        return Response(MyStorySerializer(story).data)
+
+    def delete(self, request, pk):
+        self.get_my_story(request, pk).delete()
+        return Response(status=204)
+
+
+# ---------------------------------------------------------------
+# SEARCH
+# ---------------------------------------------------------------
+
+# GET /api/search/?q=house
+#   { "stories": [...cards...], "authors": [ { username, avatar, story_count }, ... ] }
+class SearchView(APIView):
+    def get(self, request):
+        query = request.query_params.get('q', '').strip()
+
+        # Fewer than 2 letters would match almost everything.
+        if len(query) < 2:
+            return Response({'stories': [], 'authors': []})
+
+        # icontains = "contains, ignoring upper/lower case".
+        # The | between the Q()s means OR: a match in the title OR
+        # the excerpt OR the body OR the author's name.
+        stories = (
+            stories_for(request.user)
+            .filter(
+                Q(title__icontains=query)
+                | Q(excerpt__icontains=query)
+                | Q(body__icontains=query)
+                | Q(author__username__icontains=query)
+            )
+            .select_related('author', 'category')
+            .order_by('-views')[:30]
+        )
+
+        # Writers whose name matches, with how many stories they have.
+        authors = (
+            get_user_model().objects
+            .filter(username__icontains=query)
+            .select_related('profile')
+            .annotate(story_count=Count('stories', filter=Q(stories__is_published=True)))
+            .order_by('-story_count', 'username')[:10]
+        )
+
+        return Response({
+            'stories': StoryCardSerializer(stories, many=True, context={'request': request}).data,
+            'authors': [
+                {
+                    'username': author.username,
+                    'avatar': author.profile.avatar.url if hasattr(author, 'profile') and author.profile.avatar else '',
+                    'story_count': author.story_count,
+                }
+                for author in authors
+            ],
+        })
+
+
+# ---------------------------------------------------------------
+# CO-AUTHOR INVITES
+# ---------------------------------------------------------------
+
+# GET  /api/invites/  -> { "received": [...], "sent": [...] }
+# POST /api/invites/  { story_id, username }  -> invite someone
+class InviteListView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        received = CoAuthorInvite.objects.filter(to_user=request.user).select_related('story', 'from_user', 'to_user')
+        sent = CoAuthorInvite.objects.filter(from_user=request.user).select_related('story', 'from_user', 'to_user')
+        return Response({
+            'received': CoAuthorInviteSerializer(received, many=True).data,
+            'sent': CoAuthorInviteSerializer(sent, many=True).data,
+        })
+
+    def post(self, request):
+        # Only YOUR stories can get co-authors.
+        story = get_object_or_404(Story, pk=request.data.get('story_id'), author=request.user)
+
+        username = (request.data.get('username') or '').strip()
+        person = get_user_model().objects.filter(username__iexact=username).first()
+
+        if person is None:
+            return Response({'detail': 'No user with that username.'}, status=400)
+        if person == request.user:
+            return Response({'detail': "You can't invite yourself."}, status=400)
+        if CoAuthorInvite.objects.filter(story=story, to_user=person).exists():
+            return Response({'detail': f'{person.username} was already invited to this story.'}, status=400)
+        # Respect blocks in both directions.
+        if Block.objects.filter(Q(blocker=person, blocked=request.user) | Q(blocker=request.user, blocked=person)).exists():
+            return Response({'detail': "You can't invite this user."}, status=400)
+
+        invite = CoAuthorInvite.objects.create(story=story, from_user=request.user, to_user=person)
+        return Response(CoAuthorInviteSerializer(invite).data, status=201)
+
+
+# POST   /api/invites/3/accept/    (the person who was invited)
+# POST   /api/invites/3/decline/   (the person who was invited)
+# DELETE /api/invites/3/           (the person who sent it: cancel)
+class InviteActionView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk, action):
+        # to_user=request.user: you can only answer invites sent TO you.
+        invite = get_object_or_404(CoAuthorInvite, pk=pk, to_user=request.user)
+
+        if invite.status != 'pending':
+            return Response({'detail': 'This invite was already answered.'}, status=400)
+
+        # Anything else in the URL (/invites/3/banana/) -> 404.
+        if action not in ('accept', 'decline'):
+            return Response({'detail': 'Not found.'}, status=404)
+
+        invite.status = 'accepted' if action == 'accept' else 'declined'
+        invite.save()
+        return Response(CoAuthorInviteSerializer(invite).data)
+
+    # action=None: this view has two URLs, and only one has an action.
+    def delete(self, request, pk, action=None):
+        invite = get_object_or_404(CoAuthorInvite, pk=pk, from_user=request.user)
+        invite.delete()
+        return Response(status=204)

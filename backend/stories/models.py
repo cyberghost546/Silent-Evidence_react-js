@@ -297,3 +297,56 @@ def wpm_for(user):
     if not user.is_authenticated:
         return READING_WPM['average']
     return READING_WPM[get_profile(user).reading_speed]
+
+
+# ---------------------------------------------------------------
+# READING HISTORY - "this user opened this story".
+#
+# ONE row per user + story (unique_together). Reading the same
+# story again doesn't add a second row - it just moves last_read_at
+# to now, so the story jumps back to the top of your history.
+#
+# auto_now=True = "set to now every time the row is saved".
+# ---------------------------------------------------------------
+class ReadingHistory(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='reading_history')
+    story = models.ForeignKey(Story, on_delete=models.CASCADE, related_name='readers')
+    last_read_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ['user', 'story']
+        ordering = ['-last_read_at']
+        # The admin would otherwise call it "Reading historys".
+        verbose_name_plural = 'reading history'
+
+    def __str__(self):
+        return f'{self.user} read {self.story}'
+
+
+# ---------------------------------------------------------------
+# CO-AUTHOR INVITE - "please write this story with me".
+#
+# The story's author invites another user. They accept or decline.
+# Accepted = they're a co-author, and their name is shown on the
+# story next to the author's.
+# ---------------------------------------------------------------
+class CoAuthorInvite(models.Model):
+    STATUSES = [
+        ('pending', 'Pending'),
+        ('accepted', 'Accepted'),
+        ('declined', 'Declined'),
+    ]
+
+    story = models.ForeignKey(Story, on_delete=models.CASCADE, related_name='invites')
+    from_user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='invites_sent')
+    to_user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='invites_received')
+    status = models.CharField(max_length=10, choices=STATUSES, default='pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        # You can't invite the same person to the same story twice.
+        unique_together = ['story', 'to_user']
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'{self.from_user} invited {self.to_user} to "{self.story}" ({self.status})'

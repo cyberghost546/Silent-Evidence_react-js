@@ -1,6 +1,7 @@
+from django.utils import timezone
 from rest_framework import serializers
 
-from .models import Story, Comment, LastWord, wpm_for
+from .models import Story, Comment, LastWord, CoAuthorInvite, wpm_for
 
 
 # Everything a story CARD needs - not the full body, which could be
@@ -73,12 +74,14 @@ class StoryDetailSerializer(StoryCardSerializer):
     comment_count = serializers.SerializerMethodField()
     liked = serializers.SerializerMethodField()
     saved = serializers.SerializerMethodField()
+    coauthors = serializers.SerializerMethodField()
 
     # Meta inherits too: same model, and the card's field list with
     # more added on the end.
     class Meta(StoryCardSerializer.Meta):
         fields = StoryCardSerializer.Meta.fields + [
             'body', 'category_slug', 'word_count', 'like_count', 'comment_count', 'liked', 'saved',
+            'coauthors',
             # From the Write a Story page. The story page doesn't show
             # these yet, but they're here for when it does.
             'language', 'video_url', 'audio_url', 'location', 'latitude', 'longitude',
@@ -115,6 +118,12 @@ class StoryDetailSerializer(StoryCardSerializer):
         if not user.is_authenticated:
             return False
         return story.bookmarks.filter(user=user).exists()
+
+    # ['night_owl'] - people who ACCEPTED a co-author invite.
+    # story.invites exists because of related_name on CoAuthorInvite.
+    def get_coauthors(self, story):
+        accepted = story.invites.filter(status='accepted').order_by('to_user__username')
+        return [invite.to_user.username for invite in accepted]
 
 
 # ---------------------------------------------------------------
@@ -187,3 +196,55 @@ class LastWordSerializer(serializers.ModelSerializer):
     # No extra checks needed: DRF's CharField already trims spaces off
     # the ends and refuses an empty quote, and max_length=280 on the
     # model becomes a "no more than 280 characters" check by itself.
+
+
+# ---------------------------------------------------------------
+# One row on the MY STORIES page: your own stories, drafts too.
+# Only what the table shows - no body.
+# ---------------------------------------------------------------
+class MyStorySerializer(serializers.ModelSerializer):
+    category = serializers.SerializerMethodField()
+    like_count = serializers.SerializerMethodField()
+    comment_count = serializers.SerializerMethodField()
+    status = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Story
+        fields = [
+            'id', 'title', 'category', 'is_published', 'publish_at', 'status',
+            'views', 'like_count', 'comment_count', 'created_at',
+        ]
+
+    def get_category(self, story):
+        return story.category.name if story.category else None
+
+    def get_like_count(self, story):
+        return story.likes.count()
+
+    def get_comment_count(self, story):
+        return story.comments.count()
+
+    # One word for the coloured badge:
+    #   'draft'     - not published
+    #   'scheduled' - published, but the publish date is still to come
+    #   'published' - live, anyone can read it
+    def get_status(self, story):
+        if not story.is_published:
+            return 'draft'
+        if story.publish_at and story.publish_at > timezone.now():
+            return 'scheduled'
+        return 'published'
+
+
+# ---------------------------------------------------------------
+# One co-author invite, for the Co-author Invites page.
+# ---------------------------------------------------------------
+class CoAuthorInviteSerializer(serializers.ModelSerializer):
+    story_id = serializers.IntegerField(source='story.id', read_only=True)
+    story_title = serializers.CharField(source='story.title', read_only=True)
+    from_user = serializers.CharField(source='from_user.username', read_only=True)
+    to_user = serializers.CharField(source='to_user.username', read_only=True)
+
+    class Meta:
+        model = CoAuthorInvite
+        fields = ['id', 'story_id', 'story_title', 'from_user', 'to_user', 'status', 'created_at']

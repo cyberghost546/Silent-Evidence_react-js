@@ -107,3 +107,96 @@ class BlockedCommentsTests(TestCase):
         self.client.login(username='me', password=PASSWORD)
         bodies = [c['body'] for c in self.client.get(f'/api/stories/{story.id}/comments/').json()]
         self.assertEqual(bodies, ['nice'])
+
+
+class MyListsAndHistoryTests(TestCase):
+    def setUp(self):
+        self.me = make_user('me')
+        self.story = make_story(make_user('writer'), title='Saved one')
+        self.client.login(username='me', password=PASSWORD)
+
+    def test_saved_stories(self):
+        self.client.post(f'/api/stories/{self.story.id}/save/')
+        titles = [s['title'] for s in self.client.get('/api/stories/saved/').json()]
+        self.assertEqual(titles, ['Saved one'])
+
+    def test_opening_a_story_adds_it_to_history(self):
+        self.client.get(f'/api/stories/{self.story.id}/')
+        self.client.get(f'/api/stories/{self.story.id}/')   # twice = still one row
+        history = self.client.get('/api/stories/history/').json()
+        self.assertEqual(len(history), 1)
+        self.assertEqual(history[0]['story']['title'], 'Saved one')
+
+        self.client.delete('/api/stories/history/')
+        self.assertEqual(self.client.get('/api/stories/history/').json(), [])
+
+
+class MyStoriesTests(TestCase):
+    def setUp(self):
+        self.me = make_user('me')
+        self.draft = make_story(self.me, title='Draft', is_published=False)
+        self.client.login(username='me', password=PASSWORD)
+
+    def test_my_stories_include_drafts(self):
+        rows = self.client.get('/api/stories/mine/').json()
+        self.assertEqual(rows[0]['status'], 'draft')
+
+    def test_publish_and_delete(self):
+        url = f'/api/stories/{self.draft.id}/manage/'
+        self.client.patch(url, 'is_published=true', content_type='application/x-www-form-urlencoded')
+        self.draft.refresh_from_db()
+        self.assertTrue(self.draft.is_published)
+
+        self.client.delete(url)
+        self.assertFalse(Story.objects.filter(id=self.draft.id).exists())
+
+    def test_cannot_touch_someone_elses_story(self):
+        other = make_story(make_user('other'))
+        response = self.client.delete(f'/api/stories/{other.id}/manage/')
+        self.assertEqual(response.status_code, 404)
+        self.assertTrue(Story.objects.filter(id=other.id).exists())
+
+
+class SearchTests(TestCase):
+    def test_search_stories_and_authors(self):
+        writer = make_user('housekeeper')
+        make_story(writer, title='The House on Birch Lane')
+        make_story(writer, title='Something else')
+
+        data = self.client.get('/api/search/?q=house').json()
+        # Both stories match: one by title, one by the author's name.
+        self.assertEqual(len(data['stories']), 2)
+        self.assertEqual(data['authors'][0]['username'], 'housekeeper')
+
+    def test_too_short_query(self):
+        data = self.client.get('/api/search/?q=a').json()
+        self.assertEqual(data, {'stories': [], 'authors': []})
+
+
+class InviteTests(TestCase):
+    def setUp(self):
+        self.me = make_user('me')
+        self.friend = make_user('friend')
+        self.story = make_story(self.me)
+        self.client.login(username='me', password=PASSWORD)
+
+    def test_invite_accept_shows_coauthor(self):
+        response = self.client.post('/api/invites/', {'story_id': self.story.id, 'username': 'friend'})
+        self.assertEqual(response.status_code, 201)
+        invite_id = response.json()['id']
+
+        # Inviting twice is refused.
+        again = self.client.post('/api/invites/', {'story_id': self.story.id, 'username': 'friend'})
+        self.assertEqual(again.status_code, 400)
+
+        self.client.login(username='friend', password=PASSWORD)
+        self.assertEqual(len(self.client.get('/api/invites/').json()['received']), 1)
+        self.client.post(f'/api/invites/{invite_id}/accept/')
+
+        story = self.client.get(f'/api/stories/{self.story.id}/').json()
+        self.assertEqual(story['coauthors'], ['friend'])
+
+    def test_only_your_own_stories(self):
+        other_story = make_story(self.friend)
+        response = self.client.post('/api/invites/', {'story_id': other_story.id, 'username': 'friend'})
+        self.assertEqual(response.status_code, 404)

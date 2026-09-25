@@ -3,7 +3,8 @@ from django.urls import path
 from .views import (
     StoryListView, StoryCreateView, StoryDetailView, FeaturedStoriesView, RandomStoryView,
     ToggleLikeView, ToggleSaveView, CommentListView, LastWordListView, AuthorStatsView,
-    FeedView,
+    FeedView, SavedStoriesView, ReadingHistoryView, MyStoriesView, ManageStoryView, SearchView,
+    InviteListView, InviteActionView,
 )
 
 
@@ -17,6 +18,11 @@ urlpatterns = [
     # My Feed - stories by the authors you follow (logged in).
     path('stories/feed/', FeedView.as_view()),
 
+    # Pages from the user menu (logged in)
+    path('stories/saved/', SavedStoriesView.as_view()),        # My Lists
+    path('stories/history/', ReadingHistoryView.as_view()),    # Reading History
+    path('stories/mine/', MyStoriesView.as_view()),            # My Stories
+
     # <int:pk> only matches numbers, so "featured" and "random" above
     # can never be mistaken for a story id. pk = "primary key" = the
     # story's id.
@@ -24,6 +30,15 @@ urlpatterns = [
     path('stories/<int:pk>/like/', ToggleLikeView.as_view()),
     path('stories/<int:pk>/save/', ToggleSaveView.as_view()),
     path('stories/<int:pk>/comments/', CommentListView.as_view()),
+    path('stories/<int:pk>/manage/', ManageStoryView.as_view()),   # publish / delete YOUR story
+
+    # Search -> /api/search/?q=house
+    path('search/', SearchView.as_view()),
+
+    # Co-author invites
+    path('invites/', InviteListView.as_view()),
+    path('invites/<int:pk>/', InviteActionView.as_view()),              # DELETE = cancel
+    path('invites/<int:pk>/<str:action>/', InviteActionView.as_view()), # accept / decline
 
     # The quote wall on the homepage -> /api/last-words/
     path('last-words/', LastWordListView.as_view()),

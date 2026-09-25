@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Story, Like, Bookmark, Comment, LastWord
+from .models import Story, Like, Bookmark, Comment, LastWord, ReadingHistory, CoAuthorInvite
 
 
 # A ModelAdmin customises the admin page for one model. The other
@@ -43,3 +43,12 @@ admin.site.register(Bookmark)
 class LastWordAdmin(admin.ModelAdmin):
     list_display = ['__str__', 'author', 'created_at']
     search_fields = ['body', 'author__username']
+
+
+admin.site.register(ReadingHistory)
+
+
+@admin.register(CoAuthorInvite)
+class CoAuthorInviteAdmin(admin.ModelAdmin):
+    list_display = ['story', 'from_user', 'to_user', 'status', 'created_at']
+    list_filter = ['status']
