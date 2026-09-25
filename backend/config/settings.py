@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'slides',
     'dashboard',
     'stories',
+    'contact',
 ]
 
 MIDDLEWARE = [

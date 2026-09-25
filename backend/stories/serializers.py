@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Story, Comment
+from .models import Story, Comment, LastWord
 
 
 # Everything a story CARD needs - not the full body, which could be
@@ -31,6 +31,17 @@ class StoryCardSerializer(serializers.ModelSerializer):
             return story.category.name
         return None
 
+    # to_representation() builds the final JSON. We let DRF do its
+    # normal job first, then fix up one thing: if there's no uploaded
+    # cover but the author pasted a link, send the link instead. Every
+    # card and story page already shows `cover_image`, so they all
+    # work without any React changes.
+    def to_representation(self, story):
+        data = super().to_representation(story)
+        if not data['cover_image'] and story.cover_image_url:
+            data['cover_image'] = story.cover_image_url
+        return data
+
 
 # Everything the STORY PAGE needs: the card fields + the full text +
 # the category's slug (for the "Home / Paranormal / ..." links) +
@@ -52,6 +63,10 @@ class StoryDetailSerializer(StoryCardSerializer):
     class Meta(StoryCardSerializer.Meta):
         fields = StoryCardSerializer.Meta.fields + [
             'body', 'category_slug', 'word_count', 'like_count', 'comment_count', 'liked', 'saved',
+            # From the Write a Story page. The story page doesn't show
+            # these yet, but they're here for when it does.
+            'language', 'video_url', 'audio_url', 'location', 'latitude', 'longitude',
+            'mood', 'content_rating', 'content_warnings',
         ]
 
     def get_category_slug(self, story):
@@ -86,6 +101,53 @@ class StoryDetailSerializer(StoryCardSerializer):
         return story.bookmarks.filter(user=user).exists()
 
 
+# ---------------------------------------------------------------
+# For WRITING a story (the Write a Story page).
+#
+# A separate serializer from the ones above, because writing and
+# reading need different fields: the page sends a category ID, but
+# the cards want the category NAME back.
+#
+# Not in the list on purpose: author (set in the view from who's
+# logged in), views, and the Story of the Day/Week ticks - a visitor
+# must never be able to set those themselves.
+# ---------------------------------------------------------------
+class StoryWriteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Story
+        fields = [
+            'id', 'title', 'excerpt', 'body', 'category', 'cover_image', 'cover_image_url',
+            'language', 'video_url', 'audio_url', 'location', 'latitude', 'longitude',
+            'mood', 'content_rating', 'content_warnings', 'publish_at', 'is_published',
+        ]
+        # The model allows a story without a category (so deleting a
+        # category doesn't delete its stories), but a NEW story must
+        # pick one. extra_kwargs changes a field's rules without
+        # writing the whole field out again.
+        extra_kwargs = {
+            'category': {'required': True, 'allow_null': False},
+        }
+
+    # validate() runs after every field was checked on its own, so
+    # it's the place for rules about TWO fields together.
+    # `data` is a dict of the cleaned values.
+    def validate(self, data):
+        latitude = data.get('latitude')
+        longitude = data.get('longitude')
+
+        # One without the other can't be put on a map.
+        if (latitude is None) != (longitude is None):
+            raise serializers.ValidationError({'latitude': ['Enter both latitude and longitude, or neither.']})
+
+        if latitude is not None and not -90 <= latitude <= 90:
+            raise serializers.ValidationError({'latitude': ['Latitude must be between -90 and 90.']})
+
+        if longitude is not None and not -180 <= longitude <= 180:
+            raise serializers.ValidationError({'longitude': ['Longitude must be between -180 and 180.']})
+
+        return data
+
+
 class CommentSerializer(serializers.ModelSerializer):
     # read_only: shown in the answer, but can't be sent in. The view
     # fills in the author from whoever is logged in - otherwise anyone
@@ -95,3 +157,17 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
         fields = ['id', 'author', 'body', 'created_at']
+
+
+# One quote on the Last Words wall. Same shape as a comment:
+# the author's NAME goes out, and it can't be set by the visitor.
+class LastWordSerializer(serializers.ModelSerializer):
+    author = serializers.CharField(source='author.username', read_only=True)
+
+    class Meta:
+        model = LastWord
+        fields = ['id', 'author', 'body', 'created_at']
+
+    # No extra checks needed: DRF's CharField already trims spaces off
+    # the ends and refuses an empty quote, and max_length=280 on the
+    # model becomes a "no more than 280 characters" check by itself.

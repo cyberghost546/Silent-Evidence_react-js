@@ -1,7 +1,32 @@
 from django.conf import settings
 from django.db import models
+from django.db.models import Q
+from django.utils import timezone
 
 from categories.models import Category
+
+
+# ---------------------------------------------------------------
+# CHOICES for the Write a Story page.
+#
+# Each pair is (what's saved in the database, what a human reads).
+# The React page (WriteStory/storyOptions.js) has the same lists -
+# if you add one here, add it there too.
+# ---------------------------------------------------------------
+CONTENT_RATINGS = [
+    ('all', 'All Ages'),
+    ('teen', '13+ Teen'),
+    ('mature', '18+ Mature'),
+]
+
+MOODS = [
+    ('creepy', 'Creepy'),
+    ('sad', 'Sad'),
+    ('mysterious', 'Mysterious'),
+    ('terrifying', 'Terrifying'),
+    ('unsettling', 'Unsettling'),
+    ('shocking', 'Shocking'),
+]
 
 
 class Story(models.Model):
@@ -42,6 +67,39 @@ class Story(models.Model):
     # Drafts stay hidden from the site until this is ticked.
     is_published = models.BooleanField(default=False)
 
+    # --- Extra fields from the Write a Story page ---
+    # All of them are optional (blank=True / null=True / a default),
+    # so the stories that already exist are still valid.
+
+    # A language code like 'en' or 'es'.
+    language = models.CharField(max_length=10, default='en')
+
+    # A picture from another website, for when the author pastes a
+    # link instead of uploading a file. The serializer sends this as
+    # cover_image when there's no uploaded file.
+    cover_image_url = models.URLField(blank=True)
+
+    video_url = models.URLField(blank=True)
+    audio_url = models.URLField(blank=True)
+
+    # Where it happened. DecimalField keeps exact numbers - 6 decimal
+    # places is about 10 cm, more than enough for a map pin.
+    location = models.CharField(max_length=200, blank=True)
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+
+    # choices= limits what can be saved to the lists at the top.
+    mood = models.CharField(max_length=20, choices=MOODS, blank=True)
+    content_rating = models.CharField(max_length=10, choices=CONTENT_RATINGS, default='all')
+
+    # The ticked warnings, saved as one string: "Violence,Gore".
+    # Simple, and good enough until we need to search by warning.
+    content_warnings = models.CharField(max_length=300, blank=True)
+
+    # Empty = show it straight away. A date = stay hidden until then
+    # (see published_stories() below).
+    publish_at = models.DateTimeField(null=True, blank=True)
+
     # The homepage picks. Tick these in the admin to choose the
     # Story of the Day / Week. If more than one is ticked, the most
     # recently edited one wins (see views.py).
@@ -76,6 +134,20 @@ class Story(models.Model):
         # People read roughly 200 words a minute. max(1, ...) so a
         # very short story says "1 min read", not "0 min read".
         return max(1, round(self.word_count() / 200))
+
+
+# ---------------------------------------------------------------
+# "Which stories can the public see?" - asked in lots of views, so
+# the answer lives in ONE place. A story is visible when:
+#   - it's published, AND
+#   - it has no publish date, or that date has already passed.
+#
+# Q(...) | Q(...) means OR. (A normal .filter(a, b) means AND.)
+# ---------------------------------------------------------------
+def published_stories():
+    return Story.objects.filter(is_published=True).filter(
+        Q(publish_at__isnull=True) | Q(publish_at__lte=timezone.now())
+    )
 
 
 # ---------------------------------------------------------------
@@ -131,4 +203,26 @@ class Comment(models.Model):
 
     def __str__(self):
         # The first 40 characters, so the admin list stays readable.
+        return f'{self.author}: {self.body[:40]}'
+
+
+# ---------------------------------------------------------------
+# LAST WORDS - the short-quote wall at the bottom of the homepage.
+# Like a tweet: one user, up to 280 characters.
+# ---------------------------------------------------------------
+LAST_WORDS_MAX = 280
+
+
+class LastWord(models.Model):
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='last_words')
+
+    # CharField (not TextField) because the database really enforces
+    # max_length on a CharField.
+    body = models.CharField(max_length=LAST_WORDS_MAX)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
         return f'{self.author}: {self.body[:40]}'
