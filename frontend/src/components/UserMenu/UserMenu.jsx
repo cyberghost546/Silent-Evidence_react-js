@@ -44,8 +44,10 @@ const MENU_GROUPS = [
         { label: 'Settings', to: '/settings', icon: Settings },
     ],
     // Help - its own group, so it gets its own divider line.
+    // action: 'tour' = NOT a link: a button that opens the pop-up
+    // Site Guide tour (components/SiteTour). See the JSX below.
     [
-        { label: 'Site Guide', to: '/guide', icon: BookOpenText },
+        { label: 'Site Guide', action: 'tour', icon: BookOpenText },
         { label: 'Ask The Watcher', to: '/watcher', icon: Brain },
     ],
 ]
@@ -64,10 +66,12 @@ const LOGOUT_STYLE = `${ITEM_BASE} text-red-400 hover:text-red-300`
 
 // Props come from Header:
 //   user     - who is logged in: { username, email, is_staff, ... }
+//   onOpenTour - a callback UP to Header: "please open the Site
+//              Guide tour" (Header owns that pop-up).
 //   onLogout - a callback UP to Header. This component cannot clear the
 //              user itself; it only asks its parent to. State lives in
 //              the parent, data flows down, callbacks go up.
-function UserMenu({ user, onLogout }) {
+function UserMenu({ user, onLogout, onOpenTour }) {
     // All the open / close / click-outside / Escape behaviour comes
     // from our useDropdown hook - the same one NavDropdown uses. No
     // need to write that logic a second time.
@@ -128,6 +132,25 @@ function UserMenu({ user, onLogout }) {
                                 // The icon is a component stored in the item.
                                 // Capital letter so JSX treats it as one: <Icon />
                                 const Icon = item.icon
+
+                                // A button instead of a link (Site Guide).
+                                if (item.action === 'tour') {
+                                    return (
+                                        <button
+                                            key={item.label}
+                                            type='button'
+                                            role='menuitem'
+                                            onClick={() => {
+                                                close()
+                                                onOpenTour()
+                                            }}
+                                            className={ITEM_STYLE}
+                                        >
+                                            <Icon className='h-4 w-4 text-gray-400' />
+                                            {item.label}
+                                        </button>
+                                    )
+                                }
 
                                 return (
                                     // onClick={close}: <Link> changes page without

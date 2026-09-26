@@ -8,6 +8,7 @@ import NotificationMenu from '../NotificationMenu/NotificationMenu'
 import CategoryDropdown from '../CategoryDropdown/CategoryDropdown'
 import NavDropdown from '../NavDropdown/NavDropdown'
 import SearchModal from '../SearchModal/SearchModal'
+import SiteTour, { TOUR_SEEN_KEY } from '../SiteTour/SiteTour'
 
 
 // ---------------------------------------------------------------
@@ -46,7 +47,6 @@ const MOBILE_LINKS = [
     ...EXPLORE_ITEMS,
     ...FORUM_ITEMS,
     { label: 'Leaderboard', href: '/leaderboard' },
-    { label: 'Site Guide', href: '/guide' },
     { label: 'Ask The Watcher', href: '/watcher' },
     { label: 'About', href: '/about' },
     { label: 'Contact', href: '/contact' },
@@ -110,6 +110,21 @@ function Header() {
 
     // Is the pop-up search open? (components/SearchModal)
     const [searchOpen, setSearchOpen] = useState(false)
+
+    // Is the Site Guide tour open? (components/SiteTour)
+    //
+    // The function form of useState runs only ONCE, on the first
+    // render: "has this visitor seen the tour before?" If not, it
+    // starts open - so first-time visitors get the tour by itself.
+    // SiteTour saves 'seen' when it's closed, so it won't come back.
+    const [tourOpen, setTourOpen] = useState(() => {
+        try {
+            return localStorage.getItem(TOUR_SEEN_KEY) === null
+        } catch {
+            // localStorage blocked (private browsing): don't pester them.
+            return false
+        }
+    })
 
     // useCallback = "keep the SAME function between renders".
     // SearchModal's useEffect lists onClose in its [ ], so a brand-new
@@ -248,7 +263,7 @@ function Header() {
                         <MessagesLink />
                         {/* The bell + dropdown lives in its own component. */}
                         <NotificationMenu />
-                        <UserMenu user={user} onLogout={logout} />
+                        <UserMenu user={user} onLogout={logout} onOpenTour={() => setTourOpen(true)} />
                     </>
                 ) : (
                     // <>...</> is a "fragment": it groups both buttons
@@ -292,6 +307,20 @@ function Header() {
             {menuOpen && (
                 <nav className='absolute left-0 right-0 top-full z-40 border-t border-slate-800 bg-slate-900 px-4 py-3 shadow-2xl lg:hidden'>
                     <ul className='grid grid-cols-2 gap-1'>
+                        {/* Site Guide opens the tour, so it's a button,
+                            not one of the links below. */}
+                        <li>
+                            <button
+                                type='button'
+                                onClick={() => {
+                                    setMenuOpen(false)
+                                    setTourOpen(true)
+                                }}
+                                className='block w-full rounded-lg px-3 py-2 text-left text-sm text-gray-200 hover:bg-slate-800 hover:text-white'
+                            >
+                                Site Guide
+                            </button>
+                        </li>
                         {MOBILE_LINKS.map(link => (
                             <li key={link.href}>
                                 {/* onClick closes the menu when you pick a page. */}
@@ -312,6 +341,11 @@ function Header() {
                 window (position: fixed), so where it sits in the JSX
                 doesn't matter. */}
             {searchOpen && <SearchModal onClose={closeSearch} />}
+
+            {/* ---------- THE SITE GUIDE TOUR ---------- */}
+            {/* Opened from the user menu, the phone menu, or by itself
+                on a visitor's first visit (see tourOpen above). */}
+            {tourOpen && <SiteTour onClose={() => setTourOpen(false)} />}
         </header>
     )
 }
