@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { MessageCircleMore, Menu, X } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
@@ -7,6 +7,7 @@ import UserMenu from '../UserMenu/UserMenu'
 import NotificationMenu from '../NotificationMenu/NotificationMenu'
 import CategoryDropdown from '../CategoryDropdown/CategoryDropdown'
 import NavDropdown from '../NavDropdown/NavDropdown'
+import SearchModal from '../SearchModal/SearchModal'
 
 
 // ---------------------------------------------------------------
@@ -107,6 +108,31 @@ function Header() {
     // Is the phone menu open?
     const [menuOpen, setMenuOpen] = useState(false)
 
+    // Is the pop-up search open? (components/SearchModal)
+    const [searchOpen, setSearchOpen] = useState(false)
+
+    // useCallback = "keep the SAME function between renders".
+    // SearchModal's useEffect lists onClose in its [ ], so a brand-new
+    // function on every render would make that effect stop and start
+    // again each time. With useCallback it only runs once per opening.
+    const closeSearch = useCallback(() => setSearchOpen(false), [])
+
+    // Keyboard shortcut: Ctrl + K (Cmd + K on a Mac) opens the search
+    // from anywhere - the same shortcut many sites use.
+    useEffect(() => {
+        function handleKey(event) {
+            // metaKey = the Cmd key on a Mac.
+            if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
+                // Stop the browser's own Ctrl+K (it jumps to the
+                // address bar in some browsers).
+                event.preventDefault()
+                setSearchOpen(true)
+            }
+        }
+        document.addEventListener('keydown', handleKey)
+        return () => document.removeEventListener('keydown', handleKey)
+    }, [])
+
     return (
         // justify-between splits the header into two groups:
         // [logo + nav] on the left, [search + auth] on the right.
@@ -180,11 +206,19 @@ function Header() {
             <div className='flex shrink-0 items-center gap-0 sm:gap-3'>
 
                 {/* An icon-only button has no text, so a screen reader
-                    would announce nothing. aria-label supplies the name. */}
-                <Link
-                    to='/search'
+                    would announce nothing. aria-label supplies the name.
+                    It's a BUTTON now (not a link): it opens the pop-up
+                    search instead of going to another page.
+                    While the pop-up is open it turns into a red square.
+                    title = the tooltip on hover, showing the shortcut. */}
+                <button
+                    type='button'
+                    onClick={() => setSearchOpen(true)}
                     aria-label='Search'
-                    className='text-gray-300 hover:text-white transition-colors p-2'
+                    title='Search (Ctrl + K)'
+                    className={`rounded-lg p-2 transition-colors ${
+                        searchOpen ? 'bg-red-600 text-white' : 'text-gray-300 hover:text-white'
+                    }`}
                 >
                     <svg
                         className='w-5 h-5'
@@ -196,7 +230,7 @@ function Header() {
                     >
                         <path strokeLinecap='round' strokeLinejoin='round' d='M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z' />
                     </svg>
-                </Link>
+                </button>
 
                 {/* One ternary swaps the whole auth area:
                     logged out -> Log In + Sign Up
@@ -273,6 +307,11 @@ function Header() {
                     </ul>
                 </nav>
             )}
+            {/* ---------- THE POP-UP SEARCH ---------- */}
+            {/* Only on the page while it's open. It covers the whole
+                window (position: fixed), so where it sits in the JSX
+                doesn't matter. */}
+            {searchOpen && <SearchModal onClose={closeSearch} />}
         </header>
     )
 }

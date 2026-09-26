@@ -120,6 +120,8 @@ All routes live in `frontend/src/App.jsx`.
 | `SegmentedControl` | A row of buttons where one is picked (sort, tabs) |
 | `StoryGridCard` / `StoryCard` | Showing a story (tall card / wide card) |
 | `EmptyState` | "Nothing here yet" |
+| `SearchBox` | The big search bar with "try" suggestions |
+| `SearchModal` | A pop-up over the page (Esc / click outside to close) - here with the SearchBox; opened from the header or Ctrl + K |
 | `SettingsParts` | `SettingsSection`, `SettingRow`, `Toggle` (on/off switch) |
 | `styles/formStyles.js` | The shared classes for labels, inputs, buttons |
 
