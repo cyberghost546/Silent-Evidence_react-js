@@ -1,6 +1,7 @@
 import { NavLink, Link } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { GridIcon, PhotoIcon, UsersIcon, BookIcon, TagIcon, ArrowLeftIcon, LogoutIcon } from './DashboardIcons'
+import { Bot, Flag, TriangleAlert, Gavel, ShieldCheck, Map, ShieldAlert, TrendingUp } from 'lucide-react'
 import styles from './Dashboard.module.css'
 
 
@@ -15,12 +16,25 @@ import styles from './Dashboard.module.css'
 //          shown greyed out with a "soon" tag.
 //   end  - only for Overview, see the NavLink comment below.
 // ---------------------------------------------------------------
+const ICON = 'h-5 w-5 shrink-0'
+
 const NAV_ITEMS = [
     { label: 'Overview', to: '/dashboard', icon: <GridIcon />, end: true },
     { label: 'Slideshow', to: '/dashboard/slides', icon: <PhotoIcon /> },
     { label: 'Users', to: '/dashboard/users', icon: <UsersIcon /> },
     { label: 'Stories', to: '/dashboard/stories', icon: <BookIcon /> },
     { label: 'Categories', icon: <TagIcon /> },
+
+    // The newer pages use lucide-react icons. ICON is the same size
+    // as the hand-made icons above (w-5 h-5).
+    { label: 'AI Generator', to: '/dashboard/ai', icon: <Bot className={ICON} /> },
+    { label: 'Moderation', to: '/dashboard/moderation', icon: <Flag className={ICON} /> },
+    { label: 'Reports', to: '/dashboard/reports', icon: <TriangleAlert className={ICON} /> },
+    { label: 'Appeals', to: '/dashboard/appeals', icon: <Gavel className={ICON} /> },
+    { label: 'Login Logs', to: '/dashboard/login-logs', icon: <ShieldCheck className={ICON} /> },
+    { label: 'Login Map', icon: <Map className={ICON} /> },
+    { label: 'Security', to: '/dashboard/security', icon: <ShieldAlert className={ICON} /> },
+    { label: 'Analytics', icon: <TrendingUp className={ICON} /> },
 ]
 
 // Shared look for every row, plus the two states.

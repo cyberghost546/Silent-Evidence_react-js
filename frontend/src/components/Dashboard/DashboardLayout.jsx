@@ -12,6 +12,7 @@ import Sidebar from './Sidebar'
 //   /dashboard/slides  -> <SlideDashboard />
 //   /dashboard/users   -> <UsersDashboard />
 //   /dashboard/stories -> <StoriesDashboard />
+//   ...and the other pages listed in App.jsx
 //
 // So the sidebar is written once, and every new dashboard page
 // gets it for free.

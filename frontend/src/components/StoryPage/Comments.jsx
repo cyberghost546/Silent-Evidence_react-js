@@ -3,6 +3,9 @@ import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { getComments, postComment } from '../../api/client'
 import { formatLongDate } from '../../utils/format'
+import { useRequireLogin } from '../../hooks/useRequireLogin'
+import { Flag } from 'lucide-react'
+import ReportDialog from '../ReportDialog/ReportDialog'
 import { INPUT_STYLE, BUTTON_STYLE } from '../../styles/formStyles'
 
 
@@ -24,6 +27,15 @@ function Comments({ storyId }) {
     const [text, setText] = useState('')
     const [posting, setPosting] = useState(false)
     const [error, setError] = useState(null)
+
+    // The id of the comment being reported (null = pop-up closed).
+    const [reportingId, setReportingId] = useState(null)
+    const requireLogin = useRequireLogin()
+
+    function handleReport(commentId) {
+        if (!requireLogin()) return   // logged out -> Log In page first
+        setReportingId(commentId)
+    }
 
     useEffect(() => {
         let ignore = false
@@ -120,10 +132,21 @@ function Comments({ storyId }) {
                         <span className='flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-700 text-xs font-bold text-white'>
                             {comment.author.slice(0, 2).toUpperCase()}
                         </span>
-                        <div className='min-w-0'>
-                            <p className='text-sm'>
-                                <span className='font-semibold text-white'>{comment.author}</span>{' '}
+                        <div className='min-w-0 flex-1'>
+                            <p className='flex items-center gap-2 text-sm'>
+                                <span className='font-semibold text-white'>{comment.author}</span>
                                 <span className='text-gray-500'>&middot; {formatLongDate(comment.created_at)}</span>
+                                {/* ml-auto = pushed to the right. Quiet grey
+                                    until you hover it. */}
+                                <button
+                                    type='button'
+                                    onClick={() => handleReport(comment.id)}
+                                    className='ml-auto flex items-center gap-1 text-xs text-gray-600 hover:text-red-400'
+                                    aria-label={`Report comment by ${comment.author}`}
+                                >
+                                    <Flag className='h-3 w-3' />
+                                    Report
+                                </button>
                             </p>
                             {/* break-words: a very long word/link wraps
                                 instead of stretching the page sideways. */}
@@ -132,6 +155,11 @@ function Comments({ storyId }) {
                     </li>
                 ))}
             </ul>
+
+            {/* The Report pop-up, for whichever comment was clicked. */}
+            {reportingId && (
+                <ReportDialog target={{ comment_id: reportingId }} what='comment' onClose={() => setReportingId(null)} />
+            )}
         </section>
     )
 }

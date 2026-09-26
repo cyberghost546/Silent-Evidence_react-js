@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { Bookmark, BookmarkCheck, Link as LinkIcon, Check, MessageCircle, ChevronDown } from 'lucide-react'
+import { Bookmark, BookmarkCheck, Link as LinkIcon, Check, MessageCircle, ChevronDown, Flag } from 'lucide-react'
 import { useDropdown } from '../../hooks/useDropdown'
 import { useRequireLogin } from '../../hooks/useRequireLogin'
 import { saveStory } from '../../api/client'
 import { XIcon, RedditIcon } from '../BrandIcons/BrandIcons'
+import ReportDialog from '../ReportDialog/ReportDialog'
 
 
 const ITEM_BASE = 'flex w-full items-center gap-3 px-4 py-2 text-sm transition-colors hover:bg-gray-800'
@@ -29,6 +30,15 @@ function StoryActions({ story }) {
     // Starts from what Django said, then changes when you click.
     const [saved, setSaved] = useState(story.saved)
     const [copied, setCopied] = useState(false)
+
+    // Is the Report pop-up open?
+    const [reporting, setReporting] = useState(false)
+
+    function handleReport() {
+        close()
+        if (!requireLogin()) return   // logged out -> Log In page first
+        setReporting(true)
+    }
 
     // The address to share. window.location.origin = "http://localhost:5173"
     // now, and your real domain once the site is online.
@@ -117,7 +127,19 @@ function StoryActions({ story }) {
                             {link.label}
                         </a>
                     ))}
+
+                    <div className='my-2 border-t border-gray-800' />
+
+                    {/* Report - red, and last, so nobody clicks it by accident. */}
+                    <button type='button' role='menuitem' onClick={handleReport} className={`${ITEM_BASE} text-red-400 hover:text-red-300`}>
+                        <Flag className='h-4 w-4' />
+                        Report story
+                    </button>
                 </div>
+            )}
+
+            {reporting && (
+                <ReportDialog target={{ story_id: story.id }} what='story' onClose={() => setReporting(false)} />
             )}
         </div>
     )

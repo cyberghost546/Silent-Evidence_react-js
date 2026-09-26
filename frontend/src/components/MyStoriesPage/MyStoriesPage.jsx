@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Eye, Heart, MessageSquare, PenLine, Trash2, UserPlus } from 'lucide-react'
-import { getMyStories, setStoryPublished, deleteMyStory, sendInvite } from '../../api/client'
+import { getMyStories, setStoryPublished, deleteMyStory, sendInvite, getMyAppeals, sendAppeal } from '../../api/client'
 import PageLayout, { PageMessage } from '../PageLayout/PageLayout'
 import { BUTTON_STYLE, INPUT_STYLE, FIELD_ERROR_STYLE } from '../../styles/formStyles'
 import { formatShortDate } from '../../utils/format'
@@ -78,14 +78,92 @@ function InviteForm({ storyId, onDone }) {
 
 
 // ---------------------------------------------------------------
+// APPEAL - only for stories an admin archived.
+//
+// Shows your latest appeal's status (and the admin's answer), or a
+// small form to send one. Admins decide on Admin Dashboard -> Appeals.
+//
+// Props:
+//   storyId  - which story
+//   appeal   - your latest appeal for it, or undefined
+//   onSent   - (newAppeal) -> the page remembers it
+// ---------------------------------------------------------------
+function AppealBox({ storyId, appeal, onSent }) {
+    const [open, setOpen] = useState(false)
+    const [message, setMessage] = useState('')
+    const [error, setError] = useState('')
+    const [sending, setSending] = useState(false)
+
+    async function handleSubmit(event) {
+        event.preventDefault()
+        setSending(true)
+        setError('')
+        try {
+            const newAppeal = await sendAppeal(storyId, message.trim())
+            onSent(newAppeal)
+            setOpen(false)
+        } catch (err) {
+            setError(err.data?.detail || 'Could not send the appeal.')
+        } finally {
+            setSending(false)
+        }
+    }
+
+    // Waiting for an admin.
+    if (appeal?.status === 'pending') {
+        return <p className='mt-4 text-xs text-amber-300'>Appeal sent - an admin will look at it.</p>
+    }
+
+    return (
+        <div className='mt-4 rounded-lg border border-amber-900/60 bg-amber-950/20 p-3'>
+            <p className='text-xs text-amber-200'>
+                An admin took this story off the site.
+                {/* A rejected earlier appeal: show the admin's answer. */}
+                {appeal?.status === 'rejected' && (
+                    <> Your last appeal was rejected{appeal.admin_note ? `: "${appeal.admin_note}"` : '.'}</>
+                )}
+            </p>
+
+            {!open ? (
+                <button type='button' onClick={() => setOpen(true)} className='mt-2 text-xs font-semibold text-amber-300 hover:text-amber-200'>
+                    Appeal this decision →
+                </button>
+            ) : (
+                <form onSubmit={handleSubmit} className='mt-3'>
+                    <textarea
+                        value={message}
+                        onChange={event => setMessage(event.target.value)}
+                        rows={3}
+                        maxLength={1000}
+                        placeholder='Why should it come back? (e.g. "It is fiction, all names are made up.")'
+                        aria-label='Your appeal'
+                        className={`${INPUT_STYLE} resize-none text-sm`}
+                    />
+                    {error && <p className={FIELD_ERROR_STYLE}>{error}</p>}
+                    <div className='mt-2 flex gap-2'>
+                        <button type='submit' disabled={sending || !message.trim()} className={BUTTON_STYLE}>
+                            {sending ? 'Sending...' : 'Send appeal'}
+                        </button>
+                        <button type='button' onClick={() => setOpen(false)} className={SMALL_BUTTON}>Cancel</button>
+                    </div>
+                </form>
+            )}
+        </div>
+    )
+}
+
+
+// ---------------------------------------------------------------
 // One of your stories.
 //
 // Props:
 //   story       - one row from Django (MyStorySerializer)
 //   onChanged   - the row was published / unpublished: here's the new version
 //   onDeleted   - the row was deleted
+//   appeal      - your latest appeal for it (archived stories only)
+//   onAppealSent - a new appeal was sent
 // ---------------------------------------------------------------
-function MyStoryRow({ story, onChanged, onDeleted }) {
+function MyStoryRow({ story, onChanged, onDeleted, appeal, onAppealSent }) {
     const [inviting, setInviting] = useState(false)
     const [note, setNote] = useState('')
     const [busy, setBusy] = useState(false)
@@ -182,6 +260,10 @@ function MyStoryRow({ story, onChanged, onDeleted }) {
                 />
             )}
 
+            {story.status === 'archived' && (
+                <AppealBox storyId={story.id} appeal={appeal} onSent={onAppealSent} />
+            )}
+
             {note && <p className='mt-3 text-xs text-gray-400'>{note}</p>}
         </li>
     )
@@ -192,11 +274,25 @@ function MyStoriesPage() {
     const [stories, setStories] = useState(null)
     const [error, setError] = useState('')
 
+    // Your appeals (for archived stories). [] until loaded.
+    const [appeals, setAppeals] = useState([])
+
     useEffect(() => {
         getMyStories()
             .then(data => setStories(data))
             .catch(() => setError('Could not load your stories.'))
+
+        // Not important enough for an error message if it fails.
+        getMyAppeals()
+            .then(data => setAppeals(data))
+            .catch(() => {})
     }, [])
+
+    // The NEWEST appeal for a story. Django sends them newest first,
+    // so .find() (= the first match) is the newest one.
+    function latestAppeal(storyId) {
+        return appeals.find(appeal => appeal.story_id === storyId)
+    }
 
     // A row changed -> swap in the new version, keep the others.
     // .map() goes over every story and returns either the updated
@@ -231,7 +327,15 @@ function MyStoriesPage() {
             {stories?.length > 0 && (
                 <ul className='space-y-4'>
                     {stories.map(story => (
-                        <MyStoryRow key={story.id} story={story} onChanged={replaceStory} onDeleted={removeStory} />
+                        <MyStoryRow
+                            key={story.id}
+                            story={story}
+                            onChanged={replaceStory}
+                            onDeleted={removeStory}
+                            appeal={latestAppeal(story.id)}
+                            // The new one goes FIRST, so latestAppeal finds it.
+                            onAppealSent={newAppeal => setAppeals([newAppeal, ...appeals])}
+                        />
                     ))}
                 </ul>
             )}

@@ -539,3 +539,109 @@ export function updateAdminStory(id, changes) {
 export function deleteAdminStory(id) {
     return authRequest(`/api/dashboard/stories/${id}/`, 'DELETE')
 }
+
+
+// --- Reports and appeals (members) ---
+
+// target = { story_id: 5 } or { comment_id: 12 }
+// reason = one of the values in REPORT_REASONS (ReportButton.jsx)
+export function sendReport(target, reason, details) {
+    const data = new FormData()
+    for (const [key, value] of Object.entries(target)) {
+        data.append(key, value)
+    }
+    data.append('reason', reason)
+    data.append('details', details)
+    return authRequest('/api/reports/', 'POST', data)
+}
+
+// Your appeals: [ { id, story_id, story_title, status, admin_note, ... } ]
+export function getMyAppeals() {
+    return authRequest('/api/appeals/')
+}
+
+export function sendAppeal(storyId, message) {
+    const data = new FormData()
+    data.append('story_id', storyId)
+    data.append('message', message)
+    return authRequest('/api/appeals/', 'POST', data)
+}
+
+
+// --- Admin Dashboard: safety pages (admins only) ---
+
+// A small helper: FormData from a plain object, used by the
+// functions below.
+function toFormData(values) {
+    const data = new FormData()
+    for (const [key, value] of Object.entries(values)) {
+        data.append(key, value)
+    }
+    return data
+}
+
+// { counts: { open, resolved, dismissed }, reports: [...] }
+export function getAdminReports() {
+    return authRequest('/api/dashboard/reports/')
+}
+
+// action = 'remove' (hide / archive it) or 'dismiss' (it's fine)
+export function actOnReport(id, action) {
+    return authRequest(`/api/dashboard/reports/${id}/`, 'POST', toFormData({ action }))
+}
+
+// kind = 'comments' or 'lastwords'
+export function getModerationItems(kind) {
+    return authRequest(`/api/dashboard/moderation/?type=${kind}`)
+}
+
+export function setItemHidden(kind, id, isHidden) {
+    return authRequest(`/api/dashboard/moderation/${kind}/${id}/`, 'PATCH', toFormData({ is_hidden: isHidden }))
+}
+
+export function deleteModerationItem(kind, id) {
+    return authRequest(`/api/dashboard/moderation/${kind}/${id}/`, 'DELETE')
+}
+
+// { counts: { pending, accepted, rejected }, appeals: [...] }
+export function getAdminAppeals() {
+    return authRequest('/api/dashboard/appeals/')
+}
+
+// decision = 'accept' or 'reject'
+export function decideAppeal(id, decision, note) {
+    return authRequest(`/api/dashboard/appeals/${id}/`, 'POST', toFormData({ decision, note }))
+}
+
+// The newest 500 login attempts.
+export function getLoginLogs() {
+    return authRequest('/api/dashboard/login-logs/')
+}
+
+export function getSecurityOverview() {
+    return authRequest('/api/dashboard/security/')
+}
+
+// what = { username: 'bob' } or { ip: '1.2.3.4' }
+export function unlockLogin(what) {
+    return authRequest('/api/dashboard/security/unlock/', 'POST', toFormData(what))
+}
+
+
+// --- Admin Dashboard: AI Generator (admins only) ---
+
+// { configured: true/false, model: 'claude-opus-5' }
+export function getAIStatus() {
+    return authRequest('/api/dashboard/ai/status/')
+}
+
+// options = { idea, category_id, mood, content_rating, length }
+// Answers { title, excerpt, body }. Can take a minute!
+export function generateStory(options) {
+    return authRequest('/api/dashboard/ai/generate/', 'POST', toFormData(options))
+}
+
+// Saves as a DRAFT. Answers { id }.
+export function saveGeneratedStory(story) {
+    return authRequest('/api/dashboard/ai/save/', 'POST', toFormData(story))
+}

@@ -19,6 +19,12 @@ import SlideDashboard from './components/SlideDashboard/SlideDashboard'
 import SettingsPage from './components/SettingsPage/SettingsPage'
 import UsersDashboard from './components/UsersDashboard/UsersDashboard'
 import StoriesDashboard from './components/StoriesDashboard/StoriesDashboard'
+import AIGeneratorDashboard from './components/AIGeneratorDashboard/AIGeneratorDashboard'
+import ModerationDashboard from './components/ModerationDashboard/ModerationDashboard'
+import ReportsDashboard from './components/ReportsDashboard/ReportsDashboard'
+import AppealsDashboard from './components/AppealsDashboard/AppealsDashboard'
+import LoginLogsDashboard from './components/LoginLogsDashboard/LoginLogsDashboard'
+import SecurityDashboard from './components/SecurityDashboard/SecurityDashboard'
 import LeaderboardPage from './components/LeaderboardPage/LeaderboardPage'
 import FeedPage from './components/FeedPage/FeedPage'
 import MyListsPage from './components/MyListsPage/MyListsPage'
@@ -186,6 +192,12 @@ function App() {
         <Route path='slides' element={<SlideDashboard />} />
         <Route path='users' element={<UsersDashboard />} />
         <Route path='stories' element={<StoriesDashboard />} />
+        <Route path='ai' element={<AIGeneratorDashboard />} />
+        <Route path='moderation' element={<ModerationDashboard />} />
+        <Route path='reports' element={<ReportsDashboard />} />
+        <Route path='appeals' element={<AppealsDashboard />} />
+        <Route path='login-logs' element={<LoginLogsDashboard />} />
+        <Route path='security' element={<SecurityDashboard />} />
       </Route>
     </Routes>
     </AgeGate>

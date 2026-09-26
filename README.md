@@ -30,6 +30,10 @@ python manage.py createsuperuser     # only the first time: an admin account
 python manage.py runserver
 ```
 
+Optional, for the Admin Dashboard's AI Generator: start Django with an
+Anthropic API key (`$env:ANTHROPIC_API_KEY = "sk-ant-..."` in PowerShell
+before `runserver`). Never commit the key.
+
 **2. Frontend** (http://localhost:5173)
 
 ```bash
@@ -77,6 +81,7 @@ sends it along (plus the CSRF token), and `AuthContext.jsx` keeps
 | `accounts` | Sign up / log in, profiles, settings, follows, blocks, leaderboard |
 | `stories` | Stories, likes, saves, comments, reading history, co-author invites, search, feed |
 | `messaging` | Private messages |
+| `moderation` | Reports, appeals, login logs and the login lock-out |
 | `categories` | Story categories |
 | `slides` | The homepage slideshow |
 | `dashboard` | Admin dashboard numbers |
@@ -110,6 +115,9 @@ private profiles. Use it for any new list of stories.
 | `/dashboard` | `Dashboard/` | admins |
 | `/dashboard/users` | `UsersDashboard/` | admins |
 | `/dashboard/stories` | `StoriesDashboard/` | admins |
+| `/dashboard/ai` | `AIGeneratorDashboard/` (needs `ANTHROPIC_API_KEY`) | admins |
+| `/dashboard/moderation`, `/reports`, `/appeals` | `ModerationDashboard/`, `ReportsDashboard/`, `AppealsDashboard/` | admins |
+| `/dashboard/login-logs`, `/security` | `LoginLogsDashboard/`, `SecurityDashboard/` | admins |
 
 All routes live in `frontend/src/App.jsx`.
 
