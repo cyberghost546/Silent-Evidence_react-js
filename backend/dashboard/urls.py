@@ -1,6 +1,9 @@
 from django.urls import path
 
-from .views import DashboardStatsView, AdminUserListView, AdminUserDetailView
+from .views import (
+    DashboardStatsView, AdminUserListView, AdminUserDetailView,
+    AdminStoryListView, AdminStoryDetailView,
+)
 
 
 # Included under "api/" in config/urls.py, so this becomes
@@ -12,4 +15,8 @@ urlpatterns = [
     # The Users page
     path('dashboard/users/', AdminUserListView.as_view()),
     path('dashboard/users/<int:pk>/', AdminUserDetailView.as_view()),
+
+    # The Stories page
+    path('dashboard/stories/', AdminStoryListView.as_view()),
+    path('dashboard/stories/<int:pk>/', AdminStoryDetailView.as_view()),
 ]

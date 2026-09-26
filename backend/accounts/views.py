@@ -154,7 +154,7 @@ class AuthorListView(APIView):
         # Count only stories the public can see: published, and not
         # scheduled for later. 'stories' is the related_name on
         # Story.author. Same rule as categories_with_counts().
-        visible = Q(stories__is_published=True) & (
+        visible = Q(stories__is_published=True, stories__is_archived=False) & (
             Q(stories__publish_at__isnull=True) | Q(stories__publish_at__lte=timezone.now())
         )
         authors = (

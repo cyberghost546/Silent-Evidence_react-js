@@ -25,6 +25,8 @@ const STATUS_BADGES = {
     published: { label: 'Published', style: 'border-green-800 bg-green-950/40 text-green-300' },
     scheduled: { label: 'Scheduled', style: 'border-blue-800 bg-blue-950/40 text-blue-300' },
     draft: { label: 'Draft', style: 'border-slate-600 bg-slate-800 text-gray-300' },
+    // Taken off the site by an admin (Admin Dashboard -> Stories).
+    archived: { label: 'Archived by admin', style: 'border-amber-800 bg-amber-950/40 text-amber-300' },
 }
 
 // The small outlined buttons on each row.
@@ -146,9 +148,13 @@ function MyStoryRow({ story, onChanged, onDeleted }) {
                         </Link>
                     )}
 
-                    <button type='button' onClick={togglePublished} disabled={busy} className={SMALL_BUTTON}>
-                        {story.is_published ? 'Unpublish' : 'Publish'}
-                    </button>
+                    {/* An archived story can only be brought back by an
+                        admin, so no Publish button for it. */}
+                    {story.status !== 'archived' && (
+                        <button type='button' onClick={togglePublished} disabled={busy} className={SMALL_BUTTON}>
+                            {story.is_published ? 'Unpublish' : 'Publish'}
+                        </button>
+                    )}
 
                     <button type='button' onClick={() => setInviting(!inviting)} className={SMALL_BUTTON}>
                         <UserPlus className='h-3.5 w-3.5' /> Co-author

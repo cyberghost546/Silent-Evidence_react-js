@@ -68,6 +68,11 @@ class Story(models.Model):
     # Drafts stay hidden from the site until this is ticked.
     is_published = models.BooleanField(default=False)
 
+    # ARCHIVED = taken off the site by an admin (Admin Dashboard ->
+    # Stories), but NOT deleted - it can be brought back any time.
+    # An archived story is hidden even when is_published is ticked.
+    is_archived = models.BooleanField(default=False)
+
     # --- Extra fields from the Write a Story page ---
     # All of them are optional (blank=True / null=True / a default),
     # so the stories that already exist are still valid.
@@ -152,12 +157,13 @@ READING_WPM = {
 # "Which stories can the public see?" - asked in lots of views, so
 # the answer lives in ONE place. A story is visible when:
 #   - it's published, AND
+#   - an admin hasn't archived it, AND
 #   - it has no publish date, or that date has already passed.
 #
 # Q(...) | Q(...) means OR. (A normal .filter(a, b) means AND.)
 # ---------------------------------------------------------------
 def published_stories():
-    return Story.objects.filter(is_published=True).filter(
+    return Story.objects.filter(is_published=True, is_archived=False).filter(
         Q(publish_at__isnull=True) | Q(publish_at__lte=timezone.now())
     )
 

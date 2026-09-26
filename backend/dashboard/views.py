@@ -13,6 +13,7 @@ from rest_framework.views import APIView
 from accounts.models import get_profile
 from categories.models import Category
 from slides.models import Slide
+from stories.models import Story
 
 
 # GET /api/dashboard/stats/
@@ -187,4 +188,95 @@ class AdminUserDetailView(APIView):
 
         # Everything they made goes with them (on_delete=CASCADE).
         user.delete()
+        return Response(status=204)
+
+
+# ---------------------------------------------------------------
+# STORIES PAGE (Admin Dashboard -> Stories). Admins only.
+# ---------------------------------------------------------------
+
+# 'draft' / 'published' / 'archived' - one word for the dropdown.
+# (Archived wins: an archived story is off the site either way.)
+def story_status(story):
+    if story.is_archived:
+        return 'archived'
+    return 'published' if story.is_published else 'draft'
+
+
+def admin_story_data(story):
+    return {
+        'id': story.id,
+        'title': story.title,
+        'author': story.author.username,
+        'category': story.category.name if story.category else None,
+        'status': story_status(story),
+        'is_story_of_the_day': story.is_story_of_the_day,
+        'like_count': story.like_count,
+        'comment_count': story.comment_count,
+        'views': story.views,
+        'created_at': story.created_at,
+    }
+
+
+# All stories (drafts and archived too) with their two counts.
+# distinct=True for the same reason as users_with_counts() above.
+def stories_with_counts():
+    return Story.objects.select_related('author', 'category').annotate(
+        like_count=Count('likes', distinct=True),
+        comment_count=Count('comments', distinct=True),
+    )
+
+
+# GET /api/dashboard/stories/
+#   { "counts": { "total", "draft", "published", "archived" },
+#     "stories": [ ...admin_story_data()... ] }  newest first
+#
+# Like the Users page: everything at once, the page searches and
+# filters in the browser.
+class AdminStoryListView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        stories = [admin_story_data(story) for story in stories_with_counts().order_by('-created_at')]
+
+        counts = {'total': len(stories), 'draft': 0, 'published': 0, 'archived': 0}
+        for story in stories:
+            counts[story['status']] += 1
+
+        return Response({'counts': counts, 'stories': stories})
+
+
+# PATCH  /api/dashboard/stories/5/   { status } or { is_story_of_the_day }
+# DELETE /api/dashboard/stories/5/
+class AdminStoryDetailView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def patch(self, request, pk):
+        story = get_object_or_404(Story, pk=pk)
+        data = request.data
+
+        if 'status' in data:
+            status_word = data['status']
+            if status_word == 'draft':
+                story.is_published = False
+                story.is_archived = False
+            elif status_word == 'published':
+                story.is_published = True
+                story.is_archived = False
+            elif status_word == 'archived':
+                # is_published is left alone: un-archiving later puts
+                # the story back exactly as it was.
+                story.is_archived = True
+            else:
+                return Response({'detail': 'Unknown status.'}, status=400)
+
+        # FormData sends 'true' / 'false' as text.
+        if 'is_story_of_the_day' in data:
+            story.is_story_of_the_day = data['is_story_of_the_day'] == 'true'
+
+        story.save()
+        return Response(admin_story_data(stories_with_counts().get(pk=pk)))
+
+    def delete(self, request, pk):
+        get_object_or_404(Story, pk=pk).delete()
         return Response(status=204)

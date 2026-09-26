@@ -24,7 +24,7 @@ from .serializers import CategorySerializer
 def categories_with_counts():
     # Scheduled stories (publish_at still in the future) don't count
     # yet either - same rule as published_stories() in stories/models.py.
-    visible = Q(stories__is_published=True) & (
+    visible = Q(stories__is_published=True, stories__is_archived=False) & (
         Q(stories__publish_at__isnull=True) | Q(stories__publish_at__lte=timezone.now())
     )
     return Category.objects.annotate(

@@ -16,6 +16,7 @@ PASSWORD = 'Str0ng-pass-123'
 
 # Every URL the Admin Dashboard uses.
 DASHBOARD_URLS = [
+    '/api/dashboard/stories/',
     '/api/dashboard/users/',
     '/api/dashboard/stats/',
     '/api/dashboard/slides/',
@@ -92,3 +93,37 @@ class AdminUsersTests(TestCase):
         category = Category.objects.create(name='Test', slug='test')
         self.client.post('/api/stories/new/', {'title': 'First', 'body': 'Once upon a time', 'category': category.id})
         self.assertEqual(get_profile(newbie).role, 'author')
+
+
+# ---------------------------------------------------------------
+# The Stories page.
+# ---------------------------------------------------------------
+class AdminStoriesTests(TestCase):
+    def setUp(self):
+        User.objects.create_user('boss', password=PASSWORD, is_staff=True)
+        writer = User.objects.create_user('writer', password=PASSWORD)
+        self.live = Story.objects.create(title='Live', body='x', author=writer, is_published=True)
+        self.draft = Story.objects.create(title='Draft', body='x', author=writer)
+        self.client.login(username='boss', password=PASSWORD)
+
+    def patch(self, story, body):
+        return self.client.patch(f'/api/dashboard/stories/{story.id}/', body, content_type='application/x-www-form-urlencoded')
+
+    def test_list_counts(self):
+        data = self.client.get('/api/dashboard/stories/').json()
+        self.assertEqual(data['counts'], {'total': 2, 'draft': 1, 'published': 1, 'archived': 0})
+
+    def test_archive_hides_it_and_can_come_back(self):
+        self.patch(self.live, 'status=archived')
+        self.assertEqual(self.client.get('/api/stories/').json(), [])       # gone from the site
+
+        self.patch(self.live, 'status=published')
+        self.assertEqual(len(self.client.get('/api/stories/').json()), 1)   # back again
+
+    def test_publish_a_draft_and_star_it(self):
+        row = self.patch(self.draft, 'status=published&is_story_of_the_day=true').json()
+        self.assertEqual((row['status'], row['is_story_of_the_day']), ('published', True))
+
+    def test_delete(self):
+        self.client.delete(f'/api/dashboard/stories/{self.draft.id}/')
+        self.assertFalse(Story.objects.filter(id=self.draft.id).exists())

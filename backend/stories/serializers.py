@@ -225,10 +225,13 @@ class MyStorySerializer(serializers.ModelSerializer):
         return story.comments.count()
 
     # One word for the coloured badge:
+    #   'archived'  - taken off the site by an admin
     #   'draft'     - not published
     #   'scheduled' - published, but the publish date is still to come
     #   'published' - live, anyone can read it
     def get_status(self, story):
+        if story.is_archived:
+            return 'archived'
         if not story.is_published:
             return 'draft'
         if story.publish_at and story.publish_at > timezone.now():

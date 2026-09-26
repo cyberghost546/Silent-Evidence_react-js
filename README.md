@@ -108,6 +108,8 @@ private profiles. Use it for any new list of stories.
 | `/settings` | `SettingsPage/` | yes |
 | `/author` | `AuthorDashboard/` | yes |
 | `/dashboard` | `Dashboard/` | admins |
+| `/dashboard/users` | `UsersDashboard/` | admins |
+| `/dashboard/stories` | `StoriesDashboard/` | admins |
 
 All routes live in `frontend/src/App.jsx`.
 
@@ -123,6 +125,7 @@ All routes live in `frontend/src/App.jsx`.
 | `SiteTour` | The step-by-step pop-up tour (steps in `tourSteps.js`); opens once for new visitors |
 | `SearchBox` | The big search bar with "try" suggestions |
 | `SearchModal` | A pop-up over the page (Esc / click outside to close) - here with the SearchBox; opened from the header or Ctrl + K |
+| `Dashboard/AdminParts` | Admin list pages: `AdminSearch`, `AdminFilters`, `PageMessages` |
 | `SettingsParts` | `SettingsSection`, `SettingRow`, `Toggle` (on/off switch) |
 | `styles/formStyles.js` | The shared classes for labels, inputs, buttons |
 

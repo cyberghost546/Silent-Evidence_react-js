@@ -630,7 +630,7 @@ class SearchView(APIView):
             get_user_model().objects
             .filter(username__icontains=query)
             .select_related('profile')
-            .annotate(story_count=Count('stories', filter=Q(stories__is_published=True)))
+            .annotate(story_count=Count('stories', filter=Q(stories__is_published=True, stories__is_archived=False)))
             .order_by('-story_count', 'username')[:10]
         )
 

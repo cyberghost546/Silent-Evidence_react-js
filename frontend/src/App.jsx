@@ -18,6 +18,7 @@ import Overview from './components/Dashboard/Overview'
 import SlideDashboard from './components/SlideDashboard/SlideDashboard'
 import SettingsPage from './components/SettingsPage/SettingsPage'
 import UsersDashboard from './components/UsersDashboard/UsersDashboard'
+import StoriesDashboard from './components/StoriesDashboard/StoriesDashboard'
 import LeaderboardPage from './components/LeaderboardPage/LeaderboardPage'
 import FeedPage from './components/FeedPage/FeedPage'
 import MyListsPage from './components/MyListsPage/MyListsPage'
@@ -184,6 +185,7 @@ function App() {
             parent's path: 'slides' -> /dashboard/slides */}
         <Route path='slides' element={<SlideDashboard />} />
         <Route path='users' element={<UsersDashboard />} />
+        <Route path='stories' element={<StoriesDashboard />} />
       </Route>
     </Routes>
     </AgeGate>

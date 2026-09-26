@@ -515,3 +515,27 @@ export function updateAdminUser(id, changes) {
 export function deleteAdminUser(id) {
     return authRequest(`/api/dashboard/users/${id}/`, 'DELETE')
 }
+
+
+// --- Admin Dashboard: Stories page (admins only) ---
+
+// { counts: { total, draft, published, archived },
+//   stories: [ { id, title, author, category, status, is_story_of_the_day,
+//                like_count, comment_count, views, created_at } ] }
+export function getAdminStories() {
+    return authRequest('/api/dashboard/stories/')
+}
+
+// changes = { status: 'archived' } or { is_story_of_the_day: true }.
+// Answers with the updated story row.
+export function updateAdminStory(id, changes) {
+    const data = new FormData()
+    for (const [key, value] of Object.entries(changes)) {
+        data.append(key, value)
+    }
+    return authRequest(`/api/dashboard/stories/${id}/`, 'PATCH', data)
+}
+
+export function deleteAdminStory(id) {
+    return authRequest(`/api/dashboard/stories/${id}/`, 'DELETE')
+}

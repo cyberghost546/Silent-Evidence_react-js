@@ -11,6 +11,7 @@ import Sidebar from './Sidebar'
 //   /dashboard         -> <Overview />
 //   /dashboard/slides  -> <SlideDashboard />
 //   /dashboard/users   -> <UsersDashboard />
+//   /dashboard/stories -> <StoriesDashboard />
 //
 // So the sidebar is written once, and every new dashboard page
 // gets it for free.

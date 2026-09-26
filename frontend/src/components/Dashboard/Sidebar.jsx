@@ -19,7 +19,7 @@ const NAV_ITEMS = [
     { label: 'Overview', to: '/dashboard', icon: <GridIcon />, end: true },
     { label: 'Slideshow', to: '/dashboard/slides', icon: <PhotoIcon /> },
     { label: 'Users', to: '/dashboard/users', icon: <UsersIcon /> },
-    { label: 'Stories', icon: <BookIcon /> },
+    { label: 'Stories', to: '/dashboard/stories', icon: <BookIcon /> },
     { label: 'Categories', icon: <TagIcon /> },
 ]
 

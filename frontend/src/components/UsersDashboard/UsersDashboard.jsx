@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Users, Crown, PenLine, Zap, Search, User, ArrowUp, ArrowDown, BadgeCheck, Trash2 } from 'lucide-react'
+import { Users, Crown, PenLine, Zap, User, ArrowUp, ArrowDown, BadgeCheck, Trash2 } from 'lucide-react'
 import { getAdminUsers, updateAdminUser, deleteAdminUser } from '../../api/client'
 import { useAuth } from '../../hooks/useAuth'
 import Avatar from '../Avatar/Avatar'
+import { AdminSearch, AdminFilters, PageMessages } from '../Dashboard/AdminParts'
 
 
 // ---------------------------------------------------------------
@@ -27,9 +28,9 @@ import Avatar from '../Avatar/Avatar'
 // belong in this filter?" - a small function per filter.
 const FILTERS = [
     { value: 'all', label: 'All', test: () => true },
-    { value: 'user', label: 'User', icon: User, test: user => user.role === 'user' },
-    { value: 'author', label: 'Author', icon: PenLine, test: user => user.role === 'author' },
-    { value: 'admin', label: 'Admin', icon: Crown, test: user => user.role === 'admin' },
+    { value: 'user', label: 'USER', icon: User, test: user => user.role === 'user' },
+    { value: 'author', label: 'AUTHOR', icon: PenLine, test: user => user.role === 'author' },
+    { value: 'admin', label: 'ADMIN', icon: Crown, test: user => user.role === 'admin' },
     { value: 'premium', label: 'Premium', test: user => user.is_premium },
 ]
 
@@ -322,48 +323,15 @@ function UsersDashboard() {
                 <UserStatCard icon={Zap} value={data.counts.premium} label='Premium' color='text-yellow-400' />
             </div>
 
-            {/* ---------- SEARCH + FILTER BUTTONS ---------- */}
+            {/* ---------- SEARCH + FILTER BUTTONS + MESSAGES ---------- */}
+            {/* The shared admin pieces (Dashboard/AdminParts.jsx) - the
+                Stories page uses the very same ones. */}
             <div className='mt-6 flex flex-col gap-3 xl:flex-row xl:items-center'>
-                <div className='relative flex-1'>
-                    <Search className='pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500' />
-                    <input
-                        type='search'
-                        value={search}
-                        onChange={event => setSearch(event.target.value)}
-                        placeholder='Search by ID, username or email...'
-                        aria-label='Search users'
-                        className='w-full rounded-lg border border-slate-700 bg-slate-900 py-3 pl-11 pr-4 text-white placeholder:text-slate-500 focus:border-red-600 focus:outline-none'
-                    />
-                </div>
-
-                <div className='flex flex-wrap gap-2'>
-                    {FILTERS.map(item => {
-                        const Icon = item.icon
-                        const isActive = item.value === filter
-                        return (
-                            <button
-                                key={item.value}
-                                type='button'
-                                onClick={() => setFilter(item.value)}
-                                aria-pressed={isActive}
-                                className={`flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-semibold transition-colors ${
-                                    isActive
-                                        ? 'border-red-600 bg-red-600 text-white'
-                                        : 'border-slate-700 text-gray-300 hover:border-slate-500'
-                                } ${item.value === 'all' || item.value === 'premium' ? '' : 'uppercase'}`}
-                            >
-                                {item.label}
-                                {/* Only some filters have an icon. */}
-                                {Icon && <Icon className='h-4 w-4' />}
-                            </button>
-                        )
-                    })}
-                </div>
+                <AdminSearch value={search} onChange={setSearch} placeholder='Search by ID, username or email...' />
+                <AdminFilters filters={FILTERS} value={filter} onChange={setFilter} />
             </div>
 
-            {/* ---------- MESSAGES ---------- */}
-            {error && <p className='mt-4 rounded-lg border border-red-800 bg-red-950/40 px-4 py-2 text-sm text-red-300'>{error}</p>}
-            {notice && <p className='mt-4 rounded-lg border border-green-800 bg-green-950/40 px-4 py-2 text-sm text-green-300'>{notice}</p>}
+            <PageMessages error={error} notice={notice} />
 
             {/* ---------- "SHOWING X OF Y" + BULK DELETE ---------- */}
             <div className='mt-5 flex min-h-9 items-center justify-between'>
