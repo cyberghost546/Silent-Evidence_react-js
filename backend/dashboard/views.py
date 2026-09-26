@@ -1,7 +1,7 @@
 from datetime import timedelta
 
 from django.contrib.auth.models import User
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework.permissions import IsAdminUser
@@ -289,3 +289,76 @@ class AdminStoryDetailView(APIView):
     def delete(self, request, pk):
         get_object_or_404(Story, pk=pk).delete()
         return Response(status=204)
+
+
+# ---------------------------------------------------------------
+# CONVERSION FUNNEL (Admin Dashboard -> Conversion Funnel)
+#
+# Of the people who signed up, how many went one step further?
+#   1. Signed up
+#   2. ...and set up their profile (avatar or bio)
+#   3. ...and took part (liked, saved or commented at least once)
+#   4. ...and started writing (any story, drafts too)
+#   5. ...and published a story
+#   6. ...and went premium
+# Every step is a smaller group of the people in the step before -
+# that's what makes it a funnel.
+#
+# (Visitors who never sign up aren't counted: the site doesn't
+# track anonymous visitors.)
+# ---------------------------------------------------------------
+
+# GET /api/dashboard/funnel/?days=30   (7, 30, 90, or 'all')
+class FunnelView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        days = request.query_params.get('days', '30')
+        people = User.objects.all()
+        if days != 'all':
+            # int() would crash on nonsense - fall back to 30.
+            days = int(days) if days.isdigit() else 30
+            people = people.filter(date_joined__gte=timezone.now() - timedelta(days=days))
+
+        # Each step keeps only the people who ALSO did it - so every
+        # step is a part of the step before (that's what makes it a
+        # funnel; a person who comments but never set up a profile
+        # drops out at step 2).
+        # Q(a) | Q(b) = a OR b. .distinct() because joining likes /
+        # comments would otherwise list one person several times.
+        # We keep the ids (values('id')) and filter the next step with
+        # id__in=..., which Django turns into one sub-query.
+        signed_up = people
+        profile_done = signed_up.filter(Q(profile__bio__gt='') | ~Q(profile__avatar='')).exclude(profile__isnull=True)
+        took_part = User.objects.filter(id__in=profile_done.values('id')).filter(
+            Q(likes__isnull=False) | Q(bookmarks__isnull=False) | Q(comments__isnull=False)
+        )
+        wrote = User.objects.filter(id__in=took_part.values('id'), stories__isnull=False)
+        published = User.objects.filter(id__in=wrote.values('id'), stories__is_published=True)
+        premium = User.objects.filter(id__in=published.values('id'), profile__is_premium=True)
+
+        steps = [
+            ('signed_up', 'Signed up', signed_up.count()),
+            ('profile', '...set up their profile', profile_done.distinct().count()),
+            ('engaged', '...liked, saved or commented', took_part.distinct().count()),
+            ('wrote', '...started writing a story', wrote.distinct().count()),
+            ('published', '...published a story', published.distinct().count()),
+            ('premium', '...went premium', premium.distinct().count()),
+        ]
+
+        total = steps[0][2]
+        result = []
+        previous = total
+        for key, label, count in steps:
+            result.append({
+                'key': key,
+                'label': label,
+                'count': count,
+                # "of everyone who signed up" and "of the step before".
+                # max(..., 1): never divide by zero.
+                'percent_of_total': round(count * 100 / max(total, 1)),
+                'percent_of_previous': round(count * 100 / max(previous, 1)),
+            })
+            previous = count
+
+        return Response({'days': days, 'steps': result})

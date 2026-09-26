@@ -33,6 +33,12 @@ import ChallengesDashboard from './components/ChallengesDashboard/ChallengesDash
 import BundlesDashboard from './components/BundlesDashboard/BundlesDashboard'
 import ChallengesPage from './components/ChallengesPage/ChallengesPage'
 import BundlesPage from './components/BundlesPage/BundlesPage'
+import ContactInboxDashboard from './components/ContactInboxDashboard/ContactInboxDashboard'
+import SupportDashboard from './components/SupportDashboard/SupportDashboard'
+import NewsletterDashboard from './components/NewsletterDashboard/NewsletterDashboard'
+import CommentDigestDashboard from './components/CommentDigestDashboard/CommentDigestDashboard'
+import SupportPage from './components/SupportPage/SupportPage'
+import FunnelDashboard from './components/FunnelDashboard/FunnelDashboard'
 import LeaderboardPage from './components/LeaderboardPage/LeaderboardPage'
 import FeedPage from './components/FeedPage/FeedPage'
 import MyListsPage from './components/MyListsPage/MyListsPage'
@@ -135,6 +141,8 @@ function App() {
         <Route path='/history' element={<ProtectedRoute><HistoryPage /></ProtectedRoute>} />
         <Route path='/my-stories' element={<ProtectedRoute><MyStoriesPage /></ProtectedRoute>} />
         <Route path='/invites' element={<ProtectedRoute><InvitesPage /></ProtectedRoute>} />
+        <Route path='/support' element={<ProtectedRoute><SupportPage /></ProtectedRoute>} />
+        <Route path='/support/:id' element={<ProtectedRoute><SupportPage /></ProtectedRoute>} />
 
         {/* Two URLs, one page: the list alone, or the list + a chat.
             MessagesPage reads :username with useParams(). */}
@@ -220,6 +228,11 @@ function App() {
         <Route path='prompts' element={<PromptsDashboard />} />
         <Route path='challenges' element={<ChallengesDashboard />} />
         <Route path='bundles' element={<BundlesDashboard />} />
+        <Route path='contact' element={<ContactInboxDashboard />} />
+        <Route path='support' element={<SupportDashboard />} />
+        <Route path='newsletter' element={<NewsletterDashboard />} />
+        <Route path='digest' element={<CommentDigestDashboard />} />
+        <Route path='funnel' element={<FunnelDashboard />} />
       </Route>
     </Routes>
     </AgeGate>

@@ -738,3 +738,83 @@ export function deleteAdminItem(kind, id) {
 export function getStoryPicker() {
     return authRequest('/api/dashboard/story-picker/')
 }
+
+
+// --- User Support (members; admins use the same ticket URLs) ---
+
+// Your tickets: [ { id, subject, status, status_label, updated_at, ... } ]
+export function getMyTickets() {
+    return authRequest('/api/support/')
+}
+
+export function openTicket(subject, body) {
+    return authRequest('/api/support/', 'POST', { subject, body })
+}
+
+// One ticket with its conversation: { ..., messages: [...] }
+export function getTicket(id) {
+    return authRequest(`/api/support/${id}/`)
+}
+
+export function replyToTicket(id, body) {
+    return authRequest(`/api/support/${id}/`, 'POST', { body })
+}
+
+export function closeTicket(id) {
+    return authRequest(`/api/support/${id}/close/`, 'POST')
+}
+
+
+// --- Admin Dashboard: inbox, support, newsletter, digest ---
+
+// { counts: { new, handled }, messages: [...] }
+export function getContactInbox() {
+    return authRequest('/api/dashboard/contact/')
+}
+
+export function setContactHandled(id, isHandled) {
+    return authRequest(`/api/dashboard/contact/${id}/`, 'PATCH', { is_handled: isHandled })
+}
+
+// Emails the reply to the sender. Answers with the updated message.
+export function replyToContact(id, reply) {
+    return authRequest(`/api/dashboard/contact/${id}/`, 'POST', { reply })
+}
+
+export function deleteContactMessage(id) {
+    return authRequest(`/api/dashboard/contact/${id}/`, 'DELETE')
+}
+
+// { counts: { open, answered, closed }, tickets: [...] }
+export function getAllTickets() {
+    return authRequest('/api/dashboard/support/')
+}
+
+// { recipient_count, sent: [...] }
+export function getNewsletters() {
+    return authRequest('/api/dashboard/newsletter/')
+}
+
+// testOnly = true -> only to yourself.
+export function sendNewsletter(subject, body, testOnly) {
+    return authRequest('/api/dashboard/newsletter/', 'POST', { subject, body, test_only: testOnly })
+}
+
+// period = 'daily' or 'weekly'
+// { subscribers, would_send, recipients, preview, history }
+export function getDigestPreview(period) {
+    return authRequest(`/api/dashboard/digest/?period=${period}`)
+}
+
+export function sendDigestNow(period) {
+    return authRequest('/api/dashboard/digest/', 'POST', { period })
+}
+
+
+// --- Admin Dashboard: Conversion Funnel ---
+
+// days = '7', '30', '90' or 'all'
+// { days, steps: [ { key, label, count, percent_of_total, percent_of_previous } ] }
+export function getFunnel(days) {
+    return authRequest(`/api/dashboard/funnel/?days=${days}`)
+}

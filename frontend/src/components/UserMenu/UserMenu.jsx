@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import {
     User, ChartColumnIncreasing, SquarePen, LayoutGrid, PanelRight,
     RefreshCw, BookOpen, MessageSquareMore, Mail, Clock, ClipboardList, Settings,
-    LogOut, ChevronDown, BookOpenText, Brain,
+    LogOut, ChevronDown, BookOpenText, Brain, LifeBuoy,
 } from 'lucide-react'
 import { useDropdown } from '../../hooks/useDropdown'
 import Avatar from '../Avatar/Avatar'
@@ -47,6 +47,7 @@ const MENU_GROUPS = [
     [
         { label: 'Site Guide', action: 'tour', icon: BookOpenText },
         { label: 'Ask The Watcher', to: '/watcher', icon: Brain },
+        { label: 'Help & Support', to: '/support', icon: LifeBuoy },
     ],
 ]
 

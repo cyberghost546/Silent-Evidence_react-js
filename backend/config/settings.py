@@ -48,6 +48,8 @@ INSTALLED_APPS = [
     'messaging',
     'moderation',
     'sitecontent',
+    'support',
+    'mailings',
 ]
 
 MIDDLEWARE = [
@@ -166,3 +168,22 @@ MEDIA_ROOT = BASE_DIR / 'media'
 import sys
 if 'test' in sys.argv:
     PASSWORD_HASHERS = ['django.contrib.auth.hashers.MD5PasswordHasher']
+
+
+# ---------------------------------------------------------------
+# EMAIL (Contact Inbox replies, User Support, Newsletter, Comment
+# Digest).
+#
+# MAILERS (above, near "Email") uses the "console" backend: it doesn't
+# send anything - it PRINTS every email in the terminal where
+# "python manage.py runserver" is running. Perfect while developing:
+# you see exactly what would be sent, and nobody gets spammed.
+#
+# To really send emails later, change BACKEND in MAILERS to Django's
+# SMTP backend and add your mail provider's details (see the Django
+# email docs linked above) - and keep the password out of git.
+# ---------------------------------------------------------------
+DEFAULT_FROM_EMAIL = 'Silent Evidence <no-reply@silentevidence.example>'
+
+# Used to build links inside emails ("read it here: ...").
+SITE_URL = 'http://localhost:5173'

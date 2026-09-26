@@ -30,4 +30,6 @@ urlpatterns = [
     path('api/messages/', include('messaging.urls')),
     path('api/', include('moderation.urls')),
     path('api/', include('sitecontent.urls')),
+    path('api/', include('support.urls')),
+    path('api/', include('mailings.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

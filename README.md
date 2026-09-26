@@ -30,6 +30,10 @@ python manage.py createsuperuser     # only the first time: an admin account
 python manage.py runserver
 ```
 
+Emails (contact replies, support answers, newsletter, digest) are
+**printed in this terminal** instead of sent while developing - see
+EMAIL in `config/settings.py`.
+
 Optional, for the Admin Dashboard's AI Generator: start Django with an
 Anthropic API key (`$env:ANTHROPIC_API_KEY = "sk-ant-..."` in PowerShell
 before `runserver`). Never commit the key.
@@ -82,6 +86,9 @@ sends it along (plus the CSRF token), and `AuthContext.jsx` keeps
 | `stories` | Stories, likes, saves, comments, reading history, co-author invites, search, feed |
 | `messaging` | Private messages |
 | `moderation` | Reports, appeals, login logs and the login lock-out |
+| `sitecontent` | Announcement banner, writing prompts, challenges, bundles |
+| `support` | Help tickets (member <-> admin conversations) |
+| `mailings` | Newsletter and the comment digest (`python manage.py send_comment_digests weekly`) |
 | `categories` | Story categories |
 | `slides` | The homepage slideshow |
 | `dashboard` | Admin dashboard numbers |
@@ -118,6 +125,10 @@ private profiles. Use it for any new list of stories.
 | `/dashboard/ai` | `AIGeneratorDashboard/` (needs `ANTHROPIC_API_KEY`) | admins |
 | `/dashboard/moderation`, `/reports`, `/appeals` | `ModerationDashboard/`, `ReportsDashboard/`, `AppealsDashboard/` | admins |
 | `/dashboard/login-logs`, `/security` | `LoginLogsDashboard/`, `SecurityDashboard/` | admins |
+| `/dashboard/categories`, `/story-of-week`, `/announcements`, `/prompts`, `/challenges`, `/bundles` | one `...Dashboard/` folder each | admins |
+| `/dashboard/contact`, `/support`, `/newsletter`, `/digest`, `/funnel` | one `...Dashboard/` folder each | admins |
+| `/challenges`, `/bundles` | `ChallengesPage/`, `BundlesPage/` | |
+| `/support` | `SupportPage/` | yes |
 
 All routes live in `frontend/src/App.jsx`.
 

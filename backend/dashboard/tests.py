@@ -3,7 +3,7 @@ from django.test import TestCase
 
 from accounts.models import get_profile
 from categories.models import Category
-from stories.models import Story
+from stories.models import Story, Comment
 
 
 # ---------------------------------------------------------------
@@ -16,6 +16,13 @@ PASSWORD = 'Str0ng-pass-123'
 
 # Every URL the Admin Dashboard uses.
 DASHBOARD_URLS = [
+    '/api/dashboard/funnel/',
+    '/api/dashboard/contact/',
+    '/api/dashboard/support/',
+    '/api/dashboard/newsletter/',
+    '/api/dashboard/digest/',
+    '/api/dashboard/categories/',
+    '/api/dashboard/bundles/',
     '/api/dashboard/reports/',
     '/api/dashboard/moderation/',
     '/api/dashboard/appeals/',
@@ -133,3 +140,30 @@ class AdminStoriesTests(TestCase):
     def test_delete(self):
         self.client.delete(f'/api/dashboard/stories/{self.draft.id}/')
         self.assertFalse(Story.objects.filter(id=self.draft.id).exists())
+
+
+class FunnelTests(TestCase):
+    def test_each_step_is_part_of_the_one_before(self):
+        User.objects.create_user('boss', password=PASSWORD, is_staff=True)
+        writer = User.objects.create_user('writer', password=PASSWORD)
+        profile = get_profile(writer)
+        profile.bio = 'I write'
+        profile.is_premium = True
+        profile.save()
+        story = Story.objects.create(title='S', body='x', author=writer, is_published=True)
+        lurker = User.objects.create_user('lurker', password=PASSWORD)
+        # The lurker comments but has no profile -> drops out at step 2,
+        # so never counts in the later steps.
+        Comment.objects.create(story=story, author=lurker, body='hi')
+        Comment.objects.create(story=story, author=writer, body='thanks')
+
+        self.client.login(username='boss', password=PASSWORD)
+        steps = self.client.get('/api/dashboard/funnel/?days=all').json()['steps']
+        counts = {step['key']: step['count'] for step in steps}
+
+        self.assertEqual(counts['signed_up'], 3)      # boss, writer, lurker
+        self.assertEqual(counts['profile'], 1)
+        self.assertEqual(counts['engaged'], 1)        # not 2: the lurker dropped out
+        self.assertEqual(counts['published'], 1)
+        self.assertEqual(counts['premium'], 1)
+        self.assertEqual(steps[0]['percent_of_total'], 100)

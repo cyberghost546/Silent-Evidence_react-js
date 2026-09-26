@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 
 
@@ -29,6 +30,13 @@ class ContactMessage(models.Model):
     # Tick this in the admin once you've answered.
     is_handled = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    # The admin's answer (Admin Dashboard -> Contact Inbox). It's
+    # emailed to the sender AND kept here, so other admins can see
+    # what was already said.
+    reply = models.TextField(blank=True)
+    replied_at = models.DateTimeField(null=True, blank=True)
+    replied_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='contact_replies')
 
     class Meta:
         ordering = ['-created_at']
