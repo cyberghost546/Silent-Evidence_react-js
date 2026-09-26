@@ -45,6 +45,8 @@ const MOBILE_LINKS = [
     ...EXPLORE_ITEMS,
     ...FORUM_ITEMS,
     { label: 'Leaderboard', href: '/leaderboard' },
+    { label: 'Site Guide', href: '/guide' },
+    { label: 'Ask The Watcher', href: '/watcher' },
     { label: 'About', href: '/about' },
     { label: 'Contact', href: '/contact' },
 ]

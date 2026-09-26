@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import {
     User, ChartColumnIncreasing, SquarePen, LayoutGrid, Trophy, Newspaper,
     Shuffle, BookOpen, MessageSquare, Mail, Clock, ClipboardList, Settings,
-    LogOut, ChevronDown,
+    LogOut, ChevronDown, BookOpenText, Brain,
 } from 'lucide-react'
 import { useDropdown } from '../../hooks/useDropdown'
 import Avatar from '../Avatar/Avatar'
@@ -16,7 +16,7 @@ import '../NavDropdown/NavDropdown.css'
 // ---------------------------------------------------------------
 // THE MENU, AS DATA.
 //
-// Two groups, drawn with a divider line between them. Adding a menu
+// Groups, drawn with a divider line between them. Adding a menu
 // item = adding one line. (Same idea as NAV_ITEMS in the dashboard
 // Sidebar.)
 //
@@ -42,6 +42,11 @@ const MENU_GROUPS = [
         { label: 'Reading History', to: '/history', icon: Clock },
         { label: 'My Lists', to: '/lists', icon: ClipboardList },
         { label: 'Settings', to: '/settings', icon: Settings },
+    ],
+    // Help - its own group, so it gets its own divider line.
+    [
+        { label: 'Site Guide', to: '/guide', icon: BookOpenText },
+        { label: 'Ask The Watcher', to: '/watcher', icon: Brain },
     ],
 ]
 
@@ -70,7 +75,7 @@ function UserMenu({ user, onLogout }) {
 
     // Take out the admin-only rows for normal users.
     // .map() goes over the groups, .filter() goes over the items in
-    // each group - so the result has the same two-group shape.
+    // each group - so the result has the same groups, just shorter.
     const groups = MENU_GROUPS.map(group =>
         group.filter(item => !item.adminOnly || user.is_staff)
     )
@@ -114,7 +119,7 @@ function UserMenu({ user, onLogout }) {
                         <p className='text-xs text-gray-500'>View your profile</p>
                     </Link>
 
-                    {/* ----- The two groups of links ----- */}
+                    {/* ----- The groups of links ----- */}
                     {groups.map((group, index) => (
                         // border-t = the divider line above each group.
                         // key={index} is fine: the groups never change order.

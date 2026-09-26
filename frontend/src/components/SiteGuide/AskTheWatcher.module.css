@@ -1,0 +1,73 @@
+/* ---------------------------------------------------------------
+   Two small animations for Ask The Watcher.
+   (A CSS Module: the class names only apply to AskTheWatcher.jsx.)
+   --------------------------------------------------------------- */
+
+
+/* THE EYE - the round portrait at the top slowly "breathes" a red
+   glow, like something is watching. */
+.eye {
+    animation: watch 4s ease-in-out infinite;
+}
+
+@keyframes watch {
+    0%,
+    100% {
+        box-shadow: 0 0 12px 2px rgba(220, 38, 38, 0.25);
+    }
+    50% {
+        box-shadow: 0 0 36px 8px rgba(220, 38, 38, 0.55);
+    }
+}
+
+
+/* THE "TYPING" DOTS - three dots that bounce one after the other.
+   .dots is the row; ".dots span" = each of the three <span>s in it. */
+.dots {
+    display: flex;
+    gap: 4px;
+    padding: 12px 16px;
+    border: 1px solid #1e293b;   /* slate-800 */
+    border-radius: 16px;
+    background: #0f172a;         /* slate-900 */
+}
+
+.dots span {
+    width: 6px;
+    height: 6px;
+    border-radius: 9999px;
+    background: #f87171;         /* red-400 */
+    animation: bounce 1.2s ease-in-out infinite;
+}
+
+/* :nth-child(2) = the 2nd dot. A delay makes them go one by one
+   instead of all together. */
+.dots span:nth-child(2) {
+    animation-delay: 0.15s;
+}
+
+.dots span:nth-child(3) {
+    animation-delay: 0.3s;
+}
+
+@keyframes bounce {
+    0%,
+    60%,
+    100% {
+        transform: translateY(0);
+        opacity: 0.5;
+    }
+    30% {
+        transform: translateY(-5px);
+        opacity: 1;
+    }
+}
+
+
+/* People who switched off animations in their system settings. */
+@media (prefers-reduced-motion: reduce) {
+    .eye,
+    .dots span {
+        animation: none;
+    }
+}

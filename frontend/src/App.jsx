@@ -26,6 +26,8 @@ import InvitesPage from './components/InvitesPage/InvitesPage'
 import MessagesPage from './components/MessagesPage/MessagesPage'
 import SearchPage from './components/SearchPage/SearchPage'
 import InfoPage from './components/InfoPage/InfoPage'
+import SiteGuide from './components/SiteGuide/SiteGuide'
+import AskTheWatcher from './components/SiteGuide/AskTheWatcher'
 import './App.css'
 
 function App() {
@@ -125,6 +127,11 @@ function App() {
 
         {/* Anyone can search. The words go in the URL: /search?q=house */}
         <Route path='/search' element={<SearchPage />} />
+
+        {/* Help pages - anyone can use them. Both read the topics
+            in components/SiteGuide/guideTopics.js. */}
+        <Route path='/guide' element={<SiteGuide />} />
+        <Route path='/watcher' element={<AskTheWatcher />} />
 
         {/* The text pages: /about, /privacy, /terms, /cookies...
             ONE route for all of them - InfoPage looks up :page in

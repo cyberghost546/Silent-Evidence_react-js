@@ -26,6 +26,8 @@ const NAVIGATE_LINKS = [
     { label: 'Home', href: '/' },
     { label: 'Write a Story', href: '/write' },
     { label: 'Search', href: '/search' },
+    { label: 'Site Guide', href: '/guide' },
+    { label: 'Ask The Watcher', href: '/watcher' },
     { label: 'About', href: '/about' },
     { label: 'Contact', href: '/contact' },
 ]
