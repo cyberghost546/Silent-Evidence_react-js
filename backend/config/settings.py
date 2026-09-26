@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'contact',
     'messaging',
     'moderation',
+    'sitecontent',
 ]
 
 MIDDLEWARE = [

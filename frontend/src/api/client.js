@@ -124,16 +124,25 @@ function getCookie(name) {
 }
 
 async function authRequest(path, method = 'GET', body = null) {
+    const headers = { 'X-CSRFToken': getCookie('csrftoken') }
+
+    // Two kinds of body:
+    //   FormData     -> sent as it is. No 'Content-Type' on purpose:
+    //                   the browser writes that header itself (it
+    //                   includes a random "boundary" between fields).
+    //   plain object -> sent as JSON. Needed for LISTS, like the
+    //                   stories in a bundle ({ story_ids: [3, 7] }),
+    //                   which FormData can't send when they're empty.
+    if (body !== null && !(body instanceof FormData)) {
+        body = JSON.stringify(body)
+        headers['Content-Type'] = 'application/json'
+    }
+
     const response = await fetch(`${API_HOST}${path}`, {
         method: method,
         body: body,
         credentials: 'include',
-        headers: {
-            'X-CSRFToken': getCookie('csrftoken'),
-            // No 'Content-Type' on purpose! When body is FormData the
-            // browser has to write that header itself - it includes a
-            // random "boundary" string that separates the fields.
-        },
+        headers: headers,
     })
 
     if (!response.ok) {
@@ -644,4 +653,88 @@ export function generateStory(options) {
 // Saves as a DRAFT. Answers { id }.
 export function saveGeneratedStory(story) {
     return authRequest('/api/dashboard/ai/save/', 'POST', toFormData(story))
+}
+
+
+
+// --- Site content (public) ---
+
+// The banner at the top of every page, or null if none is on.
+export function getAnnouncement() {
+    return getJSONOrNull('/api/announcement/')
+}
+
+// One random writing prompt { id, text }, or null.
+export function getRandomPrompt() {
+    return getJSONOrNull('/api/prompts/random/')
+}
+
+export function getChallenges() {
+    return getJSON('/api/challenges/')
+}
+
+// authRequest (not getJSON): logged in, Django also sends which of
+// YOUR stories could still enter.
+export function getChallenge(id) {
+    return authRequest(`/api/challenges/${id}/`)
+}
+
+export function enterChallenge(challengeId, storyId) {
+    return authRequest(`/api/challenges/${challengeId}/enter/`, 'POST', { story_id: storyId })
+}
+
+export function getBundles() {
+    return getJSON('/api/bundles/')
+}
+
+export function getBundle(slug) {
+    return authRequest(`/api/bundles/${slug}/`)
+}
+
+// Like getJSON, but "204 No Content" (nothing there) gives null
+// instead of crashing on the empty body.
+async function getJSONOrNull(path) {
+    const response = await fetch(`${API_HOST}${path}`)
+    if (response.status === 204) return null
+    if (!response.ok) throw new Error(`Request failed: ${response.status}`)
+    return response.json()
+}
+
+
+// --- Admin Dashboard: site content (admins only) ---
+//
+// Every admin list below works the same way, so ONE set of helpers
+// covers them all. `kind` is the last part of the URL:
+//   'announcements', 'prompts', 'challenges', 'bundles', 'categories'
+//
+//   getAdminList('prompts')                 -> GET    /api/dashboard/prompts/
+//   createAdminItem('prompts', { text })    -> POST   /api/dashboard/prompts/
+//   getAdminItem('challenges', 3)           -> GET    /api/dashboard/challenges/3/
+//   updateAdminItem('prompts', 5, {...})    -> PATCH  /api/dashboard/prompts/5/
+//   deleteAdminItem('prompts', 5)           -> DELETE /api/dashboard/prompts/5/
+
+export function getAdminList(kind) {
+    return authRequest(`/api/dashboard/${kind}/`)
+}
+
+export function createAdminItem(kind, values) {
+    return authRequest(`/api/dashboard/${kind}/`, 'POST', values)
+}
+
+export function getAdminItem(kind, id) {
+    return authRequest(`/api/dashboard/${kind}/${id}/`)
+}
+
+export function updateAdminItem(kind, id, values) {
+    return authRequest(`/api/dashboard/${kind}/${id}/`, 'PATCH', values)
+}
+
+export function deleteAdminItem(kind, id) {
+    return authRequest(`/api/dashboard/${kind}/${id}/`, 'DELETE')
+}
+
+// Every published story, short: [ { id, title, author, views,
+// is_story_of_the_day, is_story_of_the_week } ]
+export function getStoryPicker() {
+    return authRequest('/api/dashboard/story-picker/')
 }

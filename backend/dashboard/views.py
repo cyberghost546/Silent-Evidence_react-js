@@ -211,6 +211,7 @@ def admin_story_data(story):
         'category': story.category.name if story.category else None,
         'status': story_status(story),
         'is_story_of_the_day': story.is_story_of_the_day,
+        'is_story_of_the_week': story.is_story_of_the_week,
         'like_count': story.like_count,
         'comment_count': story.comment_count,
         'views': story.views,
@@ -246,7 +247,7 @@ class AdminStoryListView(APIView):
         return Response({'counts': counts, 'stories': stories})
 
 
-# PATCH  /api/dashboard/stories/5/   { status } or { is_story_of_the_day }
+# PATCH  /api/dashboard/stories/5/   { status } or { is_story_of_the_day } or { is_story_of_the_week }
 # DELETE /api/dashboard/stories/5/
 class AdminStoryDetailView(APIView):
     permission_classes = [IsAdminUser]
@@ -271,8 +272,16 @@ class AdminStoryDetailView(APIView):
                 return Response({'detail': 'Unknown status.'}, status=400)
 
         # FormData sends 'true' / 'false' as text.
-        if 'is_story_of_the_day' in data:
-            story.is_story_of_the_day = data['is_story_of_the_day'] == 'true'
+        # Only ONE Story of the Day (and one of the Week) at a time:
+        # picking a new one takes the tick off the old one.
+        for field in ('is_story_of_the_day', 'is_story_of_the_week'):
+            if field in data:
+                turn_on = data[field] == 'true'
+                if turn_on:
+                    # **{field: True} = "filter(is_story_of_the_day=True)",
+                    # with the field name coming from the loop.
+                    Story.objects.filter(**{field: True}).exclude(pk=story.pk).update(**{field: False})
+                setattr(story, field, turn_on)   # story.<field> = turn_on
 
         story.save()
         return Response(admin_story_data(stories_with_counts().get(pk=pk)))

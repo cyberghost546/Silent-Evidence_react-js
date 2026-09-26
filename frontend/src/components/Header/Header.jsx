@@ -28,6 +28,8 @@ const EXPLORE_ITEMS = [
     { label: 'Latest', href: '/explore/latest' },
     { label: 'Most Viewed', href: '/explore/popular' },
     { label: 'Timeline', href: '/explore/timeline' },
+    { label: 'Writing Challenges', href: '/challenges' },
+    { label: 'Bundles', href: '/bundles' },
 ]
 
 // Shared styling for the plain nav links, kept in one constant so

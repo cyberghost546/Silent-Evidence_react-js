@@ -25,6 +25,14 @@ import ReportsDashboard from './components/ReportsDashboard/ReportsDashboard'
 import AppealsDashboard from './components/AppealsDashboard/AppealsDashboard'
 import LoginLogsDashboard from './components/LoginLogsDashboard/LoginLogsDashboard'
 import SecurityDashboard from './components/SecurityDashboard/SecurityDashboard'
+import CategoriesDashboard from './components/CategoriesDashboard/CategoriesDashboard'
+import StoryOfWeekDashboard from './components/StoryOfWeekDashboard/StoryOfWeekDashboard'
+import AnnouncementsDashboard from './components/AnnouncementsDashboard/AnnouncementsDashboard'
+import PromptsDashboard from './components/PromptsDashboard/PromptsDashboard'
+import ChallengesDashboard from './components/ChallengesDashboard/ChallengesDashboard'
+import BundlesDashboard from './components/BundlesDashboard/BundlesDashboard'
+import ChallengesPage from './components/ChallengesPage/ChallengesPage'
+import BundlesPage from './components/BundlesPage/BundlesPage'
 import LeaderboardPage from './components/LeaderboardPage/LeaderboardPage'
 import FeedPage from './components/FeedPage/FeedPage'
 import MyListsPage from './components/MyListsPage/MyListsPage'
@@ -133,6 +141,14 @@ function App() {
         <Route path='/messages' element={<ProtectedRoute><MessagesPage /></ProtectedRoute>} />
         <Route path='/messages/:username' element={<ProtectedRoute><MessagesPage /></ProtectedRoute>} />
 
+        {/* Writing challenges and story bundles - anyone can look.
+            Each has a list page and a detail page (same component,
+            it reads :id / :slug with useParams). */}
+        <Route path='/challenges' element={<ChallengesPage />} />
+        <Route path='/challenges/:id' element={<ChallengesPage />} />
+        <Route path='/bundles' element={<BundlesPage />} />
+        <Route path='/bundles/:slug' element={<BundlesPage />} />
+
         {/* Anyone can search. The words go in the URL: /search?q=house */}
         <Route path='/search' element={<SearchPage />} />
 
@@ -198,6 +214,12 @@ function App() {
         <Route path='appeals' element={<AppealsDashboard />} />
         <Route path='login-logs' element={<LoginLogsDashboard />} />
         <Route path='security' element={<SecurityDashboard />} />
+        <Route path='categories' element={<CategoriesDashboard />} />
+        <Route path='story-of-week' element={<StoryOfWeekDashboard />} />
+        <Route path='announcements' element={<AnnouncementsDashboard />} />
+        <Route path='prompts' element={<PromptsDashboard />} />
+        <Route path='challenges' element={<ChallengesDashboard />} />
+        <Route path='bundles' element={<BundlesDashboard />} />
       </Route>
     </Routes>
     </AgeGate>

@@ -1,7 +1,10 @@
 import { NavLink, Link } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { GridIcon, PhotoIcon, UsersIcon, BookIcon, TagIcon, ArrowLeftIcon, LogoutIcon } from './DashboardIcons'
-import { Bot, Flag, TriangleAlert, Gavel, ShieldCheck, Map, ShieldAlert, TrendingUp } from 'lucide-react'
+import {
+    Bot, Flag, TriangleAlert, Gavel, ShieldCheck, Map, ShieldAlert, TrendingUp, Funnel, Swords,
+    Megaphone, Trophy, Mail, LifeBuoy, Newspaper, MessageSquare, Package, PenLine,
+} from 'lucide-react'
 import styles from './Dashboard.module.css'
 
 
@@ -20,13 +23,11 @@ const ICON = 'h-5 w-5 shrink-0'
 
 const NAV_ITEMS = [
     { label: 'Overview', to: '/dashboard', icon: <GridIcon />, end: true },
-    { label: 'Slideshow', to: '/dashboard/slides', icon: <PhotoIcon /> },
     { label: 'Users', to: '/dashboard/users', icon: <UsersIcon /> },
     { label: 'Stories', to: '/dashboard/stories', icon: <BookIcon /> },
-    { label: 'Categories', icon: <TagIcon /> },
 
     // The newer pages use lucide-react icons. ICON is the same size
-    // as the hand-made icons above (w-5 h-5).
+    // as the hand-made icons (w-5 h-5).
     { label: 'AI Generator', to: '/dashboard/ai', icon: <Bot className={ICON} /> },
     { label: 'Moderation', to: '/dashboard/moderation', icon: <Flag className={ICON} /> },
     { label: 'Reports', to: '/dashboard/reports', icon: <TriangleAlert className={ICON} /> },
@@ -35,7 +36,20 @@ const NAV_ITEMS = [
     { label: 'Login Map', icon: <Map className={ICON} /> },
     { label: 'Security', to: '/dashboard/security', icon: <ShieldAlert className={ICON} /> },
     { label: 'Analytics', icon: <TrendingUp className={ICON} /> },
+    { label: 'Conversion Funnel', icon: <Funnel className={ICON} /> },
+    { label: 'Challenges', to: '/dashboard/challenges', icon: <Swords className={ICON} /> },
+    { label: 'Slideshow', to: '/dashboard/slides', icon: <PhotoIcon /> },
+    { label: 'Categories', to: '/dashboard/categories', icon: <TagIcon /> },
+    { label: 'Announcement', to: '/dashboard/announcements', icon: <Megaphone className={ICON} /> },
+    { label: 'Story of Week', to: '/dashboard/story-of-week', icon: <Trophy className={ICON} /> },
+    { label: 'Contact Inbox', icon: <Mail className={ICON} /> },
+    { label: 'User Support', icon: <LifeBuoy className={ICON} /> },
+    { label: 'Newsletter', icon: <Newspaper className={ICON} /> },
+    { label: 'Comment Digest', icon: <MessageSquare className={ICON} /> },
+    { label: 'Bundles', to: '/dashboard/bundles', icon: <Package className={ICON} /> },
+    { label: 'Writing Prompts', to: '/dashboard/prompts', icon: <PenLine className={ICON} /> },
 ]
+
 
 // Shared look for every row, plus the two states.
 const ITEM_STYLE = 'flex items-center gap-3 rounded-md border px-3 py-2 text-sm transition-colors'

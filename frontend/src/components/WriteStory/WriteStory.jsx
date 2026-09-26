@@ -5,6 +5,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { getCategories, createStory } from '../../api/client'
 import SegmentedControl from '../SegmentedControl/SegmentedControl'
 import StoryEditor from './StoryEditor'
+import PromptBox from './PromptBox'
 import { LANGUAGES, MOODS, CONTENT_RATINGS, CONTENT_WARNINGS, TEMPLATES } from './storyOptions'
 import { LABEL_STYLE, INPUT_STYLE, BUTTON_STYLE, FIELD_ERROR_STYLE } from '../../styles/formStyles'
 import { countWords } from '../../utils/storyFormat'
@@ -420,6 +421,11 @@ function WriteStory() {
                     </div>
                 )}
             </div>
+
+            {/* ---------- WRITING PROMPT ---------- */}
+            {/* "Use it" puts the prompt in bold at the TOP of the story
+                (anything you already wrote stays below it). */}
+            <PromptBox onUse={text => updateField('body', `**Prompt:** ${text}\n\n${form.body}`)} />
 
             {/* ---------- DRAFT RESTORED BAR ---------- */}
             {draftRestored && (

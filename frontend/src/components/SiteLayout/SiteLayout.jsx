@@ -1,5 +1,6 @@
 import { Outlet } from 'react-router-dom'
 import Header from '../Header/Header'
+import AnnouncementBanner from '../AnnouncementBanner/AnnouncementBanner'
 import Footer from '../Footer/Footer'
 import BackToTop from '../BackToTop/BackToTop'
 
@@ -18,6 +19,8 @@ function SiteLayout() {
         // the footer still sits at the bottom of the window instead of
         // floating halfway up the screen.
         <div className='home min-h-screen flex flex-col'>
+            {/* The admins' announcement (if one is switched on). */}
+            <AnnouncementBanner />
             <Header />
 
             <main className='flex-1'>
