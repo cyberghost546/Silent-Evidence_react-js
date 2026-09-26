@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'stories',
     'contact',
     'messaging',
+    'moderation',
 ]
 
 MIDDLEWARE = [

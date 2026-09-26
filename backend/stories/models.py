@@ -215,6 +215,10 @@ class Comment(models.Model):
     body = models.TextField(max_length=2000)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    # Hidden by an admin (Admin Dashboard -> Moderation or Reports).
+    # Hidden = not shown on the site, but not deleted.
+    is_hidden = models.BooleanField(default=False)
+
     class Meta:
         # Newest comments first.
         ordering = ['-created_at']
@@ -238,6 +242,9 @@ class LastWord(models.Model):
     # max_length on a CharField.
     body = models.CharField(max_length=LAST_WORDS_MAX)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    # Hidden by an admin (Admin Dashboard -> Moderation).
+    is_hidden = models.BooleanField(default=False)
 
     class Meta:
         ordering = ['-created_at']

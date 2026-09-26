@@ -99,7 +99,8 @@ class StoryDetailSerializer(StoryCardSerializer):
         return story.likes.count()
 
     def get_comment_count(self, story):
-        return story.comments.count()
+        # Hidden comments (Moderation) don't count.
+        return story.comments.filter(is_hidden=False).count()
 
     # "Did the person looking at this page like it?" - so the heart
     # shows filled in. The view passes the request in `context`
@@ -222,7 +223,8 @@ class MyStorySerializer(serializers.ModelSerializer):
         return story.likes.count()
 
     def get_comment_count(self, story):
-        return story.comments.count()
+        # Hidden comments (Moderation) don't count.
+        return story.comments.filter(is_hidden=False).count()
 
     # One word for the coloured badge:
     #   'archived'  - taken off the site by an admin

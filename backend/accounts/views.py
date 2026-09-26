@@ -11,6 +11,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from moderation.security import is_locked, record_login, client_ip, LOCK_MINUTES
 from stories.models import Like, Bookmark, Comment, published_stories
 from .models import Follow, Block, get_profile
 from .serializers import SignUpSerializer, ProfileSettingsSerializer
@@ -82,6 +83,16 @@ class LogInView(APIView):
             if match:
                 login_name = match.username
 
+        # TOO MANY WRONG PASSWORDS? (moderation/security.py)
+        # Checked BEFORE the password, so a locked account can't be
+        # guessed at all - not even with the right password - until
+        # the lock lifts. 429 = "Too Many Requests".
+        if is_locked(login_name, client_ip(request)):
+            return Response(
+                {'detail': f'Too many failed attempts. Try again in {LOCK_MINUTES} minutes.'},
+                status=status.HTTP_429_TOO_MANY_REQUESTS,
+            )
+
         # authenticate() checks the password against the hash.
         # Right password -> the User. Wrong -> None.
         user = authenticate(
@@ -93,12 +104,17 @@ class LogInView(APIView):
         # Same message for "no such user" and "wrong password" on
         # purpose - otherwise you tell attackers which usernames exist.
         if user is None:
+            # Write it down (Login Logs), and link it to the account if
+            # that name exists - so admins can see who's being targeted.
+            known_user = get_user_model().objects.filter(username=login_name).first()
+            record_login(request, login_name, known_user, success=False)
             return Response(
                 {'detail': 'Wrong email, username or password.'},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         login(request, user)
+        record_login(request, login_name, user, success=True)
         return Response(user_data(user))
 
 

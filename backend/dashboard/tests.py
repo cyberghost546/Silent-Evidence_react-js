@@ -16,6 +16,12 @@ PASSWORD = 'Str0ng-pass-123'
 
 # Every URL the Admin Dashboard uses.
 DASHBOARD_URLS = [
+    '/api/dashboard/reports/',
+    '/api/dashboard/moderation/',
+    '/api/dashboard/appeals/',
+    '/api/dashboard/login-logs/',
+    '/api/dashboard/security/',
+    '/api/dashboard/ai/status/',
     '/api/dashboard/stories/',
     '/api/dashboard/users/',
     '/api/dashboard/stats/',

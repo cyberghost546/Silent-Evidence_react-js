@@ -1,5 +1,6 @@
 from django.urls import path
 
+from .ai import AIStatusView, GenerateStoryView, SaveGeneratedStoryView
 from .views import (
     DashboardStatsView, AdminUserListView, AdminUserDetailView,
     AdminStoryListView, AdminStoryDetailView,
@@ -19,4 +20,9 @@ urlpatterns = [
     # The Stories page
     path('dashboard/stories/', AdminStoryListView.as_view()),
     path('dashboard/stories/<int:pk>/', AdminStoryDetailView.as_view()),
+
+    # The AI Generator page (dashboard/ai.py)
+    path('dashboard/ai/status/', AIStatusView.as_view()),
+    path('dashboard/ai/generate/', GenerateStoryView.as_view()),
+    path('dashboard/ai/save/', SaveGeneratedStoryView.as_view()),
 ]

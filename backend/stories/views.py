@@ -217,7 +217,8 @@ class CommentListView(generics.ListCreateAPIView):
         # story.comments = all comments pointing at this story (the
         # related_name). select_related('author') fetches the usernames
         # in the same query.
-        comments = self.get_story().comments.select_related('author')
+        # is_hidden=False: leave out comments an admin hid (Moderation).
+        comments = self.get_story().comments.filter(is_hidden=False).select_related('author')
 
         # Hide comments by people you blocked (Settings -> Blocked Users).
         if self.request.user.is_authenticated:
@@ -292,7 +293,8 @@ class LastWordListView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         # [:30] = only the newest 30, so the wall never gets huge.
-        return LastWord.objects.select_related('author')[:30]
+        # is_hidden=False: leave out quotes an admin hid (Moderation).
+        return LastWord.objects.filter(is_hidden=False).select_related('author')[:30]
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
