@@ -1,16 +1,14 @@
 import { Link } from 'react-router-dom'
 import {
-    User, ChartColumnIncreasing, SquarePen, LayoutGrid, Trophy, Newspaper,
-    Shuffle, BookOpen, MessageSquare, Mail, Clock, ClipboardList, Settings,
+    User, ChartColumnIncreasing, SquarePen, LayoutGrid, PanelRight,
+    RefreshCw, BookOpen, MessageSquareMore, Mail, Clock, ClipboardList, Settings,
     LogOut, ChevronDown, BookOpenText, Brain,
 } from 'lucide-react'
 import { useDropdown } from '../../hooks/useDropdown'
 import Avatar from '../Avatar/Avatar'
 
-// The red "dropdown-scroll" scrollbar from NavDropdown - built to be
-// reused on anything that scrolls. Importing it here makes sure it's
-// loaded even if NavDropdown ever isn't on the page.
-import '../NavDropdown/NavDropdown.css'
+// The red scrollbar with the little arrows ("menu-scroll").
+import './UserMenu.css'
 
 
 // ---------------------------------------------------------------
@@ -33,11 +31,11 @@ const MENU_GROUPS = [
         { label: 'Admin Dashboard', to: '/dashboard', icon: LayoutGrid, adminOnly: true },
     ],
     [
-        { label: 'Leaderboard', to: '/leaderboard', icon: Trophy },
-        { label: 'My Feed', to: '/feed', icon: Newspaper },
-        { label: 'Random Story', to: '/random', icon: Shuffle },
+        { label: 'Leaderboard', to: '/leaderboard', icon: ChartColumnIncreasing },
+        { label: 'My Feed', to: '/feed', icon: PanelRight },
+        { label: 'Random Story', to: '/random', icon: RefreshCw },
         { label: 'My Stories', to: '/my-stories', icon: BookOpen },
-        { label: 'Messages', to: '/messages', icon: MessageSquare },
+        { label: 'Messages', to: '/messages', icon: MessageSquareMore },
         { label: 'Co-author Invites', to: '/invites', icon: Mail },
         { label: 'Reading History', to: '/history', icon: Clock },
         { label: 'My Lists', to: '/lists', icon: ClipboardList },
@@ -59,7 +57,7 @@ const MENU_GROUPS = [
 // gets two classes that set the same thing (text-gray-200 AND
 // text-red-400), the one that wins is decided by Tailwind's own CSS
 // order - NOT the order you wrote them in. Never rely on it.
-const ITEM_BASE = 'flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:bg-gray-800'
+const ITEM_BASE = 'flex w-full items-center gap-3.5 px-5 py-2.5 text-[15px] transition-colors hover:bg-gray-800'
 const ITEM_STYLE = `${ITEM_BASE} text-gray-200 hover:text-white`
 const LOGOUT_STYLE = `${ITEM_BASE} text-red-400 hover:text-red-300`
 
@@ -109,25 +107,41 @@ function UserMenu({ user, onLogout, onOpenTour }) {
 
             {/* ---------- THE PANEL ---------- */}
             {open && (
-                // max-h-[calc(100vh-5rem)] = never taller than the window
-                // (minus room for the header). If the menu is longer than
-                // that, overflow-y-auto adds a scrollbar - and
-                // dropdown-scroll makes that scrollbar red.
+                // The panel is a flex COLUMN with two parts:
+                //   1. your name at the top - always visible
+                //   2. the list of links - scrolls by itself
+                //
+                // max-h-[min(34rem,calc(100vh-5rem))] = at most 34rem
+                // tall, and never taller than the window (minus room for
+                // the header) - whichever is SMALLER. overflow-hidden
+                // keeps the rounded corners neat.
                 <div
                     role='menu'
-                    className='dropdown-scroll absolute right-0 top-full z-50 mt-3 max-h-[calc(100vh-5rem)] w-64 overflow-y-auto rounded-xl border border-gray-700/60 bg-gray-900 py-2 shadow-2xl'
+                    className='absolute right-0 top-full z-50 mt-3 flex max-h-[min(34rem,calc(100vh-5rem))] w-72 flex-col overflow-hidden rounded-xl border border-gray-700/60 bg-gray-900 shadow-2xl'
                 >
-                    {/* ----- Who's logged in ----- */}
-                    <Link to='/profile' onClick={close} className='block px-4 py-2 hover:bg-gray-800'>
+                    {/* ----- 1. Who's logged in (doesn't scroll) ----- */}
+                    {/* shrink-0: never squashed, whatever the list does. */}
+                    <Link to='/profile' onClick={close} className='block shrink-0 border-b border-gray-800 px-5 py-4 hover:bg-gray-800'>
                         <p className='font-bold text-white'>{user.username}</p>
-                        <p className='text-xs text-gray-500'>View your profile</p>
+                        <p className='text-sm text-gray-500'>View your profile</p>
                     </Link>
+
+                    {/* ----- 2. The list (scrolls) ----- */}
+                    {/* flex-1 + min-h-0 + overflow-y-auto = take the space
+                        that's left, and scroll inside it. (min-h-0 is the
+                        classic fix: without it, a flex child refuses to be
+                        smaller than its content, so it never scrolls.)
+                        menu-scroll = the red scrollbar with arrows
+                        (UserMenu.css). */}
+                    <div className='menu-scroll min-h-0 flex-1 overflow-y-auto pb-2'>
 
                     {/* ----- The groups of links ----- */}
                     {groups.map((group, index) => (
-                        // border-t = the divider line above each group.
+                        // border-t = the divider line above each group -
+                        // except the FIRST (index 0): the name area above
+                        // already has a line under it.
                         // key={index} is fine: the groups never change order.
-                        <div key={index} className='mt-2 border-t border-gray-800 pt-2'>
+                        <div key={index} className={index === 0 ? 'pt-2' : 'mt-2 border-t border-gray-800 pt-2'}>
                             {group.map(item => {
                                 // The icon is a component stored in the item.
                                 // Capital letter so JSX treats it as one: <Icon />
@@ -146,7 +160,7 @@ function UserMenu({ user, onLogout, onOpenTour }) {
                                             }}
                                             className={ITEM_STYLE}
                                         >
-                                            <Icon className='h-4 w-4 text-gray-400' />
+                                            <Icon className='h-[18px] w-[18px] text-gray-400' />
                                             {item.label}
                                         </button>
                                     )
@@ -157,7 +171,7 @@ function UserMenu({ user, onLogout, onOpenTour }) {
                                     // reloading, so the menu would stay open on the
                                     // next page unless we close it ourselves.
                                     <Link key={item.to} to={item.to} onClick={close} role='menuitem' className={ITEM_STYLE}>
-                                        <Icon className='h-4 w-4 text-gray-400' />
+                                        <Icon className='h-[18px] w-[18px] text-gray-400' />
                                         {item.label}
                                     </Link>
                                 )
@@ -176,9 +190,10 @@ function UserMenu({ user, onLogout, onOpenTour }) {
                             onClick={() => { close(); onLogout() }}
                             className={LOGOUT_STYLE}
                         >
-                            <LogOut className='h-4 w-4' />
+                            <LogOut className='h-[18px] w-[18px]' />
                             Log out
                         </button>
+                    </div>
                     </div>
                 </div>
             )}
