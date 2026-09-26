@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { Search } from 'lucide-react'
 import { searchSite } from '../../api/client'
 import PageLayout, { PageMessage } from '../PageLayout/PageLayout'
 import Avatar from '../Avatar/Avatar'
 import StoryGridCard from '../StorySections/StoryGridCard'
-import { INPUT_STYLE, BUTTON_STYLE } from '../../styles/formStyles'
+import SearchBox from '../SearchBox/SearchBox'
+import { BUTTON_STYLE } from '../../styles/formStyles'
 
 
 // ---------------------------------------------------------------
@@ -27,10 +27,6 @@ function SearchPage() {
 
     // What's in the URL right now ('' if there's no ?q=).
     const query = searchParams.get('q') || ''
-
-    // What's typed in the box. Starts as the URL's value, but can
-    // differ while you type - the search only runs when you submit.
-    const [text, setText] = useState(query)
 
     // null = nothing searched yet. Otherwise
     // { query: 'house', stories: [...], authors: [...] }.
@@ -58,13 +54,10 @@ function SearchPage() {
         }
     }, [query])
 
-    function handleSubmit(event) {
-        event.preventDefault()
-        const words = text.trim()
-        if (words.length < 2) return
-
-        // Putting it in the URL is what starts the search (the
-        // useEffect above is watching `query`).
+    // SearchBox calls this with the words (already trimmed, 2+ letters).
+    // Putting them in the URL is what starts the search (the
+    // useEffect above is watching `query`).
+    function handleSearch(words) {
         setSearchParams({ q: words })
     }
 
@@ -82,28 +75,14 @@ function SearchPage() {
         <PageLayout title='Search' subtitle='Find stories by title, words in the story, or writer.'>
 
             {/* ---------- THE SEARCH BOX ---------- */}
-            {/* role='search' tells screen readers this is the site search. */}
-            <form role='search' onSubmit={handleSubmit} className='flex gap-3'>
-                {/* relative = anchor for the magnifying glass inside the box. */}
-                <div className='relative flex-1'>
-                    <Search className='pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500' />
-                    <input
-                        type='search'
-                        value={text}
-                        onChange={event => setText(event.target.value)}
-                        placeholder='Haunted house, the_keeper, "3 AM"...'
-                        aria-label='Search'
-                        // autoFocus: the cursor is in the box as soon as
-                        // the page opens - you can start typing right away.
-                        autoFocus
-                        // pl-12 = room on the left for the icon.
-                        className={`${INPUT_STYLE} pl-12`}
-                    />
-                </div>
-                <button type='submit' disabled={text.trim().length < 2} className={`${BUTTON_STYLE} shrink-0`}>
-                    Search
-                </button>
-            </form>
+            {/* SearchBox (components/SearchBox) keeps the typed text
+                itself and calls handleSearch when you search.
+
+                key={query}: when the URL's ?q= changes some OTHER way
+                (the browser's Back button), React throws the old box
+                away and makes a new one - so the box shows the right
+                words again. A changed key = a brand-new component. */}
+            <SearchBox key={query} startText={query} onSearch={handleSearch} autoFocus />
 
             {/* ---------- RESULTS ---------- */}
             <div className='mt-10'>
