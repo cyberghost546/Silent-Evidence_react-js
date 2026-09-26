@@ -491,3 +491,27 @@ export function sendMessage(username, body) {
 export function getUnreadCount() {
     return authRequest('/api/messages/unread/')
 }
+
+
+// --- Admin Dashboard: Users page (admins only) ---
+
+// { counts: { total, admins, authors, premium },
+//   users: [ { id, username, email, avatar, role, is_verified,
+//              is_premium, story_count, comment_count, date_joined } ] }
+export function getAdminUsers() {
+    return authRequest('/api/dashboard/users/')
+}
+
+// changes = only what changes, e.g. { role: 'admin' } or
+// { is_verified: true }. Answers with the updated user row.
+export function updateAdminUser(id, changes) {
+    const data = new FormData()
+    for (const [key, value] of Object.entries(changes)) {
+        data.append(key, value)
+    }
+    return authRequest(`/api/dashboard/users/${id}/`, 'PATCH', data)
+}
+
+export function deleteAdminUser(id) {
+    return authRequest(`/api/dashboard/users/${id}/`, 'DELETE')
+}

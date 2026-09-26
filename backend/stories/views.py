@@ -10,8 +10,7 @@ from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnl
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from accounts.models import Follow
-from accounts.models import Block
+from accounts.models import Follow, Block, get_profile
 from .models import (
     Story, Like, Bookmark, Comment, LastWord, ReadingHistory, CoAuthorInvite,
     published_stories, stories_for,
@@ -105,6 +104,13 @@ class StoryCreateView(generics.CreateAPIView):
     # sends, or anyone could post a story "by" someone else.
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
+
+        # Your first story makes you an Author (the role shown on the
+        # Admin Dashboard -> Users page).
+        profile = get_profile(self.request.user)
+        if profile.role == 'user':
+            profile.role = 'author'
+            profile.save()
 
 
 # GET /api/stories/5/

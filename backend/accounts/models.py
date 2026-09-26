@@ -95,6 +95,22 @@ class Profile(models.Model):
     # --- Account ---
     is_private = models.BooleanField(default=False)
 
+    # --- Set by admins on the Admin Dashboard -> Users page ---
+    # role: 'user' = reads and comments, 'author' = has written a
+    # story (set automatically on the first one, see StoryCreateView).
+    # "Admin" is NOT stored here - that's Django's own user.is_staff.
+    ROLES = [
+        ('user', 'User'),
+        ('author', 'Author'),
+    ]
+    role = models.CharField(max_length=10, choices=ROLES, default='user')
+
+    # A checkmark next to the name: "this person is who they say".
+    is_verified = models.BooleanField(default=False)
+
+    # The PRO badge. (There's no payment system - an admin switches it on.)
+    is_premium = models.BooleanField(default=False)
+
     def __str__(self):
         return f'Profile of {self.user}'
 

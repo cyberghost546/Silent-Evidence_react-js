@@ -18,7 +18,7 @@ import styles from './Dashboard.module.css'
 const NAV_ITEMS = [
     { label: 'Overview', to: '/dashboard', icon: <GridIcon />, end: true },
     { label: 'Slideshow', to: '/dashboard/slides', icon: <PhotoIcon /> },
-    { label: 'Users', icon: <UsersIcon /> },
+    { label: 'Users', to: '/dashboard/users', icon: <UsersIcon /> },
     { label: 'Stories', icon: <BookIcon /> },
     { label: 'Categories', icon: <TagIcon /> },
 ]

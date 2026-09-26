@@ -10,6 +10,7 @@ import Sidebar from './Sidebar'
 // child route there (see App.jsx):
 //   /dashboard         -> <Overview />
 //   /dashboard/slides  -> <SlideDashboard />
+//   /dashboard/users   -> <UsersDashboard />
 //
 // So the sidebar is written once, and every new dashboard page
 // gets it for free.

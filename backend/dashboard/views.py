@@ -1,6 +1,8 @@
 from datetime import timedelta
 
 from django.contrib.auth.models import User
+from django.db.models import Count
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
@@ -8,6 +10,7 @@ from rest_framework.views import APIView
 
 # One app is allowed to import another app's models - that's how
 # the dashboard can count slides and categories.
+from accounts.models import get_profile
 from categories.models import Category
 from slides.models import Slide
 
@@ -73,3 +76,115 @@ class DashboardStatsView(APIView):
                 for s in recent_slides
             ],
         })
+
+
+# ---------------------------------------------------------------
+# USERS PAGE (Admin Dashboard -> Users). Admins only.
+# ---------------------------------------------------------------
+
+# One user, the way the Users table wants it.
+#
+# role: 'admin' if they're staff (Django's own flag), otherwise the
+# role saved on their profile ('user' or 'author').
+def admin_user_data(user):
+    profile = get_profile(user)
+    return {
+        'id': user.id,
+        'username': user.username,
+        'email': user.email,
+        'avatar': profile.avatar.url if profile.avatar else '',
+        'role': 'admin' if user.is_staff else profile.role,
+        'is_verified': profile.is_verified,
+        'is_premium': profile.is_premium,
+        'story_count': user.story_count,
+        'comment_count': user.comment_count,
+        'date_joined': user.date_joined,
+    }
+
+
+# The users with their two counts added, for both views below.
+# distinct=True: counting stories AND comments in one query joins
+# both tables, and without it every story would be counted once
+# per comment (and the other way round).
+def users_with_counts():
+    return User.objects.select_related('profile').annotate(
+        story_count=Count('stories', distinct=True),
+        comment_count=Count('comments', distinct=True),
+    )
+
+
+# GET /api/dashboard/users/
+#
+#   { "counts": { "total": 2, "admins": 1, "authors": 1, "premium": 1 },
+#     "users": [ ...admin_user_data()... ] }
+#
+# ALL users at once, oldest first. The page searches, filters and
+# sorts them in the browser. That's fine for a few hundred users;
+# with thousands you'd do it here in Django (and send one page at
+# a time - "pagination").
+class AdminUserListView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        users = [admin_user_data(user) for user in users_with_counts().order_by('id')]
+
+        # Count them from the list we just made - no extra queries.
+        # sum(1 for ... if ...) = "how many match".
+        counts = {
+            'total': len(users),
+            'admins': sum(1 for u in users if u['role'] == 'admin'),
+            'authors': sum(1 for u in users if u['role'] == 'author'),
+            'premium': sum(1 for u in users if u['is_premium']),
+        }
+        return Response({'counts': counts, 'users': users})
+
+
+# PATCH  /api/dashboard/users/5/   { role / is_verified / is_premium }
+# DELETE /api/dashboard/users/5/
+class AdminUserDetailView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def patch(self, request, pk):
+        user = get_object_or_404(User, pk=pk)
+        profile = get_profile(user)
+        data = request.data
+
+        if 'role' in data:
+            role = data['role']
+            if role not in ('user', 'author', 'admin'):
+                return Response({'detail': 'Unknown role.'}, status=400)
+
+            # Taking away your OWN admin rights would lock you out of
+            # this page halfway through. Another admin must do it.
+            if user == request.user and role != 'admin':
+                return Response({'detail': "You can't remove your own admin role."}, status=400)
+
+            # 'admin' = Django's staff flag (it's what IsAdminUser and
+            # /admin check). Any other role = not staff + that role.
+            if role == 'admin':
+                user.is_staff = True
+            else:
+                user.is_staff = False
+                profile.role = role
+            user.save()
+
+        # FormData sends true/false as TEXT: 'true' / 'false'.
+        if 'is_verified' in data:
+            profile.is_verified = data['is_verified'] == 'true'
+        if 'is_premium' in data:
+            profile.is_premium = data['is_premium'] == 'true'
+
+        profile.save()
+
+        # Read the user again WITH the counts, and send the new row back.
+        return Response(admin_user_data(users_with_counts().get(pk=pk)))
+
+    def delete(self, request, pk):
+        user = get_object_or_404(User, pk=pk)
+
+        if user == request.user:
+            return Response({'detail': "You can't delete your own account here."}, status=400)
+
+        # Everything they made goes with them (on_delete=CASCADE).
+        user.delete()
+        return Response(status=204)

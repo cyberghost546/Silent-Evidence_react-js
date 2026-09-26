@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .views import DashboardStatsView
+from .views import DashboardStatsView, AdminUserListView, AdminUserDetailView
 
 
 # Included under "api/" in config/urls.py, so this becomes
@@ -8,4 +8,8 @@ from .views import DashboardStatsView
 # slides app).
 urlpatterns = [
     path('dashboard/stats/', DashboardStatsView.as_view()),
+
+    # The Users page
+    path('dashboard/users/', AdminUserListView.as_view()),
+    path('dashboard/users/<int:pk>/', AdminUserDetailView.as_view()),
 ]
