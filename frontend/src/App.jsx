@@ -1,5 +1,5 @@
 import { lazy } from 'react'
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, useLocation } from 'react-router-dom'
 import SiteLayout from './components/SiteLayout/SiteLayout'
 import HomePage from './components/HomePage/HomePage'
 import LogIn from './components/LogIn/LogIn'
@@ -15,6 +15,7 @@ import NotFound from './components/NotFound/NotFound'
 import ProtectedRoute from './auth/ProtectedRoute'
 import AgeGate from './components/AgeGate/AgeGate'
 import MaintenanceGate from './components/MaintenanceGate/MaintenanceGate'
+import ErrorBoundary from './components/ErrorBoundary/ErrorBoundary'
 import ContactPage from './components/ContactPage/ContactPage'
 import ProfilePage from './components/ProfilePage/ProfilePage'
 import DashboardLayout from './components/Dashboard/DashboardLayout'
@@ -96,6 +97,7 @@ const HeatmapDashboard = lazy(() => import('./components/HeatmapDashboard/Heatma
 const ToxicityDashboard = lazy(() => import('./components/ToxicityDashboard/ToxicityDashboard'))
 const LoginMapDashboard = lazy(() => import('./components/LoginMapDashboard/LoginMapDashboard'))
 const AnalyticsDashboard = lazy(() => import('./components/AnalyticsDashboard/AnalyticsDashboard'))
+const ErrorLogDashboard = lazy(() => import('./components/ErrorLogDashboard/ErrorLogDashboard'))
 const FeaturedAuthorsDashboard = lazy(() => import('./components/FeaturedAuthorsDashboard/FeaturedAuthorsDashboard'))
 const SpotlightDashboard = lazy(() => import('./components/SpotlightDashboard/SpotlightDashboard'))
 const PollsDashboard = lazy(() => import('./components/PollsDashboard/PollsDashboard'))
@@ -103,6 +105,8 @@ const CalendarDashboard = lazy(() => import('./components/CalendarDashboard/Cale
 const MergeStoriesDashboard = lazy(() => import('./components/MergeStoriesDashboard/MergeStoriesDashboard'))
 
 function App() {
+  // For the ErrorBoundary: a new page = try again.
+  const location = useLocation()
 
   return (
     // Two groups of pages, each with its own "layout route".
@@ -115,6 +119,9 @@ function App() {
     // MaintenanceGate: during maintenance only admins see the pages.
     <AgeGate>
     <MaintenanceGate>
+    {/* A crashing page shows "Something went wrong" instead of a
+        blank screen. resetKey: opening another page tries again. */}
+    <ErrorBoundary resetKey={location.pathname}>
     <Routes>
 
       {/* ---------- PUBLIC SITE: header + footer ---------- */}
@@ -322,8 +329,10 @@ function App() {
         <Route path='toxicity' element={<ToxicityDashboard />} />
         <Route path='login-map' element={<LoginMapDashboard />} />
         <Route path='analytics' element={<AnalyticsDashboard />} />
+        <Route path='errors' element={<ErrorLogDashboard />} />
       </Route>
     </Routes>
+    </ErrorBoundary>
     </MaintenanceGate>
     </AgeGate>
   )

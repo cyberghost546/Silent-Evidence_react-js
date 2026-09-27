@@ -147,6 +147,7 @@ private profiles. Use it for any new list of stories.
 | `/dashboard/featured-authors`, `/spotlight`, `/polls`, `/calendar`, `/merge` | one `...Dashboard/` folder each | admins |
 | `/dashboard/site-settings`, `/rate-limits`, `/blocklist`, `/audit-log` | one `...Dashboard/` folder each | admins |
 | `/dashboard/email-templates`, `/seo`, `/heatmap`, `/toxicity` (needs `ANTHROPIC_API_KEY`) | one `...Dashboard/` folder each | admins |
+| `/dashboard/errors` | `ErrorLogDashboard/` - crashes from `ErrorBoundary` (React) and `ErrorLogMiddleware` (Django) | admins |
 | `/challenges`, `/bundles` | `ChallengesPage/`, `BundlesPage/` | |
 | `/support` | `SupportPage/` | yes |
 

@@ -94,3 +94,34 @@ class AuditEntry(models.Model):
 
     def __str__(self):
         return f'{self.username}: {self.action}'
+
+
+# ---------------------------------------------------------------
+# ERROR LOG - crashes, so admins find out before members complain.
+#
+#   source 'frontend' = a React page broke in someone's browser
+#                       (sent by ErrorBoundary.jsx / reportError())
+#   source 'backend'  = Django crashed with an error 500
+#                       (saved by ErrorLogMiddleware)
+#
+# The same error again doesn't make a new row: `count` goes up and
+# `last_seen` moves (otherwise one bug could fill the table).
+# ---------------------------------------------------------------
+class ErrorReport(models.Model):
+    SOURCES = [('frontend', 'Browser (React)'), ('backend', 'Server (Django)')]
+
+    source = models.CharField(max_length=10, choices=SOURCES)
+    message = models.CharField(max_length=300)
+    details = models.TextField(blank=True)          # the "stack trace": where in the code
+    url = models.CharField(max_length=300, blank=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
+    user_agent = models.CharField(max_length=300, blank=True)
+    count = models.PositiveIntegerField(default=1)
+    first_seen = models.DateTimeField(auto_now_add=True)
+    last_seen = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-last_seen']
+
+    def __str__(self):
+        return f'[{self.source}] {self.message}'

@@ -6,7 +6,7 @@ import {
     Megaphone, Trophy, Mail, LifeBuoy, Newspaper, MessageSquare, Package, PenLine,
     Cookie, CircleCheck, DollarSign, Crown, Ban, ShieldX, Search, Tag, Clock, Send, HeartPulse, Moon,
     Star, Flashlight, ChartColumn, ScrollText, CalendarDays, FileText, Globe, Grid3x3, Gauge, Settings,
-    GitMerge, BotMessageSquare, ShieldBan,
+    GitMerge, BotMessageSquare, ShieldBan, Bug,
 } from 'lucide-react'
 import styles from './Dashboard.module.css'
 
@@ -62,6 +62,7 @@ const NAV_ITEMS = [
     { label: 'Scheduled Stories', to: '/dashboard/scheduled', icon: <Clock className={ICON} /> },
     { label: 'Email Log', to: '/dashboard/email-log', icon: <Send className={ICON} /> },
     { label: 'Site Health', to: '/dashboard/health', icon: <HeartPulse className={ICON} /> },
+    { label: 'Error Log', to: '/dashboard/errors', icon: <Bug className={ICON} /> },
     { label: 'Mood of Day', to: '/dashboard/moods', icon: <Moon className={ICON} /> },
     { label: 'Featured Authors', to: '/dashboard/featured-authors', icon: <Star className={ICON} /> },
     { label: 'Story Spotlight', to: '/dashboard/spotlight', icon: <Flashlight className={ICON} /> },

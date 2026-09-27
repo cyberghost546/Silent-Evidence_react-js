@@ -1210,3 +1210,25 @@ export function createSeries(title, description = '') {
 export function getSeries(id) {
     return getJSON(`/api/series/${id}/`)
 }
+
+
+// --- Error Log ---
+
+// A crash in the browser -> Dashboard -> Error Log.
+// Used by utils/errorReporting.js (not by pages directly).
+export function sendErrorReport(message, details, url) {
+    return authRequest('/api/errors/', 'POST', { message, details, url })
+}
+
+// Admins: source = 'all' | 'frontend' | 'backend'
+export function getErrorLog(source = 'all') {
+    return authRequest(`/api/dashboard/errors/${source === 'all' ? '' : `?source=${source}`}`)
+}
+
+export function markErrorFixed(id) {
+    return authRequest(`/api/dashboard/errors/${id}/`, 'DELETE')
+}
+
+export function clearErrorLog() {
+    return authRequest('/api/dashboard/errors/', 'DELETE')
+}

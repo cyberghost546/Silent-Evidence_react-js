@@ -141,3 +141,38 @@ class AuditLogMiddleware:
             )
         return response
 
+
+
+# ---------------------------------------------------------------
+# ERROR LOG for Django itself: when a view crashes (error 500),
+# write it down for Dashboard -> Error Log (dashboard/errors.py).
+#
+# process_exception() is a special middleware method: Django calls it
+# ONLY when a view raised an error nobody caught. Returning None =
+# "I just took notes - carry on with the normal error page".
+# ---------------------------------------------------------------
+class ErrorLogMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        return self.get_response(request)
+
+    def process_exception(self, request, exception):
+        # Imported here so a problem in the error log itself can never
+        # stop Django from starting.
+        import traceback
+        from .errors import save_error
+        try:
+            save_error(
+                'backend',
+                f'{type(exception).__name__}: {exception}',
+                details=''.join(traceback.format_exception(exception)),
+                url=f'{request.method} {request.path}',
+                user=getattr(request, 'user', None),
+                user_agent=request.META.get('HTTP_USER_AGENT', ''),
+            )
+        except Exception:
+            # Never let the error log cause a SECOND crash.
+            pass
+        return None

@@ -5,6 +5,10 @@ import { AuthProvider } from './auth/AuthContext'
 // Only Tailwind - see the note in index.css for why Bootstrap is gone.
 import './index.css'
 import App from './App.jsx'
+import { setupErrorReporting } from './utils/errorReporting'
+
+// Crashes nobody caught -> Dashboard -> Error Log.
+setupErrorReporting()
 
 // BrowserRouter wraps the whole app so any component inside can use
 // <Routes>, <Route> and <Link>. It watches the address bar.

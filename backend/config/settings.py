@@ -98,6 +98,7 @@ MIDDLEWARE = [
     # because both need to know who is logged in.
     'dashboard.middleware.SiteGuardMiddleware',
     'dashboard.middleware.AuditLogMiddleware',
+    'dashboard.middleware.ErrorLogMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]

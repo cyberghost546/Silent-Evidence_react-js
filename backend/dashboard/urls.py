@@ -11,6 +11,7 @@ from .site_views import (
     SiteStatusView, AdminSiteSettingsView, AdminRateLimitsView,
     AdminBlockedIPListView, AdminBlockedIPDetailView, AdminAuditLogView,
 )
+from .error_views import ReportErrorView, AdminErrorListView, AdminErrorDetailView
 from .heatmap_views import ActivityHeatmapView
 from .insights_views import LoginMapView, AnalyticsView
 from .seo_views import AdminSeoView
@@ -40,6 +41,11 @@ urlpatterns = [
     path('dashboard/seo/', AdminSeoView.as_view()),
     path('dashboard/heatmap/', ActivityHeatmapView.as_view()),
     path('dashboard/login-map/', LoginMapView.as_view()),
+
+    # Error Log: React reports crashes here; admins read them.
+    path('errors/', ReportErrorView.as_view()),
+    path('dashboard/errors/', AdminErrorListView.as_view()),
+    path('dashboard/errors/<int:pk>/', AdminErrorDetailView.as_view()),
     path('dashboard/analytics/', AnalyticsView.as_view()),
     path('dashboard/toxicity/', ToxicityQueueView.as_view()),
     path('dashboard/toxicity/scan/', ToxicityScanView.as_view()),
