@@ -58,7 +58,7 @@ function RevenueDashboard() {
             </h1>
             <p className='mt-1 text-gray-400'>Money from premium memberships.</p>
 
-            <div className='mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
+            <div className='mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4'>
                 <StatBox
                     label='This month'
                     value={money(data.this_month)}
@@ -75,13 +75,15 @@ function RevenueDashboard() {
 
                 {/* items-end: every bar grows UP from the same bottom line.
                     h-56 = the height of the tallest possible bar. */}
-                <div className='mt-6 flex h-56 items-end gap-2 border-b border-slate-700'>
+                <div className='mt-6 flex h-56 items-end gap-1 border-b border-slate-700 sm:gap-2'>
                     {data.months.map(month => {
                         const percent = (Number(month.total) / highest) * 100
                         return (
                             // Each column fills the height, with the bar at the bottom.
-                            <div key={month.key} className='group flex h-full flex-1 flex-col justify-end' title={`${month.label}: ${money(month.total)} (${month.count} ${month.count === 1 ? 'payment' : 'payments'})`}>
-                                {/* The amount appears above the bar on hover. */}
+                            <div key={month.key} className='group flex h-full min-w-0 flex-1 flex-col justify-end' title={`${month.label}: ${money(month.total)} (${month.count} ${month.count === 1 ? 'payment' : 'payments'})`}>
+                                {/* The amount appears above the bar on hover. (min-w-0 on the
+                                    column: this hidden text mustn't make the chart
+                                    wider than a phone screen.) */}
                                 <span className='mb-1 text-center text-[10px] tabular-nums text-gray-300 opacity-0 transition-opacity group-hover:opacity-100'>
                                     {money(month.total)}
                                 </span>
@@ -97,9 +99,9 @@ function RevenueDashboard() {
                     })}
                 </div>
                 {/* The month names, lined up under the bars. */}
-                <div className='mt-2 flex gap-2'>
+                <div className='mt-2 flex gap-1 sm:gap-2'>
                     {data.months.map(month => (
-                        <span key={month.key} className='flex-1 text-center text-[10px] text-gray-500'>{month.label}</span>
+                        <span key={month.key} className='min-w-0 flex-1 truncate text-center text-[10px] text-gray-500'>{month.label}</span>
                     ))}
                 </div>
             </section>

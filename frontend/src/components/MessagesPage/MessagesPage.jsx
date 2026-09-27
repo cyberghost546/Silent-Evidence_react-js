@@ -329,7 +329,7 @@ function MessagesPage() {
 
                 {/* The box with both panels. h-[70vh] = 70% of the
                     window's height, so each panel can scroll inside. */}
-                <div className='grid h-[70vh] overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/60 md:grid-cols-[20rem_1fr]'>
+                <div className='grid grid-cols-1 h-[70vh] overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/60 md:grid-cols-[20rem_1fr]'>
 
                     {/* LEFT - hidden on phones while a chat is open. */}
                     <div className={`border-r border-slate-800 ${username ? 'hidden md:block' : 'block'}`}>

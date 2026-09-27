@@ -219,7 +219,7 @@ function AuthorDashboard() {
 
                 {/* The SAME Panel and BarChart as the admin dashboard -
                     just different data and colours. */}
-                <div className='grid gap-4 lg:grid-cols-2'>
+                <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
                     <Panel title='New Likes' subtitle={`Last ${days} days`}>
                         <BarChart data={toChartData(stats.daily, 'likes')} color='bg-red-500' />
                     </Panel>
@@ -233,7 +233,7 @@ function AuthorDashboard() {
                 </Panel>
 
                 {/* ========== TOP STORIES + RECENT COMMENTS ========== */}
-                <div className='grid gap-4 lg:grid-cols-2'>
+                <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
                     <Panel title='Top Stories' subtitle='Your 5 most-read stories' actionLabel='View profile' actionTo='/profile'>
                         <TopStoriesTable stories={stats.top_stories} />
                     </Panel>

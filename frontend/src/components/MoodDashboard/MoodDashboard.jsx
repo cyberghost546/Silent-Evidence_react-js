@@ -67,7 +67,7 @@ function MoodDashboard() {
 
             <PageMessages error={error} notice='' />
 
-            <form onSubmit={handleAdd} className='mt-6 grid gap-4 rounded-2xl border border-slate-800 bg-slate-900/60 p-6 sm:grid-cols-[10rem_12rem_1fr_auto] sm:items-end'>
+            <form onSubmit={handleAdd} className='mt-6 grid grid-cols-1 gap-4 rounded-2xl border border-slate-800 bg-slate-900/60 p-6 sm:grid-cols-[10rem_12rem_1fr_auto] sm:items-end'>
                 <div>
                     <label htmlFor='date' className={LABEL_STYLE}>Day</label>
                     <input id='date' type='date' value={form.date} min={today} onChange={event => setForm({ ...form, date: event.target.value })} className={`${INPUT_STYLE} [color-scheme:dark]`} />

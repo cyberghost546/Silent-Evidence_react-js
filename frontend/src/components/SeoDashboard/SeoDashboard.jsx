@@ -80,7 +80,7 @@ function SeoDashboard() {
             {/* ---------- 1. TITLE + DESCRIPTION ---------- */}
             <section className='mt-8 rounded-2xl border border-slate-800 bg-slate-900/60 p-6'>
                 <h2 className='text-lg font-bold text-white'>Site title & description</h2>
-                <div className='mt-5 grid gap-6 lg:grid-cols-2'>
+                <div className='mt-5 grid grid-cols-1 gap-6 lg:grid-cols-2'>
                     <div className='space-y-4'>
                         <div>
                             <label htmlFor='site-title' className={LABEL_STYLE}>Site title</label>

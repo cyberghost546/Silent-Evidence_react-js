@@ -124,7 +124,7 @@ function BundlesDashboard() {
             <form onSubmit={handleSubmit} className='mt-6 space-y-4 rounded-2xl border border-slate-800 bg-slate-900/60 p-6'>
                 <h2 className='font-semibold text-white'>{editingId === null ? 'New bundle' : `Edit "${form.title}"`}</h2>
 
-                <div className='grid gap-4 sm:grid-cols-2'>
+                <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
                     <div>
                         <label htmlFor='title' className={LABEL_STYLE}>Title</label>
                         <input id='title' value={form.title} onChange={event => updateForm('title', event.target.value)} maxLength={150} placeholder='Best of Haunted Houses' className={INPUT_STYLE} />

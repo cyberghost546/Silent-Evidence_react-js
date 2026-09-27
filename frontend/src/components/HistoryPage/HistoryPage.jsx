@@ -119,7 +119,7 @@ function HistoryPage() {
 
                             {/* StoryCard = the wide card with the image on
                                 the left (same as the homepage lists). */}
-                            <div className='grid gap-4 lg:grid-cols-2'>
+                            <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
                                 {group.items.map(item => (
                                     <StoryCard key={item.story.id} story={item.story} />
                                 ))}

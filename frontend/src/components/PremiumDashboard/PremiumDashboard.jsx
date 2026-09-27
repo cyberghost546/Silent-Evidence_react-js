@@ -92,7 +92,7 @@ function PremiumDashboard() {
                 <h2 className='font-semibold text-white'>Give premium</h2>
                 <SegmentedControl label='Plan' options={PLANS} value={form.plan} onChange={value => updateForm('plan', value)} />
 
-                <div className='grid gap-4 sm:grid-cols-3'>
+                <div className='grid grid-cols-1 gap-4 sm:grid-cols-3'>
                     <div>
                         <label htmlFor='username' className={LABEL_STYLE}>Username</label>
                         <input id='username' value={form.username} onChange={event => updateForm('username', event.target.value)} className={INPUT_STYLE} />
@@ -119,7 +119,7 @@ function PremiumDashboard() {
 
             {/* ---------- WHO HAS IT ---------- */}
             <h2 className='mt-10 font-semibold text-white'>Premium now</h2>
-            <ul className='mt-3 grid gap-2 sm:grid-cols-2'>
+            <ul className='mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2'>
                 {data.members.length === 0 && <li className='text-sm text-gray-500'>Nobody has premium yet.</li>}
                 {data.members.map(member => (
                     <li key={member.username} className='flex items-center justify-between rounded-xl border border-yellow-900/50 bg-yellow-950/10 px-4 py-3 text-sm'>

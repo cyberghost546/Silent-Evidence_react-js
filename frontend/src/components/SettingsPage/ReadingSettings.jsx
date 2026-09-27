@@ -68,7 +68,7 @@ function AgeAccess({ settings, onSave }) {
 
             {/* The three choices, only after clicking "Update". */}
             {choosing && (
-                <div className='mt-5 grid gap-3 sm:grid-cols-3'>
+                <div className='mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3'>
                     {ACCESS_LEVELS.map(level => (
                         <button
                             key={level.value}
@@ -176,7 +176,7 @@ function FearProfile({ settings, onSave }) {
 function ReadingSpeed({ settings, onSave }) {
     return (
         <SettingsSection id='reading' title='Reading Speed' description='How fast do you read? Used for reading time estimates.'>
-            <div className='grid gap-3 sm:grid-cols-3'>
+            <div className='grid grid-cols-1 gap-3 sm:grid-cols-3'>
                 {READING_SPEEDS.map(speed => {
                     const isSelected = speed.value === settings.reading_speed
                     // Capital letter so JSX treats it as a component.

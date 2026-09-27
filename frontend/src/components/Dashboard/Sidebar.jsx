@@ -85,19 +85,33 @@ const ACTIVE_STYLE = 'border-red-800 bg-red-950/60 text-white'
 const NORMAL_STYLE = 'border-transparent text-gray-400 hover:bg-gray-800/60 hover:text-white'
 
 
-function Sidebar() {
+// open / onClose: on PHONES the sidebar is a drawer that slides in
+// from the left (DashboardLayout has the menu button). On big screens
+// (lg and up) it's always visible and these do nothing.
+function Sidebar({ open, onClose }) {
     const { user, logout } = useAuth()
 
     return (
-        // h-screen + sticky top-0 = the sidebar stays put while the
-        // page on the right scrolls. overflow-y-auto = if the menu is
-        // taller than the screen, the sidebar scrolls on its own.
-        <aside className={`${styles.sidebar} sticky top-0 flex h-screen w-60 shrink-0 flex-col overflow-y-auto border-r border-gray-800 bg-gray-900/50`}>
+        // Phones: `fixed` on top of the page, pushed off-screen to the
+        //   left (-translate-x-full) until `open`; transition = it slides.
+        // lg and up: `sticky` in its normal place, always shown.
+        // h-screen + overflow-y-auto = if the menu is taller than the
+        // screen, the sidebar scrolls on its own.
+        <aside
+            className={`${styles.sidebar} fixed inset-y-0 left-0 z-40 flex h-screen w-60 shrink-0 flex-col overflow-y-auto border-r border-gray-800 bg-gray-900 transition-transform lg:sticky lg:top-0 lg:translate-x-0 lg:bg-gray-900/50 ${
+                open ? 'translate-x-0' : '-translate-x-full'
+            }`}
+        >
 
-            {/* ---------- LOGO ---------- */}
-            <div className='border-b border-gray-800 px-5 py-4'>
-                <p className='text-xs text-gray-500'>Admin Panel</p>
-                <p className='font-bold text-red-600'>Silent Evidence</p>
+            {/* ---------- LOGO (+ a close button on phones) ---------- */}
+            <div className='flex items-start justify-between border-b border-gray-800 px-5 py-4'>
+                <div>
+                    <p className='text-xs text-gray-500'>Admin Panel</p>
+                    <p className='font-bold text-red-600'>Silent Evidence</p>
+                </div>
+                <button type='button' onClick={onClose} aria-label='Close menu' className='text-2xl leading-none text-gray-500 hover:text-white lg:hidden'>
+                    &times;
+                </button>
             </div>
 
             {/* ---------- MENU ---------- */}
@@ -127,6 +141,7 @@ function Sidebar() {
                             key={item.label}
                             to={item.to}
                             end={item.end}
+                            onClick={onClose}
                             className={({ isActive }) => `${ITEM_STYLE} ${isActive ? ACTIVE_STYLE : NORMAL_STYLE}`}
                         >
                             {item.icon}

@@ -100,7 +100,7 @@ function DisciplineDashboard() {
             <form onSubmit={handleSubmit} className='mt-6 space-y-4 rounded-2xl border border-slate-800 bg-slate-900/60 p-6'>
                 <SegmentedControl label='Warn or ban' options={MODES} value={mode} onChange={setMode} />
 
-                <div className='grid gap-4 sm:grid-cols-[14rem_1fr]'>
+                <div className='grid grid-cols-1 gap-4 sm:grid-cols-[14rem_1fr]'>
                     <div>
                         <label htmlFor='member' className={LABEL_STYLE}>Username</label>
                         <input id='member' value={username} onChange={event => setUsername(event.target.value)} className={INPUT_STYLE} />

@@ -120,7 +120,7 @@ function LatestStories({ limit = 12 }) {
 
             {stories !== null && stories.length > 0 && (
                 // 1 column on phones, 2 on tablets, 3 on big screens.
-                <div className='grid gap-5 sm:grid-cols-2 xl:grid-cols-3'>
+                <div className='grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3'>
                     {/* The same card the category pages use. */}
                     {stories.map(story => (
                         <StoryGridCard key={story.id} story={story} />

@@ -111,7 +111,7 @@ function EmailTemplatesDashboard() {
 
             <PageMessages error={error} notice={notice} />
 
-            <div className='mt-6 grid gap-6 lg:grid-cols-[16rem_1fr]'>
+            <div className='mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[16rem_1fr]'>
                 {/* ---------- LEFT: the list ---------- */}
                 <ul className='space-y-1'>
                     {templates.map(item => (

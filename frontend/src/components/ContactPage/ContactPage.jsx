@@ -145,7 +145,7 @@ function ContactPage() {
             {/* Two columns on big screens (lg:), one on phones.
                 items-start: the left column doesn't stretch to the
                 height of the form. */}
-            <div className='mx-auto grid max-w-6xl items-start gap-10 lg:grid-cols-2 lg:gap-16'>
+            <div className='mx-auto grid grid-cols-1 max-w-6xl items-start gap-10 lg:grid-cols-2 lg:gap-16'>
 
                 {/* ---------- LEFT: text + info cards ---------- */}
                 <div>
@@ -185,7 +185,7 @@ function ContactPage() {
                             )}
 
                             {/* Name + email side by side (stacked on phones). */}
-                            <div className='grid gap-5 sm:grid-cols-2'>
+                            <div className='grid grid-cols-1 gap-5 sm:grid-cols-2'>
                                 <div>
                                     <label htmlFor='name' className={LABEL_STYLE}>Your Name</label>
                                     <input id='name' name='name' value={form.name} onChange={handleChange} maxLength={100} placeholder='John Doe' className={INPUT_STYLE} />

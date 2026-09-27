@@ -103,7 +103,7 @@ function CookieConsentDashboard() {
                 </div>
             </div>
 
-            <div className='mt-6 grid gap-4 md:grid-cols-2'>
+            <div className='mt-6 grid grid-cols-1 gap-4 md:grid-cols-2'>
                 <div className='rounded-2xl border border-slate-800 bg-slate-900/60 p-5'>
                     <p className='mb-3 text-sm font-semibold uppercase tracking-wider text-gray-400'>Last 30 days</p>
                     <ChoiceBar counts={data.last_30_days} />

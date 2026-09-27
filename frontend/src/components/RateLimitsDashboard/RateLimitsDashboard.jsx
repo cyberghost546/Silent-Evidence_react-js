@@ -91,7 +91,7 @@ function RateLimitsDashboard() {
                     <h2 className='text-lg font-bold text-white'>{group.title}</h2>
                     <p className='mt-1 text-sm text-gray-400'>{group.text}</p>
 
-                    <div className='mt-5 grid gap-4 sm:grid-cols-3'>
+                    <div className='mt-5 grid grid-cols-1 gap-4 sm:grid-cols-3'>
                         {group.fields.map(field => (
                             <label key={field.name} className='block'>
                                 <span className='text-sm text-gray-300'>{field.label}</span>

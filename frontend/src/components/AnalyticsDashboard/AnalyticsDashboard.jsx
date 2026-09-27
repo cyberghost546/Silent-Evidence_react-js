@@ -90,7 +90,7 @@ function AnalyticsDashboard() {
             {data && (
                 <>
                     {/* ---------- TILES (click = show in chart) ---------- */}
-                    <div className='mt-6 grid gap-3 sm:grid-cols-3 lg:grid-cols-5'>
+                    <div className='mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3 lg:grid-cols-5'>
                         {data.tiles.map(item => (
                             <button
                                 key={item.key}
@@ -153,7 +153,7 @@ function AnalyticsDashboard() {
                     </section>
 
                     {/* ---------- TOP LISTS ---------- */}
-                    <div className='mt-6 grid gap-6 lg:grid-cols-2'>
+                    <div className='mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2'>
                         <section className='rounded-2xl border border-slate-800 bg-slate-900/40 p-5'>
                             <h2 className='font-bold text-white'>Most viewed stories</h2>
                             <p className='text-xs text-gray-500'>All time - views aren't stored per day.</p>

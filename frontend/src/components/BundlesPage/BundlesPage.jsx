@@ -30,7 +30,7 @@ function BundleList() {
     if (bundles.length === 0) return <PageMessage title='No bundles yet.' text='Our editors are picking the best stories - check back soon.' />
 
     return (
-        <div className='grid gap-5 md:grid-cols-2 lg:grid-cols-3'>
+        <div className='grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3'>
             {bundles.map(bundle => (
                 <Link
                     key={bundle.id}
@@ -66,7 +66,7 @@ function BundleDetail({ slug }) {
             <h2 className='mt-4 text-3xl font-bold text-white'>{bundle.title}</h2>
             {bundle.description && <p className='mt-2 max-w-2xl text-gray-400'>{bundle.description}</p>}
 
-            <div className='mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3'>
+            <div className='mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3'>
                 {bundle.stories.map(story => (
                     <StoryGridCard key={story.id} story={story} />
                 ))}

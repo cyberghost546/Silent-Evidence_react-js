@@ -51,7 +51,7 @@ function TicketList() {
     }
 
     return (
-        <div className='grid gap-8 lg:grid-cols-[1fr_22rem]'>
+        <div className='grid grid-cols-1 gap-8 lg:grid-cols-[1fr_22rem]'>
             {/* ---------- YOUR TICKETS ---------- */}
             <section>
                 <h2 className='mb-3 font-semibold text-white'>Your tickets</h2>

@@ -316,7 +316,7 @@ function UsersDashboard() {
             </p>
 
             {/* ---------- 4 NUMBER CARDS ---------- */}
-            <div className='mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4'>
+            <div className='mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4'>
                 <UserStatCard icon={Users} value={data.counts.total} label='Total Users' color='text-gray-200' />
                 <UserStatCard icon={Crown} value={data.counts.admins} label='Admins' color='text-red-400' />
                 <UserStatCard icon={PenLine} value={data.counts.authors} label='Authors' color='text-blue-400' />

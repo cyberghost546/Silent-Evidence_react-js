@@ -53,7 +53,7 @@ function ChallengeList() {
     const closed = challenges.filter(challenge => !challenge.is_open)
 
     return (
-        <div className='grid gap-5 md:grid-cols-2'>
+        <div className='grid grid-cols-1 gap-5 md:grid-cols-2'>
             {[...open, ...closed].map(challenge => (
                 <Link
                     key={challenge.id}
@@ -158,7 +158,7 @@ function ChallengeDetail({ id }) {
             {challenge.entries.length === 0 ? (
                 <p className='mt-3 text-gray-500'>No entries yet - be the first!</p>
             ) : (
-                <div className='mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-3'>
+                <div className='mt-4 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3'>
                     {challenge.entries.map(story => (
                         <StoryGridCard key={story.id} story={story} />
                     ))}

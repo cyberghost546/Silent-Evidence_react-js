@@ -80,7 +80,7 @@ function AdminSearchDashboard() {
             {ready && total === 0 && <p className='mt-10 text-center text-gray-500'>Nothing found for "{query}".</p>}
 
             {ready && total > 0 && (
-                <div className='mt-8 grid gap-6 md:grid-cols-2'>
+                <div className='mt-8 grid grid-cols-1 gap-6 md:grid-cols-2'>
                     {GROUPS.filter(group => results[group.key].length > 0).map(group => {
                         const Icon = group.icon
                         return (

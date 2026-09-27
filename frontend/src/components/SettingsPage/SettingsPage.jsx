@@ -127,7 +127,7 @@ function SettingsPage() {
                 // Two columns from the "md" size up: the sidebar (a
                 // fixed 12rem) and the sections (all the rest, 1fr).
                 // On phones it's one column and the sidebar is hidden.
-                <div className='mt-10 grid gap-10 md:grid-cols-[12rem_1fr]'>
+                <div className='mt-10 grid grid-cols-1 gap-10 md:grid-cols-[12rem_1fr]'>
 
                     {/* ---------- SIDEBAR ---------- */}
                     {/* self-start + sticky top-6 = the sidebar stays on

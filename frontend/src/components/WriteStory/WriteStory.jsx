@@ -412,7 +412,7 @@ function WriteStory() {
 
                 {/* The list of templates, only when opened. */}
                 {showTemplates && (
-                    <div className='grid gap-2 border-t border-dashed border-gray-700 p-3 sm:grid-cols-3'>
+                    <div className='grid grid-cols-1 gap-2 border-t border-dashed border-gray-700 p-3 sm:grid-cols-3'>
                         {TEMPLATES.map(template => (
                             <button
                                 key={template.name}
@@ -628,7 +628,7 @@ function WriteStory() {
 
                     {/* Two inputs side by side. On a phone (below sm:)
                         they stack instead. */}
-                    <div className='mt-3 grid gap-3 sm:grid-cols-2'>
+                    <div className='mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2'>
                         <div>
                             <input
                                 name='latitude'

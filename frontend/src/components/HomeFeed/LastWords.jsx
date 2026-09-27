@@ -118,7 +118,7 @@ function LastWords() {
                     <p className='mt-16 text-center italic text-gray-500'>No quotes yet. Be the first to post.</p>
                 ) : (
                     // Two columns on bigger screens.
-                    <ul className='mt-10 grid gap-4 sm:grid-cols-2'>
+                    <ul className='mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2'>
                         {quotes.map(quote => (
                             <li key={quote.id} className='rounded-xl border border-slate-800 bg-slate-900 p-5'>
                                 {/* break-words: a very long word (or link)

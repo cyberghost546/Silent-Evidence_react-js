@@ -112,7 +112,7 @@ function SecurityDashboard() {
             <PageMessages error={error} notice={notice} />
 
             {/* ---------- NUMBERS ---------- */}
-            <div className='mt-6 grid gap-4 sm:grid-cols-3'>
+            <div className='mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3'>
                 <SecurityStat icon={ShieldCheck} value={data.last_24h.successful} label='Successful logins' />
                 <SecurityStat icon={ShieldAlert} value={data.last_24h.failed} label='Failed logins' danger />
                 <SecurityStat icon={Lock} value={lockedCount} label='Locked right now' danger />
@@ -156,7 +156,7 @@ function SecurityDashboard() {
             )}
 
             {/* ---------- 4 BOXES IN A GRID ---------- */}
-            <div className='mt-6 grid gap-4 lg:grid-cols-2'>
+            <div className='mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2'>
                 <Box title='Most failed usernames (24h)'>
                     <FailureList rows={data.top_failed_usernames} />
                 </Box>

@@ -124,7 +124,7 @@ function CategoriesDashboard() {
             <form onSubmit={handleSubmit} className='mt-6 space-y-4 rounded-2xl border border-slate-800 bg-slate-900/60 p-6'>
                 <h2 className='font-semibold text-white'>{editingId === null ? 'Add a category' : `Edit "${form.name}"`}</h2>
 
-                <div className='grid gap-4 sm:grid-cols-2'>
+                <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
                     <div>
                         <label htmlFor='name' className={LABEL_STYLE}>Name</label>
                         <input id='name' value={form.name} onChange={event => updateForm('name', event.target.value)} maxLength={100} className={INPUT_STYLE} />
@@ -140,7 +140,7 @@ function CategoriesDashboard() {
                     <input id='description' value={form.description} onChange={event => updateForm('description', event.target.value)} className={INPUT_STYLE} />
                 </div>
 
-                <div className='grid gap-4 sm:grid-cols-2'>
+                <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
                     <div>
                         <label htmlFor='icon' className={LABEL_STYLE}>Icon</label>
                         <div className='flex items-center gap-3'>
@@ -186,7 +186,7 @@ function CategoriesDashboard() {
             </form>
 
             {/* ---------- THE LIST ---------- */}
-            <ul className='mt-8 grid gap-3 sm:grid-cols-2'>
+            <ul className='mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2'>
                 {categories?.map(category => {
                     const Icon = CATEGORY_ICONS[category.icon] ?? FALLBACK_ICON
                     const colors = CATEGORY_COLORS[category.color] ?? CATEGORY_COLORS.red

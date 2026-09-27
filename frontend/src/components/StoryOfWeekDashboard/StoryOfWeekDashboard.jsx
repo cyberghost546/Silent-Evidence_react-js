@@ -72,7 +72,7 @@ function StoryOfWeekDashboard() {
             <PageMessages error={error} notice={notice} />
 
             {/* ---------- PICKED NOW ---------- */}
-            <div className='mt-6 grid gap-4 sm:grid-cols-2'>
+            <div className='mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2'>
                 {PICKS.map(pick => {
                     const current = stories.find(story => story[pick.field])
                     const Icon = pick.icon

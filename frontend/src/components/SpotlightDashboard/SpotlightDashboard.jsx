@@ -102,7 +102,7 @@ function SpotlightDashboard() {
                     <label htmlFor='blurb' className={LABEL_STYLE}>Blurb <span className='font-normal text-gray-500'>(optional)</span></label>
                     <input id='blurb' value={form.blurb} onChange={event => updateForm('blurb', event.target.value)} maxLength={300} className={INPUT_STYLE} />
                 </div>
-                <div className='grid gap-4 sm:grid-cols-2'>
+                <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
                     <div>
                         <label htmlFor='starts_on' className={LABEL_STYLE}>From</label>
                         <input id='starts_on' type='date' value={form.starts_on} onChange={event => updateForm('starts_on', event.target.value)} className={`${INPUT_STYLE} [color-scheme:dark]`} />

@@ -174,7 +174,7 @@ python manage.py runserver`}
                 </div>
 
                 {/* Two dropdowns side by side (one column on phones). */}
-                <div className='grid gap-5 sm:grid-cols-2'>
+                <div className='grid grid-cols-1 gap-5 sm:grid-cols-2'>
                     <div>
                         <label htmlFor='category' className={LABEL_STYLE}>Category</label>
                         <select

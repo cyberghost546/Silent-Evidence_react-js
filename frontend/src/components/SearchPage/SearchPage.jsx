@@ -132,7 +132,7 @@ function SearchPage() {
                                 <h2 className='mb-4 text-xs font-semibold uppercase tracking-wider text-gray-500'>
                                     Stories ({results.stories.length})
                                 </h2>
-                                <div className='grid gap-5 sm:grid-cols-2 lg:grid-cols-3'>
+                                <div className='grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3'>
                                     {results.stories.map(story => (
                                         <StoryGridCard key={story.id} story={story} />
                                     ))}

@@ -90,7 +90,7 @@ function AnnouncementsDashboard() {
                     />
                 </div>
 
-                <div className='grid gap-4 sm:grid-cols-2'>
+                <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
                     <div>
                         <label htmlFor='link_url' className={LABEL_STYLE}>Link <span className='font-normal text-gray-500'>(optional)</span></label>
                         <input id='link_url' value={form.link_url} onChange={event => updateForm('link_url', event.target.value)} placeholder='/challenges' className={INPUT_STYLE} />

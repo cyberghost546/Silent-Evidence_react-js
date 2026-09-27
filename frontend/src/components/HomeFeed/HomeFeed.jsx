@@ -32,7 +32,7 @@ function HomeFeed() {
                 space that's left, the sidebar is 300px.
                 minmax(0,1fr) instead of 1fr stops a long word or wide
                 card from pushing the column wider than the screen. */}
-            <div className='grid gap-8 lg:grid-cols-[minmax(0,1fr)_300px]'>
+            <div className='grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_300px]'>
                 <LatestStories />
 
                 {/* <aside> = "side content" - the right tag for a sidebar.

@@ -281,13 +281,15 @@ function StoryPage() {
 
                 {/* ================= 7. LIKE + COMMENTS ================= */}
                 <div className='mt-12 border-t border-gray-800 pt-10'>
+                    {/* key = "start fresh for a new story". The two keys
+                        must differ: siblings may never share a key. */}
                     <LikeButton
-                        key={story.id}
+                        key={`like-${story.id}`}
                         storyId={story.id}
                         initialLiked={story.liked}
                         initialCount={story.like_count}
                     />
-                    <Comments key={story.id} storyId={story.id} />
+                    <Comments key={`comments-${story.id}`} storyId={story.id} />
                 </div>
             </div>
 

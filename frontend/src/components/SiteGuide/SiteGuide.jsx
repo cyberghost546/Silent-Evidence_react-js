@@ -124,7 +124,7 @@ function SiteGuide() {
                             <h2 className='mb-5 text-xs font-semibold uppercase tracking-[0.25em] text-gray-500'>
                                 {group.title}
                             </h2>
-                            <div className='grid gap-5 md:grid-cols-2'>
+                            <div className='grid grid-cols-1 gap-5 md:grid-cols-2'>
                                 {topics.map(topic => (
                                     <GuideCard key={topic.id} topic={topic} />
                                 ))}

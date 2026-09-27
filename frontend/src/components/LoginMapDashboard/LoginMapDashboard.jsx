@@ -86,7 +86,7 @@ function LoginMapDashboard() {
             {data && (
                 <>
                     {/* The three headline numbers. */}
-                    <div className='mt-6 grid gap-4 sm:grid-cols-3'>
+                    <div className='mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3'>
                         <Stat label='Successful logins' value={data.totals.successful} />
                         <Stat label='Failed logins' value={data.totals.failed} />
                         <Stat label='Different IP addresses' value={data.totals.ips} />

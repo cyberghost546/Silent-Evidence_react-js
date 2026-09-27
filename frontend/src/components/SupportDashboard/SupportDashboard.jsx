@@ -64,7 +64,7 @@ function SupportDashboard() {
             </div>
 
             {/* List on the left (fixed 20rem), conversation on the right. */}
-            <div className='mt-6 grid items-start gap-6 lg:grid-cols-[20rem_1fr]'>
+            <div className='mt-6 grid grid-cols-1 items-start gap-6 lg:grid-cols-[20rem_1fr]'>
                 <ul className='space-y-2'>
                     {shown.length === 0 && <li className='text-sm text-gray-500'>No tickets here.</li>}
                     {shown.map(ticket => (
