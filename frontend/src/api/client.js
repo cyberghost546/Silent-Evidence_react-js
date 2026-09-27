@@ -964,3 +964,75 @@ export function getEmailLog(query = '', failedOnly = false) {
 export function getSiteHealth() {
     return authRequest('/api/dashboard/health/')
 }
+
+
+// --- Spotlight and polls (public) ---
+
+// Both answer null when there's nothing to show (Django sends
+// "204 No Content", and authRequest turns that into null).
+//
+// { headline, blurb, starts_on, ends_on, story: {...card} } or null
+export function getSpotlight() {
+    return authRequest('/api/spotlight/')
+}
+
+// { id, question, total_votes, my_vote, options: [ { id, text, votes, percent } ] } or null
+// authRequest (with the login cookie) so Django can tell you my_vote.
+export function getCurrentPoll() {
+    return authRequest('/api/polls/current/')
+}
+
+export function votePoll(pollId, optionId) {
+    return authRequest(`/api/polls/${pollId}/vote/`, 'POST', { option_id: optionId })
+}
+
+
+// --- Admin Dashboard: featured authors, spotlight, polls, calendar, merge ---
+//
+// Spotlights use the shared helpers: getAdminList('spotlights'),
+// createAdminItem('spotlights', {...}), deleteAdminItem('spotlights', id)
+
+export function getPolls() {
+    return authRequest('/api/dashboard/polls/')
+}
+
+// options = ['Ghosts', 'Clowns', ...]
+export function createPoll(question, options) {
+    return authRequest('/api/dashboard/polls/', 'POST', { question, options })
+}
+
+export function setPollActive(id, isActive) {
+    return authRequest(`/api/dashboard/polls/${id}/`, 'PATCH', { is_active: isActive })
+}
+
+export function deletePoll(id) {
+    return authRequest(`/api/dashboard/polls/${id}/`, 'DELETE')
+}
+
+// Featured authors: [ { id, username, blurb, order, story_count } ]
+export function getFeaturedAuthors() {
+    return authRequest('/api/dashboard/featured-authors/')
+}
+
+export function addFeaturedAuthor(username, blurb) {
+    return authRequest('/api/dashboard/featured-authors/', 'POST', { username, blurb })
+}
+
+// changes = { blurb } or { move: 'up' | 'down' }. Answers the new list.
+export function updateFeaturedAuthor(id, changes) {
+    return authRequest(`/api/dashboard/featured-authors/${id}/`, 'PATCH', changes)
+}
+
+export function removeFeaturedAuthor(id) {
+    return authRequest(`/api/dashboard/featured-authors/${id}/`, 'DELETE')
+}
+
+// month = 'YYYY-MM'. { month, events: [ { date, type, title, link } ] }
+export function getCalendar(month) {
+    return authRequest(`/api/dashboard/calendar/?month=${month}`)
+}
+
+// source = the duplicate (deleted), target = the one that stays.
+export function mergeStories(sourceId, targetId) {
+    return authRequest('/api/dashboard/stories/merge/', 'POST', { source_id: sourceId, target_id: targetId })
+}

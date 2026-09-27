@@ -5,6 +5,8 @@ import {
     Bot, Flag, TriangleAlert, Gavel, ShieldCheck, Map, ShieldAlert, TrendingUp, Funnel, Swords,
     Megaphone, Trophy, Mail, LifeBuoy, Newspaper, MessageSquare, Package, PenLine,
     Cookie, CircleCheck, DollarSign, Crown, Ban, ShieldX, Search, Tag, Clock, Send, HeartPulse, Moon,
+    Star, Flashlight, ChartColumn, ScrollText, CalendarDays, FileText, Globe, Grid3x3, Gauge, Settings,
+    GitMerge, BotMessageSquare, ShieldBan,
 } from 'lucide-react'
 import styles from './Dashboard.module.css'
 
@@ -61,6 +63,19 @@ const NAV_ITEMS = [
     { label: 'Email Log', to: '/dashboard/email-log', icon: <Send className={ICON} /> },
     { label: 'Site Health', to: '/dashboard/health', icon: <HeartPulse className={ICON} /> },
     { label: 'Mood of Day', to: '/dashboard/moods', icon: <Moon className={ICON} /> },
+    { label: 'Featured Authors', to: '/dashboard/featured-authors', icon: <Star className={ICON} /> },
+    { label: 'Story Spotlight', to: '/dashboard/spotlight', icon: <Flashlight className={ICON} /> },
+    { label: 'Poll Manager', to: '/dashboard/polls', icon: <ChartColumn className={ICON} /> },
+    { label: 'Audit Log', icon: <ScrollText className={ICON} /> },
+    { label: 'Content Calendar', to: '/dashboard/calendar', icon: <CalendarDays className={ICON} /> },
+    { label: 'Email Templates', icon: <FileText className={ICON} /> },
+    { label: 'SEO Dashboard', icon: <Globe className={ICON} /> },
+    { label: 'Activity Heatmap', icon: <Grid3x3 className={ICON} /> },
+    { label: 'Rate Limits', icon: <Gauge className={ICON} /> },
+    { label: 'Site Settings', icon: <Settings className={ICON} /> },
+    { label: 'Merge Stories', to: '/dashboard/merge', icon: <GitMerge className={ICON} /> },
+    { label: 'AI Toxicity Queue', icon: <BotMessageSquare className={ICON} /> },
+    { label: 'IP Blocklist', icon: <ShieldBan className={ICON} /> },
 ]
 
 

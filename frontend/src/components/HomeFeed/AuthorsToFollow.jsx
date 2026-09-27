@@ -69,7 +69,10 @@ function AuthorsToFollow({ limit = 6 }) {
                         // shrink-0 = don't squash me, scroll instead.
                         <div
                             key={author.username}
-                            className='flex w-36 shrink-0 flex-col items-center rounded-xl border border-slate-700/60 bg-slate-900/60 p-4 text-center'
+                            // Featured writers get a gold-ish border.
+                            className={`flex w-36 shrink-0 flex-col items-center rounded-xl border bg-slate-900/60 p-4 text-center ${
+                                author.is_featured ? 'border-yellow-700/60' : 'border-slate-700/60'
+                            }`}
                         >
                             {/* Avatar + name link to their profile page. */}
                             <Link to={`/profile/${author.username}`} className='flex w-full flex-col items-center'>
@@ -82,6 +85,13 @@ function AuthorsToFollow({ limit = 6 }) {
                                 <span className='mt-2 w-full truncate text-sm font-bold text-white hover:text-red-400'>{author.username}</span>
                             </Link>
                             <p className='text-xs text-gray-500'>{pluralize(author.story_count, 'story', 'stories')}</p>
+
+                            {/* Featured writers (Admin Dashboard -> Featured
+                                Authors) get the admins' one-liner. line-clamp-2
+                                = at most 2 lines, then "...". */}
+                            {author.is_featured && author.featured_blurb && (
+                                <p className='mt-1 line-clamp-2 text-[11px] italic text-yellow-300/90'>{author.featured_blurb}</p>
+                            )}
 
                             {/* No button on your own card - you can't follow yourself. */}
                             {!isMe && (

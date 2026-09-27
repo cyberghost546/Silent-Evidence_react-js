@@ -1,9 +1,10 @@
 import random
 from datetime import timedelta
 
+from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from rest_framework import generics
+from rest_framework import generics, serializers
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -11,7 +12,10 @@ from rest_framework.views import APIView
 from categories.models import Category
 from stories.models import Story, stories_for
 from stories.serializers import StoryCardSerializer
-from .models import Announcement, WritingPrompt, Challenge, ChallengeEntry, Bundle, CookieBanner, CookieConsent, MoodOfDay
+from .models import (
+    Announcement, WritingPrompt, Challenge, ChallengeEntry, Bundle, CookieBanner, CookieConsent, MoodOfDay,
+    FeaturedAuthor, Spotlight, Poll, PollOption, PollVote,
+)
 from .serializers import (
     AnnouncementSerializer, WritingPromptSerializer, ChallengeSerializer,
     BundleSerializer, AdminCategorySerializer, MoodOfDaySerializer,
@@ -324,3 +328,228 @@ class AdminMoodDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAdminUser]
     serializer_class = MoodOfDaySerializer
     queryset = MoodOfDay.objects.all()
+
+
+# ===============================================================
+# STORY SPOTLIGHT
+# ===============================================================
+
+class SpotlightSerializer(serializers.ModelSerializer):
+    # Write: the story's id. Read: its title too.
+    story_id = serializers.PrimaryKeyRelatedField(source='story', queryset=Story.objects.all())
+    story_title = serializers.CharField(source='story.title', read_only=True)
+
+    class Meta:
+        model = Spotlight
+        fields = ['id', 'story_id', 'story_title', 'headline', 'blurb', 'starts_on', 'ends_on']
+
+    # A rule about TWO fields together -> validate().
+    def validate(self, data):
+        starts = data.get('starts_on', getattr(self.instance, 'starts_on', None))
+        ends = data.get('ends_on', getattr(self.instance, 'ends_on', None))
+        if starts and ends and ends < starts:
+            raise serializers.ValidationError({'ends_on': ['The end date is before the start date.']})
+        return data
+
+
+# GET /api/spotlight/  -> today's spotlight + the story card, or 204.
+class CurrentSpotlightView(APIView):
+    def get(self, request):
+        today = timezone.localdate()
+        # __lte = "less than or equal", __gte = "greater than or equal".
+        spotlights = Spotlight.objects.filter(starts_on__lte=today, ends_on__gte=today).select_related('story')
+        visible = stories_for(request.user)
+        for spotlight in spotlights:
+            # The story must still be visible to THIS visitor.
+            story = visible.filter(pk=spotlight.story_id).select_related('author', 'category').first()
+            if story:
+                data = SpotlightSerializer(spotlight).data
+                data['story'] = StoryCardSerializer(story, context={'request': request}).data
+                return Response(data)
+        return Response(status=204)
+
+
+class AdminSpotlightListView(generics.ListCreateAPIView):
+    permission_classes = [IsAdminUser]
+    serializer_class = SpotlightSerializer
+    queryset = Spotlight.objects.select_related('story')
+
+
+class AdminSpotlightDetailView(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = [IsAdminUser]
+    serializer_class = SpotlightSerializer
+    queryset = Spotlight.objects.all()
+
+
+# ===============================================================
+# POLLS
+# ===============================================================
+
+# The poll with its results. my_vote = the option id YOU picked
+# (None if you haven't voted, or are logged out).
+def poll_data(poll, user):
+    counts = {option.id: 0 for option in poll.options.all()}
+    for option_id in poll.votes.values_list('option_id', flat=True):
+        counts[option_id] = counts.get(option_id, 0) + 1
+    total = sum(counts.values())
+
+    my_vote = None
+    if user.is_authenticated:
+        my_vote = poll.votes.filter(user=user).values_list('option_id', flat=True).first()
+
+    return {
+        'id': poll.id,
+        'question': poll.question,
+        'is_active': poll.is_active,
+        'created_at': poll.created_at,
+        'total_votes': total,
+        'my_vote': my_vote,
+        'options': [
+            {
+                'id': option.id,
+                'text': option.text,
+                'votes': counts[option.id],
+                # max(total, 1): no dividing by zero before the first vote.
+                'percent': round(counts[option.id] * 100 / max(total, 1)),
+            }
+            for option in poll.options.all()
+        ],
+    }
+
+
+# GET /api/polls/current/  -> the newest active poll, or 204
+class CurrentPollView(APIView):
+    def get(self, request):
+        poll = Poll.objects.filter(is_active=True).prefetch_related('options').first()
+        if poll is None:
+            return Response(status=204)
+        return Response(poll_data(poll, request.user))
+
+
+# POST /api/polls/3/vote/  { option_id }  - once per member.
+class VoteView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        poll = get_object_or_404(Poll, pk=pk, is_active=True)
+        option = get_object_or_404(PollOption, pk=request.data.get('option_id'), poll=poll)
+        if PollVote.objects.filter(poll=poll, user=request.user).exists():
+            return Response({'detail': 'You already voted.'}, status=400)
+        PollVote.objects.create(poll=poll, option=option, user=request.user)
+        return Response(poll_data(poll, request.user))
+
+
+# GET  /api/dashboard/polls/  -> every poll with results
+# POST /api/dashboard/polls/  { question, options: ['A', 'B', ...] }
+class AdminPollListView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        polls = Poll.objects.prefetch_related('options')
+        return Response([poll_data(poll, request.user) for poll in polls])
+
+    def post(self, request):
+        question = (request.data.get('question') or '').strip()
+        # Keep only the options that aren't empty.
+        options = [text.strip() for text in request.data.get('options', []) if text.strip()]
+        if not question:
+            return Response({'detail': 'Write the question.'}, status=400)
+        if len(options) < 2:
+            return Response({'detail': 'A poll needs at least 2 answers.'}, status=400)
+
+        # Only one poll runs at a time: a new one switches the others off.
+        Poll.objects.update(is_active=False)
+        poll = Poll.objects.create(question=question[:200])
+        for text in options[:8]:
+            PollOption.objects.create(poll=poll, text=text[:100])
+        return Response(poll_data(poll, request.user), status=201)
+
+
+# PATCH  /api/dashboard/polls/3/  { is_active }  -> open / close it
+# DELETE /api/dashboard/polls/3/
+class AdminPollDetailView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def patch(self, request, pk):
+        poll = get_object_or_404(Poll, pk=pk)
+        poll.is_active = request.data.get('is_active') in (True, 'true')
+        if poll.is_active:
+            Poll.objects.exclude(pk=poll.pk).update(is_active=False)
+        poll.save()
+        return Response(poll_data(poll, request.user))
+
+    def delete(self, request, pk):
+        get_object_or_404(Poll, pk=pk).delete()
+        return Response(status=204)
+
+
+# ===============================================================
+# FEATURED AUTHORS
+# ===============================================================
+
+# GET  /api/dashboard/featured-authors/  -> the featured writers, in order
+# POST /api/dashboard/featured-authors/  { username, blurb }
+class AdminFeaturedListView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        rows = FeaturedAuthor.objects.select_related('user')
+        return Response([
+            {
+                'id': row.id,
+                'username': row.user.username,
+                'blurb': row.blurb,
+                'order': row.order,
+                'story_count': row.user.stories.filter(is_published=True).count(),
+            }
+            for row in rows
+        ])
+
+    def post(self, request):
+        user = get_user_model().objects.filter(username__iexact=(request.data.get('username') or '').strip()).first()
+        if user is None:
+            return Response({'detail': 'No member with that username.'}, status=400)
+        if FeaturedAuthor.objects.filter(user=user).exists():
+            return Response({'detail': f'{user.username} is already featured.'}, status=400)
+
+        # New ones go at the END of the row: one more than the last.
+        last = FeaturedAuthor.objects.order_by('-order').first()
+        FeaturedAuthor.objects.create(
+            user=user,
+            blurb=(request.data.get('blurb') or '').strip()[:120],
+            order=(last.order + 1) if last else 0,
+        )
+        return self.get(request)
+
+
+# PATCH  /api/dashboard/featured-authors/3/  { blurb } or { move: 'up' | 'down' }
+# DELETE /api/dashboard/featured-authors/3/
+class AdminFeaturedDetailView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def patch(self, request, pk):
+        row = get_object_or_404(FeaturedAuthor, pk=pk)
+
+        if 'blurb' in request.data:
+            row.blurb = (request.data.get('blurb') or '').strip()[:120]
+            row.save()
+
+        move = request.data.get('move')
+        if move in ('up', 'down'):
+            # Swap places with the neighbour on that side.
+            rows = list(FeaturedAuthor.objects.all())
+            index = rows.index(row)
+            other = index - 1 if move == 'up' else index + 1
+            if 0 <= other < len(rows):
+                rows[index], rows[other] = rows[other], rows[index]
+                # Number them again 0, 1, 2... in the new order.
+                for position, item in enumerate(rows):
+                    if item.order != position:
+                        item.order = position
+                        item.save()
+
+        return AdminFeaturedListView().get(request)
+
+    def delete(self, request, pk):
+        get_object_or_404(FeaturedAuthor, pk=pk).delete()
+        return Response(status=204)

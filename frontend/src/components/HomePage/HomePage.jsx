@@ -5,6 +5,7 @@ import HomeFeed from '../HomeFeed/HomeFeed'
 import WriteCallToAction from '../HomeFeed/WriteCallToAction'
 import LastWords from '../HomeFeed/LastWords'
 import MoodOfTheDay from '../HomeFeed/MoodOfTheDay'
+import SpotlightBanner from '../HomeFeed/SpotlightBanner'
 
 
 // The homepage ("/") is just its sections stacked top to bottom.
@@ -23,6 +24,8 @@ function HomePage() {
             {/* One dark band behind all the sections.
                 space-y-20 = the same gap between every section. */}
             <div className='space-y-20 bg-gray-900 px-4 py-14'>
+                {/* Only shows while an admin's spotlight runs. */}
+                <SpotlightBanner />
                 <StorySections />
                 {/* Only shows when an admin planned a mood for today. */}
                 <MoodOfTheDay />

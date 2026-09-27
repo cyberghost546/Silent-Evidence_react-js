@@ -195,9 +195,22 @@ class AuthorListView(APIView):
                 story_count=Count('stories', filter=visible, distinct=True),
                 follower_count=Count('followers', distinct=True),
             )
-            .filter(story_count__gt=0)          # __gt = "greater than"
+            # Writers with a story, and FEATURED writers (Admin
+            # Dashboard -> Featured Authors) even without one.
+            # __gt = "greater than".
+            .filter(Q(story_count__gt=0) | Q(featured__isnull=False))
+            .select_related('featured')
             .order_by('-story_count', 'username')
         )
+
+        # Featured writers first (in the admins' order), then the rest
+        # by number of stories. sorted() with a "key": Python compares
+        # the (0 or 1, position) pairs - 0 comes before 1.
+        def featured_first(author):
+            featured = getattr(author, 'featured', None)
+            return (0, featured.order) if featured else (1, 0)
+
+        authors = sorted(authors, key=featured_first)
 
         limit = request.query_params.get('limit')
         if limit and limit.isdigit():
@@ -215,6 +228,9 @@ class AuthorListView(APIView):
                 'story_count': author.story_count,
                 'follower_count': author.follower_count,
                 'is_following': author.id in following_ids,
+                # The admins' one-liner for featured writers, else ''.
+                'featured_blurb': author.featured.blurb if hasattr(author, 'featured') else '',
+                'is_featured': hasattr(author, 'featured'),
             }
             for author in authors
         ]

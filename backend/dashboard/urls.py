@@ -4,6 +4,7 @@ from .ai import AIStatusView, GenerateStoryView, SaveGeneratedStoryView
 from .content_views import (
     ScheduledStoriesView, ScheduledStoryActionView,
     TagSuggestionsView, AdminTagListView, AdminTagDetailView, MergeTagView,
+    ContentCalendarView, MergeStoriesView,
 )
 from .premium_views import PremiumMembersView, CancelMembershipView, RevenueView
 from .tools_views import AdminSearchView, EmailLogView, SiteHealthView
@@ -25,6 +26,8 @@ urlpatterns = [
 
     # The Stories page
     path('dashboard/stories/', AdminStoryListView.as_view()),
+    path('dashboard/stories/merge/', MergeStoriesView.as_view()),
+    path('dashboard/calendar/', ContentCalendarView.as_view()),
     path('dashboard/stories/<int:pk>/', AdminStoryDetailView.as_view()),
 
     # Premium Members + Revenue (premium_views.py)

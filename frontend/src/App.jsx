@@ -51,6 +51,11 @@ import MoodDashboard from './components/MoodDashboard/MoodDashboard'
 import AdminSearchDashboard from './components/AdminSearchDashboard/AdminSearchDashboard'
 import EmailLogDashboard from './components/EmailLogDashboard/EmailLogDashboard'
 import SiteHealthDashboard from './components/SiteHealthDashboard/SiteHealthDashboard'
+import FeaturedAuthorsDashboard from './components/FeaturedAuthorsDashboard/FeaturedAuthorsDashboard'
+import SpotlightDashboard from './components/SpotlightDashboard/SpotlightDashboard'
+import PollsDashboard from './components/PollsDashboard/PollsDashboard'
+import CalendarDashboard from './components/CalendarDashboard/CalendarDashboard'
+import MergeStoriesDashboard from './components/MergeStoriesDashboard/MergeStoriesDashboard'
 import LeaderboardPage from './components/LeaderboardPage/LeaderboardPage'
 import FeedPage from './components/FeedPage/FeedPage'
 import MyListsPage from './components/MyListsPage/MyListsPage'
@@ -257,6 +262,11 @@ function App() {
         <Route path='search' element={<AdminSearchDashboard />} />
         <Route path='email-log' element={<EmailLogDashboard />} />
         <Route path='health' element={<SiteHealthDashboard />} />
+        <Route path='featured-authors' element={<FeaturedAuthorsDashboard />} />
+        <Route path='spotlight' element={<SpotlightDashboard />} />
+        <Route path='polls' element={<PollsDashboard />} />
+        <Route path='calendar' element={<CalendarDashboard />} />
+        <Route path='merge' element={<MergeStoriesDashboard />} />
       </Route>
     </Routes>
     </AgeGate>

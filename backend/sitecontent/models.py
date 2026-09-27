@@ -170,3 +170,81 @@ class MoodOfDay(models.Model):
 
     def __str__(self):
         return f'{self.date}: {self.mood}'
+
+
+# ---------------------------------------------------------------
+# FEATURED AUTHORS - writers the admins want to show first in the
+# homepage's "Authors to Follow" row. OneToOne: a writer is either
+# featured (one row) or not (no row).
+# ---------------------------------------------------------------
+class FeaturedAuthor(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='featured')
+    # One line on their card: "Master of lighthouse horror".
+    blurb = models.CharField(max_length=120, blank=True)
+    # Lower number = further left in the row.
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['order', 'id']
+
+    def __str__(self):
+        return f'Featured: {self.user}'
+
+
+# ---------------------------------------------------------------
+# STORY SPOTLIGHT - a big banner for one story on the homepage,
+# with the admins' own headline, between two dates.
+# ---------------------------------------------------------------
+class Spotlight(models.Model):
+    story = models.ForeignKey(Story, on_delete=models.CASCADE, related_name='spotlights')
+    headline = models.CharField(max_length=120)
+    blurb = models.CharField(max_length=300, blank=True)
+    starts_on = models.DateField()
+    ends_on = models.DateField()
+
+    class Meta:
+        ordering = ['-starts_on']
+
+    def __str__(self):
+        return f'Spotlight: {self.story}'
+
+
+# ---------------------------------------------------------------
+# POLLS - "Which monster scares you most?"
+#   Poll        - the question (only ONE is shown on the site: the
+#                 newest active one)
+#   PollOption  - the answers to pick from
+#   PollVote    - who picked what (one vote per member per poll)
+# ---------------------------------------------------------------
+class Poll(models.Model):
+    question = models.CharField(max_length=200)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return self.question
+
+
+class PollOption(models.Model):
+    poll = models.ForeignKey(Poll, on_delete=models.CASCADE, related_name='options')
+    text = models.CharField(max_length=100)
+
+    class Meta:
+        ordering = ['id']
+
+    def __str__(self):
+        return self.text
+
+
+class PollVote(models.Model):
+    poll = models.ForeignKey(Poll, on_delete=models.CASCADE, related_name='votes')
+    option = models.ForeignKey(PollOption, on_delete=models.CASCADE, related_name='votes')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='poll_votes')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        # One vote per member per poll - the DATABASE refuses a second.
+        unique_together = ['poll', 'user']

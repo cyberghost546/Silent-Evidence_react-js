@@ -4,6 +4,7 @@ import TrendingList from './TrendingList'
 import HorrorCalendar from './HorrorCalendar'
 import VillainOfTheWeek from './VillainOfTheWeek'
 import QuoteOfTheDay from './QuoteOfTheDay'
+import PollBox from './PollBox'
 
 
 // ---------------------------------------------------------------
@@ -38,6 +39,8 @@ function HomeFeed() {
                     self-start: without it, the grid stretches the
                     sidebar as tall as the stories column. */}
                 <aside className='space-y-6 self-start'>
+                    {/* Only shows when an admin opened a poll. */}
+                    <PollBox />
                     <TrendingList />
                     <HorrorCalendar />
                     <VillainOfTheWeek />

@@ -12,6 +12,9 @@ from .views import (
     AdminStoryPickerView,
     CookieBannerView, CookieConsentView, AdminCookieView,
     MoodOfTheDayView, AdminMoodListView, AdminMoodDetailView,
+    CurrentSpotlightView, AdminSpotlightListView, AdminSpotlightDetailView,
+    CurrentPollView, VoteView, AdminPollListView, AdminPollDetailView,
+    AdminFeaturedListView, AdminFeaturedDetailView,
 )
 
 
@@ -28,6 +31,9 @@ urlpatterns = [
     path('cookie-banner/', CookieBannerView.as_view()),
     path('cookie-consent/', CookieConsentView.as_view()),
     path('mood-of-the-day/', MoodOfTheDayView.as_view()),
+    path('spotlight/', CurrentSpotlightView.as_view()),
+    path('polls/current/', CurrentPollView.as_view()),
+    path('polls/<int:pk>/vote/', VoteView.as_view()),
 
     # Admin Dashboard
     path('dashboard/announcements/', AdminAnnouncementListView.as_view()),
@@ -44,4 +50,10 @@ urlpatterns = [
     path('dashboard/cookie-consent/', AdminCookieView.as_view()),
     path('dashboard/moods/', AdminMoodListView.as_view()),
     path('dashboard/moods/<int:pk>/', AdminMoodDetailView.as_view()),
+    path('dashboard/spotlights/', AdminSpotlightListView.as_view()),
+    path('dashboard/spotlights/<int:pk>/', AdminSpotlightDetailView.as_view()),
+    path('dashboard/polls/', AdminPollListView.as_view()),
+    path('dashboard/polls/<int:pk>/', AdminPollDetailView.as_view()),
+    path('dashboard/featured-authors/', AdminFeaturedListView.as_view()),
+    path('dashboard/featured-authors/<int:pk>/', AdminFeaturedDetailView.as_view()),
 ]
