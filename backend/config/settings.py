@@ -10,22 +10,54 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
+import os
 from pathlib import Path
+from urllib.parse import urlparse
+
+from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
+# ---------------------------------------------------------------
+# SETTINGS FROM THE ENVIRONMENT
+#
+# On your computer you set nothing and everything works like before
+# (DEBUG on, SQLite, emails printed in the terminal).
+# On the live site, the hosting company lets you set "environment
+# variables" - that's where the secrets go, never in git.
+# The full list is in DEPLOY.md and backend/.env.example.
+# ---------------------------------------------------------------
+
+def env(name, default=None):
+    return os.environ.get(name, default)
+
+
+def env_list(name, default=''):
+    # "a.com, b.com" -> ['a.com', 'b.com']
+    return [item.strip() for item in env(name, default).split(',') if item.strip()]
+
+
+def env_bool(name, default=False):
+    return env(name, str(default)).lower() in ('1', 'true', 'yes', 'on')
+
+
+# DEBUG shows detailed error pages - handy for you, dangerous on the
+# live site (it shows your code and settings to anyone).
+DEBUG = env_bool('DJANGO_DEBUG', True)
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure--sa%47a&_&@((f*nxt!@puftf&2&qam=(syj9!4xjsw)oxhm+#'
+# It signs the login cookies - whoever knows it can log in as anyone.
+SECRET_KEY = env('DJANGO_SECRET_KEY')
+if not SECRET_KEY:
+    if not DEBUG:
+        raise ImproperlyConfigured('Set DJANGO_SECRET_KEY on the live site (see DEPLOY.md).')
+    # Only for your own computer.
+    SECRET_KEY = 'django-insecure--sa%47a&_&@((f*nxt!@puftf&2&qam=(syj9!4xjsw)oxhm+#'
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = []
+# The web addresses this Django may answer to, e.g. "yourapi.onrender.com".
+ALLOWED_HOSTS = env_list('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1')
 
 
 # Application definition
@@ -54,6 +86,9 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    # WhiteNoise serves the admin's CSS/JS on the live site (there,
+    # Django doesn't do it by itself). Must come right after Security.
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -90,12 +125,36 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.1/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+# Your computer: the SQLite file. The live site: Postgres, given as
+# ONE address in DATABASE_URL, like
+#   postgres://user:password@host:5432/dbname
+# (your host shows it on the database's page - copy, paste, done).
+def database_from_url(url):
+    parts = urlparse(url)
+    if parts.scheme not in ('postgres', 'postgresql'):
+        raise ImproperlyConfigured('DATABASE_URL must start with postgres://')
+    return {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': parts.path.lstrip('/'),
+        'USER': parts.username,
+        'PASSWORD': parts.password,
+        'HOST': parts.hostname,
+        'PORT': parts.port or 5432,
+        # Keep connections open a while instead of reconnecting on
+        # every request - noticeably faster.
+        'CONN_MAX_AGE': 60,
     }
-}
+
+
+if env('DATABASE_URL'):
+    DATABASES = {'default': database_from_url(env('DATABASE_URL'))}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 
 # Password validation
@@ -133,22 +192,43 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.1/howto/static-files/
 
 STATIC_URL = 'static/'
+# "python manage.py collectstatic" copies the admin's CSS/JS here,
+# and WhiteNoise serves them from here.
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 
 # Email
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
 
-MAILERS = {
-    'default': {
-        # Prints emails in the terminal AND logs them for the Admin
-        # Dashboard's Email Log (see mailings/backends.py).
-        'BACKEND': 'mailings.backends.LoggingConsoleBackend',
-    },
-}
+# No EMAIL_HOST set: print emails in the terminal (your computer).
+# EMAIL_HOST set: really send them through that mail server.
+# Both also log every email for Dashboard -> Email Log
+# (see mailings/backends.py).
+if env('EMAIL_HOST'):
+    MAILERS = {
+        'default': {
+            'BACKEND': 'mailings.backends.LoggingSMTPBackend',
+            'OPTIONS': {
+                'host': env('EMAIL_HOST'),
+                'port': int(env('EMAIL_PORT', '587')),
+                'username': env('EMAIL_HOST_USER', ''),
+                'password': env('EMAIL_HOST_PASSWORD', ''),
+                'use_tls': env_bool('EMAIL_USE_TLS', True),
+                'timeout': 10,
+            },
+        },
+    }
+else:
+    MAILERS = {
+        'default': {
+            'BACKEND': 'mailings.backends.LoggingConsoleBackend',
+        },
+    }
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
-]
+# The React site's address. On your computer that's Vite on 5173.
+FRONTEND_ORIGINS = env_list('FRONTEND_ORIGINS', 'http://localhost:5173')
+
+CORS_ALLOWED_ORIGINS = FRONTEND_ORIGINS
 
 # The dashboard sends your login cookie along with its requests
 # (fetch with credentials: 'include'). The browser only allows that
@@ -158,13 +238,62 @@ CORS_ALLOW_CREDENTIALS = True
 # Django blocks POST/PATCH/DELETE coming from a different origin
 # unless it's on this list. React runs on 5173, Django on 8000, so
 # React counts as "different" and has to be allowed here.
-CSRF_TRUSTED_ORIGINS = [
-    "http://localhost:5173",
-]
+CSRF_TRUSTED_ORIGINS = FRONTEND_ORIGINS
 
 
+# ---------------------------------------------------------------
+# BEHIND A PROXY (the live site).
+#
+# There, requests reach Django through the hosting company's servers
+# (and the frontend's /api rewrite, see DEPLOY.md). Then REMOTE_ADDR
+# is THEIR address, not the visitor's - and the login lock, IP
+# Blocklist and rate limits would treat everyone as one person.
+#
+# TRUSTED_PROXY_COUNT = how many of those servers are in between.
+# Each one adds the address it got the request from to the
+# X-Forwarded-For header, so we count that many from the END (the
+# start can be faked by the visitor). 0 = just use REMOTE_ADDR.
+# How to check the number: see "Real IP addresses" in DEPLOY.md.
+# ---------------------------------------------------------------
+TRUSTED_PROXY_COUNT = int(env('TRUSTED_PROXY_COUNT', '0'))
+
+REST_FRAMEWORK = {
+    # DRF's rate limits (contact form, sign-up) use the same rule.
+    'NUM_PROXIES': TRUSTED_PROXY_COUNT or None,
+}
+
+
+# ---------------------------------------------------------------
+# HTTPS SAFETY - only on the live site (DEBUG off).
+# ---------------------------------------------------------------
+if not DEBUG:
+    # The host handles HTTPS and tells Django with this header.
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    # Send visitors from http:// to https://.
+    SECURE_SSL_REDIRECT = env_bool('DJANGO_SSL_REDIRECT', True)
+    # Login + CSRF cookies only travel over HTTPS.
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    # "Always use HTTPS for this site" - browsers remember it for a year.
+    # (Only switch on includeSubDomains/preload once you're sure.)
+    SECURE_HSTS_SECONDS = int(env('DJANGO_HSTS_SECONDS', '31536000'))
+    # WhiteNoise: compress the admin's files and give them lasting names.
+    STORAGES = {
+        'default': {'BACKEND': 'django.core.files.storage.FileSystemStorage'},
+        'staticfiles': {'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage'},
+    }
+
+
+# Uploaded files: avatars, story covers, slides.
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+# On the live site, point MEDIA_ROOT at a PERSISTENT disk (Render:
+# "Disks"). The normal disk there is wiped on every deploy - and
+# every uploaded picture with it.
+MEDIA_ROOT = Path(env('MEDIA_ROOT', str(BASE_DIR / 'media')))
+# Let Django itself send the uploaded files on the live site too
+# (config/urls.py). Fine for a small site; a big one would use a
+# file service like S3 or Cloudinary instead.
+SERVE_MEDIA = env_bool('SERVE_MEDIA', True)
 
 
 # While running "python manage.py test": use a FAST (and weak) way to
@@ -185,14 +314,15 @@ if 'test' in sys.argv:
 # "python manage.py runserver" is running. Perfect while developing:
 # you see exactly what would be sent, and nobody gets spammed.
 #
-# To really send emails later, change BACKEND in MAILERS to Django's
-# SMTP backend and add your mail provider's details (see the Django
-# email docs linked above) - and keep the password out of git.
+# To really send emails, set EMAIL_HOST and friends (see MAILERS
+# above and DEPLOY.md) - the password goes in an environment
+# variable, never in git.
 # ---------------------------------------------------------------
-DEFAULT_FROM_EMAIL = 'Silent Evidence <no-reply@silentevidence.example>'
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', 'Silent Evidence <no-reply@silentevidence.example>')
 
 # The money on the Revenue / Premium Members pages.
 CURRENCY = 'EUR'
 
-# Used to build links inside emails ("read it here: ...").
-SITE_URL = 'http://localhost:5173'
+# Used to build links inside emails ("read it here: ..."), the
+# sitemap and robots.txt. The live site: your real address.
+SITE_URL = env('SITE_URL', 'http://localhost:5173')

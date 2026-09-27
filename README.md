@@ -53,6 +53,12 @@ Open http://localhost:5173. The Django admin is at http://localhost:8000/admin.
 > add categories and stories in the admin, or sign up and write some.
 
 
+## Putting it online
+
+See **[DEPLOY.md](DEPLOY.md)** - Django on Render, React on Vercel,
+step by step. On your own computer you don't need any of it.
+
+
 ## Tests
 
 ```bash

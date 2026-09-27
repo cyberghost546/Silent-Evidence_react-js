@@ -17,7 +17,8 @@ Including another URLconf
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import include, path
+from django.urls import include, path, re_path
+from django.views.static import serve
 
 from dashboard.seo_views import sitemap_xml, robots_txt
 
@@ -38,3 +39,11 @@ urlpatterns = [
     path('api/', include('support.urls')),
     path('api/', include('mailings.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+# static() above only works while DEBUG is on. On the live site the
+# uploaded pictures are sent by this instead (see SERVE_MEDIA in
+# settings.py).
+if not settings.DEBUG and settings.SERVE_MEDIA:
+    urlpatterns += [
+        re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
+    ]

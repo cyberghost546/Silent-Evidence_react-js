@@ -1,5 +1,6 @@
 from datetime import timedelta
 
+from django.conf import settings
 from django.utils import timezone
 
 from .models import LoginEvent
@@ -34,10 +35,22 @@ def login_limits():
 
 
 # Where did the request come from? REMOTE_ADDR is the address of
-# whoever connected to Django. (Behind a proxy, like on a real host,
-# you'd read the X-Forwarded-For header instead - but only if you
-# trust that proxy, because anyone can send that header.)
+# whoever connected to Django - on your computer, that's the visitor.
+#
+# On the live site, requests pass through the host's servers first
+# (TRUSTED_PROXY_COUNT in settings.py says how many). Each one adds
+# the address it saw to the end of the X-Forwarded-For header:
+#     X-Forwarded-For: <maybe fake>, <visitor>, <proxy 1>
+# We count TRUSTED_PROXY_COUNT from the END, because the START can
+# be typed by the visitor themselves - trusting it would let anyone
+# pretend to be any IP (and dodge the login lock or the blocklist).
 def client_ip(request):
+    count = getattr(settings, 'TRUSTED_PROXY_COUNT', 0)
+    forwarded = request.META.get('HTTP_X_FORWARDED_FOR', '')
+    if count and forwarded:
+        addresses = [part.strip() for part in forwarded.split(',') if part.strip()]
+        if len(addresses) >= count:
+            return addresses[-count]
     return request.META.get('REMOTE_ADDR')
 
 

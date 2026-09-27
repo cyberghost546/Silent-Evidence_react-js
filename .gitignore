@@ -28,3 +28,12 @@ node_modules/
 # Editor / OS clutter
 .vscode/
 .DS_Store
+
+# Made by "python manage.py collectstatic" (the live site builds it).
+backend/staticfiles/
+
+# Your secrets (passwords, keys) - NEVER in git. The .env.example
+# files show which ones exist, without the values.
+.env
+*.env
+!.env.example

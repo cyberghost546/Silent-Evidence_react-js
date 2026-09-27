@@ -1,38 +1,45 @@
 from django.core.mail.backends.console import EmailBackend as ConsoleEmailBackend
+from django.core.mail.backends.smtp import EmailBackend as SMTPEmailBackend
 
 
 # ---------------------------------------------------------------
-# OUR EMAIL BACKEND - Django's console backend (prints emails in
-# the runserver terminal) + it writes every email into the
-# EmailLog table, for Admin Dashboard -> Email Log.
+# OUR EMAIL BACKENDS - they send (or print) emails like Django's own,
+# AND write every email into the EmailLog table, for
+# Admin Dashboard -> Email Log.
 #
-# It's switched on in MAILERS in config/settings.py.
+#   LoggingConsoleBackend - prints emails in the runserver terminal
+#                           (while developing: nobody gets spammed)
+#   LoggingSMTPBackend    - really sends them through a mail server
+#                           (on the live site)
 #
-# "Subclassing": class LoggingConsoleBackend(ConsoleEmailBackend)
-# means "everything the console backend does, plus what we add".
-# super().send_messages(...) = "now do the normal printing".
+# Which one is used is picked in MAILERS in config/settings.py.
 #
-# When you move to real sending (SMTP), make the same small class
-# on top of Django's smtp EmailBackend instead - the logging part
-# stays exactly the same.
+# The logging part is written ONCE, in EmailLogMixin. A "mixin" is a
+# small class you add in front of another one:
+#     class LoggingSMTPBackend(EmailLogMixin, SMTPEmailBackend)
+# = "everything the SMTP backend does, plus the logging".
+# super().send_messages(...) inside the mixin = "now do the normal
+# sending" - of whichever backend comes after it.
 # ---------------------------------------------------------------
-class LoggingConsoleBackend(ConsoleEmailBackend):
+class EmailLogMixin:
     def send_messages(self, email_messages):
         # Imported here: the email system is set up before Django has
         # loaded the apps, and importing a model too early crashes.
         from .models import EmailLog
 
         try:
-            sent = super().send_messages(email_messages)
-            error = ''
+            sent = super().send_messages(email_messages) or 0
         except Exception as problem:
             # Log the failure, then let it go on as normal.
-            sent = 0
-            error = str(problem)[:500]
-            self._log(EmailLog, email_messages, False, error)
+            self._log(EmailLog, email_messages, False, str(problem)[:500])
             raise
 
-        self._log(EmailLog, email_messages, True, error)
+        # With fail_silently=True a mail server problem doesn't raise -
+        # the backend just reports fewer emails sent. Log that honestly.
+        if sent < len(email_messages):
+            self._log(EmailLog, email_messages, False, 'The mail server did not accept this email.')
+        else:
+            self._log(EmailLog, email_messages, True, '')
         return sent
 
     def _log(self, EmailLog, email_messages, success, error):
@@ -47,3 +54,11 @@ class LoggingConsoleBackend(ConsoleEmailBackend):
             )
             for message in email_messages
         ])
+
+
+class LoggingConsoleBackend(EmailLogMixin, ConsoleEmailBackend):
+    pass
+
+
+class LoggingSMTPBackend(EmailLogMixin, SMTPEmailBackend):
+    pass

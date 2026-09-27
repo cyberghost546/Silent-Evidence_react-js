@@ -5,9 +5,18 @@
 // "http://localhost:8000" in five different components. The day you
 // deploy the site, that address changes - and you have to hunt down
 // every copy. Here you change one line.
+//
+// It comes from VITE_API_URL (Vite reads it from .env files or the
+// host's settings while building):
+//   - not set (your computer): http://localhost:8000
+//   - set to '' (empty) on the live site: "this same site" - the host
+//     forwards /api and /media to Django (vercel.json, see DEPLOY.md),
+//     so the browser sees ONE site and the login cookie just works.
+// ?? (not ||): only "not set at all" gets the default - an empty ''
+// is kept, on purpose.
 // ---------------------------------------------------------------
 
-export const API_HOST = 'http://localhost:8000'
+export const API_HOST = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
 
 
 // Django REST Framework usually sends images as a full URL already

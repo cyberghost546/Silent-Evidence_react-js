@@ -1,0 +1,130 @@
+# Putting Silent Evidence online
+
+A step-by-step guide. You need a GitHub account (the code is pushed
+there) and free accounts at **Render** (Django + database) and
+**Vercel** (React). Nothing here costs money, except the optional disk
+for uploaded pictures (step 2.4).
+
+```
+ visitor ──> your-site.vercel.app ──┬── React pages (built by Vercel)
+                                    │
+                                    └── /api, /media, /admin ... ──> Django on Render ──> Postgres
+```
+
+**Why this shape?** The browser only ever talks to ONE site
+(`your-site.vercel.app`). Vercel quietly forwards `/api/...` to Django
+(the "rewrites" in `frontend/vercel.json`). So the login cookie and the
+CSRF cookie belong to your site, and they just work. With two separate
+addresses, browsers block those cookies and every login would fail.
+
+---
+
+## 1. Before you start
+
+- [ ] All tests pass: `python manage.py test` (backend) and `npm test` (frontend)
+- [ ] The code is pushed to GitHub
+- [ ] Maintenance mode: decide if the new site starts open or closed
+      (Dashboard → Site Settings - it's a setting in the database, so a
+      new database starts **open**)
+
+## 2. Django on Render
+
+### 2.1 The database
+Render → **New → Postgres**. Any name, free plan. When it's ready,
+copy its **Internal Database URL** (starts with `postgres://`).
+
+### 2.2 The web service
+Render → **New → Web Service** → pick your GitHub repo.
+
+| Field | Value |
+| --- | --- |
+| Root Directory | `backend` |
+| Runtime | Python |
+| Build Command | `pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate` |
+| Start Command | `gunicorn config.wsgi --bind 0.0.0.0:$PORT` |
+
+### 2.3 Environment variables
+Service → **Environment**. The full list, with explanations, is in
+`backend/.env.example`. The ones you must set:
+
+| Name | Value |
+| --- | --- |
+| `DJANGO_DEBUG` | `false` |
+| `DJANGO_SECRET_KEY` | a long random text - make one with `python -c "import secrets; print(secrets.token_urlsafe(50))"` |
+| `DJANGO_ALLOWED_HOSTS` | your Render address without `https://`, e.g. `silent-evidence.onrender.com` |
+| `FRONTEND_ORIGINS` | your Vercel address with `https://` (you get it in step 3 - come back and fill it in) |
+| `SITE_URL` | the same Vercel address |
+| `DATABASE_URL` | the address from 2.1 |
+| `TRUSTED_PROXY_COUNT` | `2` (check it in step 5) |
+| `PYTHON_VERSION` | the version you use locally, e.g. `3.14.7` (`python --version`) |
+
+Optional: `EMAIL_HOST` + friends for real emails (step 4),
+`ANTHROPIC_API_KEY` for the AI pages.
+
+### 2.4 Uploaded pictures (avatars, covers, slides)
+Render's normal disk is **wiped on every deploy** - uploaded pictures
+would disappear. Two choices:
+
+- **Render Disk** (small monthly cost): service → **Disks** → mount path
+  `/var/data/media`, then set `MEDIA_ROOT=/var/data/media`. Done.
+- **Free, for trying it out:** skip it, and know that uploads vanish on
+  each deploy.
+
+(A bigger site would store pictures in a file service like S3 or
+Cloudinary with `django-storages` - a nice next project.)
+
+### 2.5 Your admin account
+Service → **Shell**: `python manage.py createsuperuser`.
+(Your local database - users, stories - is NOT copied. The live site
+starts empty. The categories come from migrations if you made them
+that way; otherwise add them in the Dashboard.)
+
+## 3. React on Vercel
+
+1. Open `frontend/vercel.json` and replace every
+   `YOUR-BACKEND.onrender.com` with your Render address. Commit + push.
+2. Vercel → **Add New → Project** → your repo.
+   - Root Directory: `frontend`
+   - Framework: Vite (found automatically)
+   - Environment Variable: `VITE_API_URL` = *(empty)* - see `frontend/.env.example`
+3. Deploy. Copy your address (`https://….vercel.app`), put it in
+   `FRONTEND_ORIGINS` and `SITE_URL` on Render (step 2.3), and let Render
+   redeploy.
+
+## 4. Real emails (optional)
+
+Without `EMAIL_HOST`, emails are only printed in Render's logs (and
+still show in Dashboard → Email Log). To really send them, make an
+account at a mail service (Resend, SendGrid, Brevo...), verify your
+domain there, and set on Render:
+`EMAIL_HOST`, `EMAIL_PORT` (usually 587), `EMAIL_HOST_USER`,
+`EMAIL_HOST_PASSWORD`, `DEFAULT_FROM_EMAIL`.
+Test with Dashboard → Newsletter → "Send test".
+
+## 5. Check that everything works
+
+- [ ] The homepage loads, with categories
+- [ ] Sign up, log out, log in (this proves the cookies work)
+- [ ] Write a story with a cover picture, and see the picture
+- [ ] `https://your-site.vercel.app/admin/` shows Django's admin with its styling
+- [ ] `/robots.txt` and `/sitemap.xml` show your Vercel address
+- [ ] **Real IP addresses:** log in, then open Dashboard → Login Logs.
+  Your own IP should be there (compare with a "what is my IP" site).
+  - It shows a Vercel/Render address instead → try `TRUSTED_PROXY_COUNT=1` or `3`.
+  - Getting it right matters: the login lock, the IP Blocklist and the
+    rate limits all use this address. A wrong value can lock out
+    everybody at once, or let people fake their address.
+
+## If something goes wrong
+
+| What you see | Likely cause |
+| --- | --- |
+| Render build fails on `DJANGO_SECRET_KEY` | the variable isn't set (step 2.3) |
+| "Bad Request (400)" from Django | `DJANGO_ALLOWED_HOSTS` doesn't match the Render address |
+| Logging in "works" but you're logged out again | `VITE_API_URL` isn't empty, so the browser talks to Render directly - make it empty and redeploy |
+| "CSRF verification failed" | `FRONTEND_ORIGINS` doesn't exactly match the Vercel address (`https://`, no `/` at the end) |
+| Pages work, refreshing one gives a Vercel 404 | the last rewrite in `vercel.json` is missing |
+| Uploaded pictures disappear | no persistent disk (step 2.4) |
+| Admin has no styling | `collectstatic` isn't in the Build Command |
+
+Render's **Logs** tab shows Django's errors - start there.
