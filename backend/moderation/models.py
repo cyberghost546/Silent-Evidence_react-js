@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.db import models
+from django.utils import timezone
 
 from stories.models import Story, Comment
 
@@ -115,3 +116,109 @@ class LoginEvent(models.Model):
     def __str__(self):
         result = 'OK' if self.success else 'FAILED'
         return f'{self.username} {result} from {self.ip_address}'
+
+
+# ---------------------------------------------------------------
+# CONTENT FILTER - words that aren't allowed.
+#   block = the comment / story / Last Word is refused
+#   flag  = it's saved, but admins get a report about it
+# Checked in moderation/content_filter.py.
+# ---------------------------------------------------------------
+class BannedWord(models.Model):
+    ACTIONS = [
+        ('block', 'Block it'),
+        ('flag', 'Allow, but flag for review'),
+    ]
+    # Saved in lower case, so "Spam" and "spam" are the same word.
+    word = models.CharField(max_length=100, unique=True)
+    action = models.CharField(max_length=10, choices=ACTIONS, default='block')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['word']
+
+    def save(self, *args, **kwargs):
+        # save() runs every time the row is saved - the one place to
+        # tidy the value, whoever saves it (API, admin, shell).
+        self.word = self.word.strip().lower()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f'{self.word} ({self.action})'
+
+
+# ---------------------------------------------------------------
+# VERIFICATION - a member asks for the blue check mark.
+# Approving sets Profile.is_verified (accounts/models.py).
+# ---------------------------------------------------------------
+class VerificationRequest(models.Model):
+    STATUSES = [
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    ]
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='verification_requests')
+    # Why they should be verified (published author, podcast host...).
+    reason = models.TextField(max_length=1000)
+    # Somewhere we can check it: a website, a social media profile.
+    proof_url = models.URLField(blank=True)
+    status = models.CharField(max_length=10, choices=STATUSES, default='pending')
+    admin_note = models.TextField(max_length=1000, blank=True)
+    handled_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
+    handled_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'Verification for {self.user} ({self.status})'
+
+
+# ---------------------------------------------------------------
+# WARNINGS & BANS
+#
+# A warning is a message from the moderators. The member sees it
+# the next time they visit, and must press "I understand".
+#
+# A ban stops someone from logging in, until `until` (or forever
+# when `until` is empty). "Lifting" a ban ends it early.
+# While a ban is active the account is also set to is_active=False,
+# which logs them out everywhere - Django refuses inactive accounts.
+# ---------------------------------------------------------------
+class UserWarning(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='warnings_received')
+    message = models.TextField(max_length=2000)
+    issued_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='+')
+    created_at = models.DateTimeField(auto_now_add=True)
+    # Empty until the member pressed "I understand".
+    acknowledged_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'Warning for {self.user}'
+
+
+class Ban(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='bans')
+    reason = models.TextField(max_length=2000)
+    # null = permanent.
+    until = models.DateTimeField(null=True, blank=True)
+    issued_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='+')
+    created_at = models.DateTimeField(auto_now_add=True)
+    # Set when an admin ends it early.
+    lifted_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'Ban for {self.user}'
+
+    # "Is this ban still running?" - not lifted, and not past `until`.
+    def is_active(self):
+        if self.lifted_at:
+            return False
+        return self.until is None or self.until > timezone.now()

@@ -11,6 +11,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from accounts.models import Follow, Block, get_profile
+from moderation.content_filter import check_text
+from moderation.models import Report
 from .models import (
     Story, Like, Bookmark, Comment, LastWord, ReadingHistory, CoAuthorInvite,
     published_stories, stories_for,
@@ -91,6 +93,19 @@ class StoryListView(generics.ListAPIView):
         return stories
 
 
+# CONTENT FILTER, part 2: text with a "flag" word was allowed, but
+# the admins should look at it - so we file a report ourselves.
+# reporter=None = "reported by the system, not by a member".
+# (Blocked words never get this far: the serializers refuse them.)
+def flag_if_needed(text, story=None, comment=None):
+    action, words = check_text(text)
+    if action == 'flag':
+        Report.objects.create(
+            reporter=None, story=story, comment=comment, reason='other',
+            details=f'Flagged by the content filter: {", ".join(words)}',
+        )
+
+
 # POST /api/stories/new/
 #
 # The Write a Story page sends the form here. Logged-in users only.
@@ -103,7 +118,11 @@ class StoryCreateView(generics.CreateAPIView):
     # The author is whoever is logged in - never something the form
     # sends, or anyone could post a story "by" someone else.
     def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+        story = serializer.save(author=self.request.user)
+
+        # Words the Content Filter marks "flag": the story is saved,
+        # but the admins get a report to look at it.
+        flag_if_needed(' '.join([story.title, story.excerpt, story.body]), story=story)
 
         # Your first story makes you an Author (the role shown on the
         # Admin Dashboard -> Users page).
@@ -231,7 +250,8 @@ class CommentListView(generics.ListCreateAPIView):
     # saving. We add the two things the visitor must NOT choose
     # themselves: who wrote it, and which story it's on.
     def perform_create(self, serializer):
-        serializer.save(author=self.request.user, story=self.get_story())
+        comment = serializer.save(author=self.request.user, story=self.get_story())
+        flag_if_needed(comment.body, comment=comment)
 
 
 # GET /api/stories/random/
@@ -297,7 +317,14 @@ class LastWordListView(generics.ListCreateAPIView):
         return LastWord.objects.filter(is_hidden=False).select_related('author')[:30]
 
     def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+        last_word = serializer.save(author=self.request.user)
+
+        # A Last Word can't be reported (reports are for stories and
+        # comments), so a "flag" word hides it instead - an admin can
+        # un-hide it on the Moderation page.
+        if check_text(last_word.body)[0] == 'flag':
+            last_word.is_hidden = True
+            last_word.save()
 
 
 # ---------------------------------------------------------------

@@ -1,6 +1,7 @@
 from django.utils import timezone
 from rest_framework import serializers
 
+from moderation.content_filter import check_text, BLOCKED_MESSAGE
 from .models import Story, Comment, LastWord, CoAuthorInvite, wpm_for
 
 
@@ -171,6 +172,13 @@ class StoryWriteSerializer(serializers.ModelSerializer):
         if longitude is not None and not -180 <= longitude <= 180:
             raise serializers.ValidationError({'longitude': ['Longitude must be between -180 and 180.']})
 
+        # CONTENT FILTER (Admin Dashboard -> Content Filter): a banned
+        # word in the title, excerpt or text = refused. ("flag" words
+        # are allowed - StoryCreateView reports them to the admins.)
+        text = ' '.join([data.get('title', ''), data.get('excerpt', ''), data.get('body', '')])
+        if check_text(text)[0] == 'block':
+            raise serializers.ValidationError({'body': [BLOCKED_MESSAGE]})
+
         return data
 
 
@@ -184,6 +192,13 @@ class CommentSerializer(serializers.ModelSerializer):
         model = Comment
         fields = ['id', 'author', 'body', 'created_at']
 
+    # validate_<field> runs by itself during is_valid(). A blocked word
+    # (Content Filter) refuses the comment.
+    def validate_body(self, value):
+        if check_text(value)[0] == 'block':
+            raise serializers.ValidationError(BLOCKED_MESSAGE)
+        return value
+
 
 # One quote on the Last Words wall. Same shape as a comment:
 # the author's NAME goes out, and it can't be set by the visitor.
@@ -194,9 +209,14 @@ class LastWordSerializer(serializers.ModelSerializer):
         model = LastWord
         fields = ['id', 'author', 'body', 'created_at']
 
-    # No extra checks needed: DRF's CharField already trims spaces off
-    # the ends and refuses an empty quote, and max_length=280 on the
-    # model becomes a "no more than 280 characters" check by itself.
+    # DRF's CharField already trims spaces off the ends and refuses an
+    # empty quote, and max_length=280 on the model becomes a "no more
+    # than 280 characters" check by itself. We only add the Content
+    # Filter, like on comments.
+    def validate_body(self, value):
+        if check_text(value)[0] == 'block':
+            raise serializers.ValidationError(BLOCKED_MESSAGE)
+        return value
 
 
 # ---------------------------------------------------------------

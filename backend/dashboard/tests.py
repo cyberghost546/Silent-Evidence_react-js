@@ -16,6 +16,10 @@ PASSWORD = 'Str0ng-pass-123'
 
 # Every URL the Admin Dashboard uses.
 DASHBOARD_URLS = [
+    '/api/dashboard/banned-words/',
+    '/api/dashboard/verification/',
+    '/api/dashboard/discipline/',
+    '/api/dashboard/cookie-consent/',
     '/api/dashboard/funnel/',
     '/api/dashboard/contact/',
     '/api/dashboard/support/',

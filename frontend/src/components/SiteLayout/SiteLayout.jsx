@@ -1,6 +1,8 @@
 import { Outlet } from 'react-router-dom'
 import Header from '../Header/Header'
 import AnnouncementBanner from '../AnnouncementBanner/AnnouncementBanner'
+import CookieBanner from '../CookieBanner/CookieBanner'
+import WarningNotice from '../WarningNotice/WarningNotice'
 import Footer from '../Footer/Footer'
 import BackToTop from '../BackToTop/BackToTop'
 
@@ -28,6 +30,12 @@ function SiteLayout() {
             </main>
 
             <Footer />
+
+            {/* Pop-ups that can appear on any public page:
+                the cookie choice (first visit) and a moderator's
+                warning (until the member confirms it). */}
+            <CookieBanner />
+            <WarningNotice />
 
             {/* The round "back to top" button - on every public page. */}
             <BackToTop />

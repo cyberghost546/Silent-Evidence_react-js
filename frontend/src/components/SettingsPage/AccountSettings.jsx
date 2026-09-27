@@ -4,6 +4,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { changePassword, deleteAccount, exportMyData } from '../../api/client'
 import PasswordInput from '../PasswordInput/PasswordInput'
 import PasswordStrength from '../PasswordStrength/PasswordStrength'
+import VerificationRow from './VerificationRow'
 import { SettingsSection, SettingRow, Toggle, ComingSoon } from './SettingsParts'
 import { LABEL_STYLE, BUTTON_STYLE, FIELD_ERROR_STYLE } from '../../styles/formStyles'
 
@@ -12,6 +13,7 @@ import { LABEL_STYLE, BUTTON_STYLE, FIELD_ERROR_STYLE } from '../../styles/formS
 // "Account" - privacy, password, your data, and deleting it all.
 //
 //   Private Profile       works (saved in your settings)
+//   Get verified          works (request the blue check mark)
 //   Change Password       works (opens a small form)
 //   Download Your Data    works (saves a .json file)
 //   Delete Account        works (asks for your password first)
@@ -41,6 +43,8 @@ function AccountSettings({ settings, onSave, onMessage }) {
                 <SettingRow title='Backup Recovery Codes' badge={<ComingSoon />} text='Single-use codes to sign in if you lose access to your email. Store them somewhere safe and offline.'>
                     <button type='button' disabled className={SMALL_BUTTON}>Generate new codes</button>
                 </SettingRow>
+
+                <VerificationRow onMessage={onMessage} />
 
                 <ChangePassword onMessage={onMessage} />
 

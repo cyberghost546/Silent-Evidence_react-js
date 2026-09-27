@@ -10,6 +10,7 @@ from .views import (
     AdminBundleListView, AdminBundleDetailView,
     AdminCategoryListView, AdminCategoryDetailView,
     AdminStoryPickerView,
+    CookieBannerView, CookieConsentView, AdminCookieView,
 )
 
 
@@ -23,6 +24,8 @@ urlpatterns = [
     path('challenges/<int:pk>/enter/', EnterChallengeView.as_view()),
     path('bundles/', BundleListView.as_view()),
     path('bundles/<slug:slug>/', BundleDetailView.as_view()),
+    path('cookie-banner/', CookieBannerView.as_view()),
+    path('cookie-consent/', CookieConsentView.as_view()),
 
     # Admin Dashboard
     path('dashboard/announcements/', AdminAnnouncementListView.as_view()),
@@ -36,4 +39,5 @@ urlpatterns = [
     path('dashboard/categories/', AdminCategoryListView.as_view()),
     path('dashboard/categories/<int:pk>/', AdminCategoryDetailView.as_view()),
     path('dashboard/story-picker/', AdminStoryPickerView.as_view()),
+    path('dashboard/cookie-consent/', AdminCookieView.as_view()),
 ]

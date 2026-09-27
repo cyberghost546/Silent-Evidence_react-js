@@ -11,6 +11,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from moderation.bans import active_ban, refresh_ban_status, ban_message
 from moderation.security import is_locked, record_login, client_ip, LOCK_MINUTES
 from stories.models import Like, Bookmark, Comment, published_stories
 from .models import Follow, Block, get_profile
@@ -82,6 +83,17 @@ class LogInView(APIView):
             match = get_user_model().objects.filter(email__iexact=login_name).first()
             if match:
                 login_name = match.username
+
+        # BANNED? (Admin Dashboard -> Warnings & Bans)
+        # A finished ban switches the account back on first
+        # (refresh_ban_status); a running one refuses the login with
+        # a clear message. 403 = "Forbidden".
+        account = get_user_model().objects.filter(username=login_name).first()
+        if account is not None:
+            refresh_ban_status(account)
+            ban = active_ban(account)
+            if ban is not None:
+                return Response({'detail': ban_message(ban)}, status=status.HTTP_403_FORBIDDEN)
 
         # TOO MANY WRONG PASSWORDS? (moderation/security.py)
         # Checked BEFORE the password, so a locked account can't be

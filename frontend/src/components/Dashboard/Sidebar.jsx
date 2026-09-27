@@ -4,6 +4,7 @@ import { GridIcon, PhotoIcon, UsersIcon, BookIcon, TagIcon, ArrowLeftIcon, Logou
 import {
     Bot, Flag, TriangleAlert, Gavel, ShieldCheck, Map, ShieldAlert, TrendingUp, Funnel, Swords,
     Megaphone, Trophy, Mail, LifeBuoy, Newspaper, MessageSquare, Package, PenLine,
+    Cookie, CircleCheck, DollarSign, Crown, Ban, ShieldX, Search, Tag, Clock, Send, HeartPulse, Moon,
 } from 'lucide-react'
 import styles from './Dashboard.module.css'
 
@@ -48,6 +49,18 @@ const NAV_ITEMS = [
     { label: 'Comment Digest', to: '/dashboard/digest', icon: <MessageSquare className={ICON} /> },
     { label: 'Bundles', to: '/dashboard/bundles', icon: <Package className={ICON} /> },
     { label: 'Writing Prompts', to: '/dashboard/prompts', icon: <PenLine className={ICON} /> },
+    { label: 'Cookie Consent', to: '/dashboard/cookies', icon: <Cookie className={ICON} /> },
+    { label: 'Verification', to: '/dashboard/verification', icon: <CircleCheck className={ICON} /> },
+    { label: 'Revenue', icon: <DollarSign className={ICON} /> },
+    { label: 'Premium Members', icon: <Crown className={ICON} /> },
+    { label: 'Content Filter', to: '/dashboard/content-filter', icon: <Ban className={ICON} /> },
+    { label: 'Warnings & Bans', to: '/dashboard/discipline', icon: <ShieldX className={ICON} /> },
+    { label: 'Admin Search', icon: <Search className={ICON} /> },
+    { label: 'Tag Manager', icon: <Tag className={ICON} /> },
+    { label: 'Scheduled Stories', icon: <Clock className={ICON} /> },
+    { label: 'Email Log', icon: <Send className={ICON} /> },
+    { label: 'Site Health', icon: <HeartPulse className={ICON} /> },
+    { label: 'Mood of Day', icon: <Moon className={ICON} /> },
 ]
 
 

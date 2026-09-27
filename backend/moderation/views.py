@@ -1,15 +1,20 @@
 from datetime import timedelta
 
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from rest_framework import generics, serializers
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from accounts.models import get_profile
 from stories.models import Story, Comment, LastWord, stories_for
-from .models import Report, Appeal, LoginEvent
+from .bans import active_ban, ban_user, lift_ban
+from .content_filter import check_text
+from .models import Report, Appeal, LoginEvent, BannedWord, VerificationRequest, UserWarning, Ban
 from . import security
 
 
@@ -126,7 +131,11 @@ def report_data(report):
         'reason_label': report.get_reason_display(),
         'details': report.details,
         'status': report.status,
-        'reporter': report.reporter.username if report.reporter else '(deleted user)',
+        # No reporter = the Content Filter filed it (or the member
+        # deleted their account).
+        'reporter': report.reporter.username if report.reporter else (
+            'Content filter' if report.details.startswith('Flagged by the content filter') else '(deleted user)'
+        ),
         'handled_by': report.handled_by.username if report.handled_by else None,
         'created_at': report.created_at,
         'target': target,
@@ -349,3 +358,245 @@ class AdminUnlockView(APIView):
             ip=(request.data.get('ip') or '').strip(),
         )
         return Response({'detail': 'Unlocked.'})
+
+
+# ===============================================================
+# CONTENT FILTER (Admin Dashboard -> Content Filter)
+# ===============================================================
+
+class BannedWordSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BannedWord
+        fields = ['id', 'word', 'action', 'created_at']
+
+
+# GET/POST /api/dashboard/banned-words/        list / add
+# PATCH/DELETE /api/dashboard/banned-words/5/  change block<->flag / remove
+class AdminBannedWordListView(generics.ListCreateAPIView):
+    permission_classes = [IsAdminUser]
+    serializer_class = BannedWordSerializer
+    queryset = BannedWord.objects.all()
+
+
+class AdminBannedWordDetailView(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = [IsAdminUser]
+    serializer_class = BannedWordSerializer
+    queryset = BannedWord.objects.all()
+
+
+# POST /api/dashboard/banned-words/test/  { text }
+#   -> { action: 'block' | 'flag' | null, words: [...] }
+# The "try a sentence" box - see what the filter would do.
+class FilterTestView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def post(self, request):
+        action, words = check_text(request.data.get('text') or '')
+        return Response({'action': action, 'words': words})
+
+
+# ===============================================================
+# VERIFICATION
+# ===============================================================
+
+def verification_data(item):
+    return {
+        'id': item.id,
+        'user': item.user.username,
+        'reason': item.reason,
+        'proof_url': item.proof_url,
+        'status': item.status,
+        'admin_note': item.admin_note,
+        'created_at': item.created_at,
+        'story_count': item.user.stories.filter(is_published=True).count(),
+        'date_joined': item.user.date_joined,
+    }
+
+
+# GET  /api/verification/  -> your requests, newest first (+ are you verified?)
+# POST /api/verification/  { reason, proof_url } -> ask for the check mark
+class MyVerificationView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        requests = VerificationRequest.objects.filter(user=request.user).select_related('user')
+        return Response({
+            'is_verified': get_profile(request.user).is_verified,
+            'requests': [verification_data(item) for item in requests],
+        })
+
+    def post(self, request):
+        if get_profile(request.user).is_verified:
+            return Response({'detail': 'You are already verified.'}, status=400)
+        if VerificationRequest.objects.filter(user=request.user, status='pending').exists():
+            return Response({'detail': 'You already have a request waiting.'}, status=400)
+
+        reason = (request.data.get('reason') or '').strip()
+        if len(reason) < 10:
+            return Response({'detail': 'Tell us a little more about why (at least a sentence).'}, status=400)
+
+        item = VerificationRequest(user=request.user, reason=reason[:1000], proof_url=(request.data.get('proof_url') or '').strip())
+        # full_clean() runs the model's own checks - here: is proof_url
+        # a real URL? It raises an error we turn into a 400.
+        try:
+            item.full_clean()
+        except DjangoValidationError:
+            return Response({'detail': 'The link is not a valid web address.'}, status=400)
+        item.save()
+        return Response(verification_data(item), status=201)
+
+
+# GET /api/dashboard/verification/  -> { counts, requests }
+class AdminVerificationListView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        items = VerificationRequest.objects.select_related('user')[:300]
+        rows = [verification_data(item) for item in items]
+        counts = {'pending': 0, 'approved': 0, 'rejected': 0}
+        for row in rows:
+            counts[row['status']] += 1
+        # Everyone who has the check mark right now.
+        verified = get_user_model().objects.filter(profile__is_verified=True).values_list('username', flat=True)
+        return Response({'counts': counts, 'requests': rows, 'verified_users': list(verified)})
+
+
+# POST /api/dashboard/verification/3/  { decision: 'approve' | 'reject', note }
+class AdminVerificationDecisionView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def post(self, request, pk):
+        item = get_object_or_404(VerificationRequest, pk=pk, status='pending')
+        decision = request.data.get('decision')
+        if decision not in ('approve', 'reject'):
+            return Response({'detail': 'Unknown decision.'}, status=400)
+
+        item.status = 'approved' if decision == 'approve' else 'rejected'
+        item.admin_note = (request.data.get('note') or '').strip()[:1000]
+        item.handled_by = request.user
+        item.handled_at = timezone.now()
+        item.save()
+
+        if decision == 'approve':
+            profile = get_profile(item.user)
+            profile.is_verified = True
+            profile.save()
+        return Response(verification_data(item))
+
+
+# ===============================================================
+# WARNINGS & BANS
+# ===============================================================
+
+def warning_data(warning):
+    return {
+        'id': warning.id,
+        'user': warning.user.username,
+        'message': warning.message,
+        'issued_by': warning.issued_by.username if warning.issued_by else None,
+        'created_at': warning.created_at,
+        'acknowledged_at': warning.acknowledged_at,
+    }
+
+
+def ban_data(ban):
+    return {
+        'id': ban.id,
+        'user': ban.user.username,
+        'reason': ban.reason,
+        'until': ban.until,
+        'is_active': ban.is_active(),
+        'lifted_at': ban.lifted_at,
+        'issued_by': ban.issued_by.username if ban.issued_by else None,
+        'created_at': ban.created_at,
+    }
+
+
+# --- Members ---
+
+# GET  /api/warnings/          -> your warnings you haven't confirmed yet
+# POST /api/warnings/5/ack/    -> "I understand"
+class MyWarningsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        warnings = UserWarning.objects.filter(user=request.user, acknowledged_at__isnull=True).select_related('user', 'issued_by')
+        return Response([warning_data(warning) for warning in warnings])
+
+
+class AcknowledgeWarningView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        warning = get_object_or_404(UserWarning, pk=pk, user=request.user)
+        warning.acknowledged_at = timezone.now()
+        warning.save()
+        return Response(status=204)
+
+
+# --- Admins ---
+
+# GET /api/dashboard/discipline/  -> the latest warnings and bans
+class AdminDisciplineView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        return Response({
+            'warnings': [warning_data(w) for w in UserWarning.objects.select_related('user', 'issued_by')[:100]],
+            'bans': [ban_data(b) for b in Ban.objects.select_related('user', 'issued_by')[:100]],
+        })
+
+
+def find_member(username):
+    return get_user_model().objects.filter(username__iexact=(username or '').strip()).first()
+
+
+# POST /api/dashboard/warnings/  { username, message }
+class AdminWarnView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def post(self, request):
+        member = find_member(request.data.get('username'))
+        message = (request.data.get('message') or '').strip()
+        if member is None:
+            return Response({'detail': 'No member with that username.'}, status=400)
+        if not message:
+            return Response({'detail': 'Write the warning message.'}, status=400)
+
+        warning = UserWarning.objects.create(user=member, message=message[:2000], issued_by=request.user)
+        return Response(warning_data(warning), status=201)
+
+
+# POST /api/dashboard/bans/  { username, reason, days }
+#   days = 1, 7, 30... or 0 / empty for a PERMANENT ban
+class AdminBanView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def post(self, request):
+        member = find_member(request.data.get('username'))
+        reason = (request.data.get('reason') or '').strip()
+        if member is None:
+            return Response({'detail': 'No member with that username.'}, status=400)
+        if member == request.user or member.is_staff:
+            # Admins can't be banned here - take away the admin role on
+            # the Users page first (so nobody locks the team out).
+            return Response({'detail': "Admins can't be banned. Remove their admin role first."}, status=400)
+        if not reason:
+            return Response({'detail': 'Write the reason for the ban.'}, status=400)
+        if active_ban(member):
+            return Response({'detail': f'{member.username} is already banned.'}, status=400)
+
+        days = str(request.data.get('days') or '0')
+        until = None if days in ('0', '') else timezone.now() + timedelta(days=int(days))
+        ban = ban_user(member, reason[:2000], until, request.user)
+        return Response(ban_data(ban), status=201)
+
+
+# POST /api/dashboard/bans/3/lift/  -> end the ban now
+class AdminLiftBanView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def post(self, request, pk):
+        ban = get_object_or_404(Ban, pk=pk)
+        lift_ban(ban)
+        return Response(ban_data(ban))

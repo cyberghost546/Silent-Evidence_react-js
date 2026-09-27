@@ -818,3 +818,80 @@ export function sendDigestNow(period) {
 export function getFunnel(days) {
     return authRequest(`/api/dashboard/funnel/?days=${days}`)
 }
+
+
+// --- Cookie banner, verification, warnings (members / visitors) ---
+
+// { is_enabled, message } - anyone.
+export function getCookieBanner() {
+    return getJSON('/api/cookie-banner/')
+}
+
+// choice = 'all' or 'essential'. Only counted, never linked to a person.
+export function sendCookieChoice(choice) {
+    return authRequest('/api/cookie-consent/', 'POST', { choice })
+}
+
+// { is_verified, requests: [...] }
+export function getMyVerification() {
+    return authRequest('/api/verification/')
+}
+
+export function requestVerification(reason, proofUrl) {
+    return authRequest('/api/verification/', 'POST', { reason, proof_url: proofUrl })
+}
+
+// Your warnings you haven't confirmed yet.
+export function getMyWarnings() {
+    return authRequest('/api/warnings/')
+}
+
+export function acknowledgeWarning(id) {
+    return authRequest(`/api/warnings/${id}/ack/`, 'POST')
+}
+
+
+// --- Admin Dashboard: cookie consent, verification, filter, discipline ---
+
+export function getCookieAdmin() {
+    return authRequest('/api/dashboard/cookie-consent/')
+}
+
+// changes = { is_enabled } and/or { message }
+export function updateCookieBanner(changes) {
+    return authRequest('/api/dashboard/cookie-consent/', 'PATCH', changes)
+}
+
+export function getVerificationRequests() {
+    return authRequest('/api/dashboard/verification/')
+}
+
+// decision = 'approve' or 'reject'
+export function decideVerification(id, decision, note) {
+    return authRequest(`/api/dashboard/verification/${id}/`, 'POST', { decision, note })
+}
+
+// The banned words use the shared admin helpers:
+//   getAdminList('banned-words'), createAdminItem('banned-words', {...}), ...
+// This one is the "test a sentence" box: { action, words }
+export function testContentFilter(text) {
+    return authRequest('/api/dashboard/banned-words/test/', 'POST', { text })
+}
+
+// { warnings: [...], bans: [...] }
+export function getDiscipline() {
+    return authRequest('/api/dashboard/discipline/')
+}
+
+export function warnMember(username, message) {
+    return authRequest('/api/dashboard/warnings/', 'POST', { username, message })
+}
+
+// days = number of days, or 0 for permanent.
+export function banMember(username, reason, days) {
+    return authRequest('/api/dashboard/bans/', 'POST', { username, reason, days })
+}
+
+export function liftBan(id) {
+    return authRequest(`/api/dashboard/bans/${id}/lift/`, 'POST')
+}

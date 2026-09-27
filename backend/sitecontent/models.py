@@ -111,3 +111,42 @@ class Bundle(models.Model):
 
     def __str__(self):
         return self.title
+
+
+# ---------------------------------------------------------------
+# COOKIE CONSENT
+#
+# CookieBanner: the banner's settings. There's only ever ONE row
+# (see CookieBanner.load() - "get it, or make it the first time").
+# CookieConsent: one row per visitor's choice, to count them.
+# No names or IPs are stored - just the choice and when.
+# ---------------------------------------------------------------
+class CookieBanner(models.Model):
+    is_enabled = models.BooleanField(default=True)
+    message = models.TextField(
+        max_length=1000,
+        default='We use cookies to keep you logged in and to keep the site secure. '
+                'No advertising or tracking cookies.',
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+
+    # A "classmethod" is called on the class itself: CookieBanner.load()
+    @classmethod
+    def load(cls):
+        banner, _ = cls.objects.get_or_create(pk=1)
+        return banner
+
+    def __str__(self):
+        return 'Cookie banner'
+
+
+class CookieConsent(models.Model):
+    CHOICES = [
+        ('all', 'Accepted all'),
+        ('essential', 'Essential only'),
+    ]
+    choice = models.CharField(max_length=10, choices=CHOICES)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.choice

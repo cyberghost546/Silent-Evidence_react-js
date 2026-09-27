@@ -39,6 +39,10 @@ import NewsletterDashboard from './components/NewsletterDashboard/NewsletterDash
 import CommentDigestDashboard from './components/CommentDigestDashboard/CommentDigestDashboard'
 import SupportPage from './components/SupportPage/SupportPage'
 import FunnelDashboard from './components/FunnelDashboard/FunnelDashboard'
+import CookieConsentDashboard from './components/CookieConsentDashboard/CookieConsentDashboard'
+import VerificationDashboard from './components/VerificationDashboard/VerificationDashboard'
+import ContentFilterDashboard from './components/ContentFilterDashboard/ContentFilterDashboard'
+import DisciplineDashboard from './components/DisciplineDashboard/DisciplineDashboard'
 import LeaderboardPage from './components/LeaderboardPage/LeaderboardPage'
 import FeedPage from './components/FeedPage/FeedPage'
 import MyListsPage from './components/MyListsPage/MyListsPage'
@@ -233,6 +237,10 @@ function App() {
         <Route path='newsletter' element={<NewsletterDashboard />} />
         <Route path='digest' element={<CommentDigestDashboard />} />
         <Route path='funnel' element={<FunnelDashboard />} />
+        <Route path='cookies' element={<CookieConsentDashboard />} />
+        <Route path='verification' element={<VerificationDashboard />} />
+        <Route path='content-filter' element={<ContentFilterDashboard />} />
+        <Route path='discipline' element={<DisciplineDashboard />} />
       </Route>
     </Routes>
     </AgeGate>

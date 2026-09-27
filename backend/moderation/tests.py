@@ -1,13 +1,17 @@
 import json
+from datetime import timedelta
 from types import SimpleNamespace
 from unittest import mock
 
 from django.contrib.auth.models import User
 from django.test import TestCase
+from django.utils import timezone
 
+from accounts.models import get_profile
 from categories.models import Category
+from sitecontent.models import CookieConsent
 from stories.models import Story, Comment, LastWord
-from .models import Report, Appeal, LoginEvent
+from .models import Report, Appeal, LoginEvent, BannedWord, VerificationRequest, Ban
 from . import security
 
 
@@ -188,3 +192,107 @@ class AIGeneratorTests(TestCase):
         fake_client_class.return_value.beta.messages.create.return_value = SimpleNamespace(stop_reason='refusal', content=[])
         response = self.client.post('/api/dashboard/ai/generate/', {'idea': 'Something it will refuse'})
         self.assertEqual(response.status_code, 422)
+
+
+# ---------------------------------------------------------------
+# Content Filter, Verification, Warnings & Bans, Cookie Consent
+# ---------------------------------------------------------------
+
+
+class ContentFilterTests(TestCase):
+    def setUp(self):
+        self.writer = User.objects.create_user('writer', password=PASSWORD)
+        self.story = Story.objects.create(title='S', body='x', author=self.writer, is_published=True)
+        BannedWord.objects.create(word='Scam', action='block')      # saved as 'scam'
+        BannedWord.objects.create(word='iffy', action='flag')
+        self.client.login(username='writer', password=PASSWORD)
+
+    def comment(self, text):
+        return self.client.post(f'/api/stories/{self.story.id}/comments/', {'body': text})
+
+    def test_blocked_word_is_refused_whole_words_only(self):
+        self.assertEqual(self.comment('This is a SCAM!').status_code, 400)
+        # "scampi" contains "scam" but is a different word -> fine.
+        self.assertEqual(self.comment('I had scampi.').status_code, 201)
+
+    def test_flagged_word_is_saved_and_reported(self):
+        self.assertEqual(self.comment('Kind of iffy').status_code, 201)
+        report = Report.objects.get()
+        self.assertIsNone(report.reporter)
+        self.assertIn('iffy', report.details)
+
+    def test_flagged_last_word_is_hidden(self):
+        self.client.post('/api/last-words/', {'body': 'An iffy quote'})
+        self.assertTrue(LastWord.objects.get().is_hidden)
+
+    def test_admin_test_box(self):
+        User.objects.create_user('boss', password=PASSWORD, is_staff=True)
+        self.client.login(username='boss', password=PASSWORD)
+        answer = self.client.post('/api/dashboard/banned-words/test/', {'text': 'iffy scam'}).json()
+        self.assertEqual(answer, {'action': 'block', 'words': ['scam']})
+
+
+class VerificationTests(TestCase):
+    def test_request_and_approve(self):
+        member = User.objects.create_user('member', password=PASSWORD)
+        User.objects.create_user('boss', password=PASSWORD, is_staff=True)
+
+        self.client.login(username='member', password=PASSWORD)
+        response = self.client.post('/api/verification/', {'reason': 'I host a horror podcast.', 'proof_url': 'https://pod.example'})
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(self.client.post('/api/verification/', {'reason': 'again please!!'}).status_code, 400)
+
+        self.client.login(username='boss', password=PASSWORD)
+        self.client.post(f'/api/dashboard/verification/{VerificationRequest.objects.get().id}/', {'decision': 'approve'})
+        self.assertTrue(get_profile(member).is_verified)
+
+
+class BanTests(TestCase):
+    def setUp(self):
+        self.member = User.objects.create_user('member', password=PASSWORD)
+        User.objects.create_user('boss', password=PASSWORD, is_staff=True)
+
+    def login_member(self):
+        return self.client.post('/api/accounts/login/', {'username': 'member', 'password': PASSWORD})
+
+    def test_banned_member_cannot_log_in_until_lifted(self):
+        self.client.login(username='boss', password=PASSWORD)
+        ban = self.client.post('/api/dashboard/bans/', {'username': 'member', 'reason': 'Spam', 'days': '7'}).json()
+        self.client.logout()
+
+        response = self.login_member()
+        self.assertEqual(response.status_code, 403)
+        self.assertIn('banned until', response.json()['detail'])
+
+        self.client.login(username='boss', password=PASSWORD)
+        self.client.post(f"/api/dashboard/bans/{ban['id']}/lift/")
+        self.client.logout()
+        self.assertEqual(self.login_member().status_code, 200)
+
+    def test_expired_ban_unlocks_by_itself(self):
+        Ban.objects.create(user=self.member, reason='x', until=timezone.now() - timedelta(minutes=1))
+        self.member.is_active = False
+        self.member.save()
+        self.assertEqual(self.login_member().status_code, 200)
+
+    def test_admins_cannot_be_banned(self):
+        self.client.login(username='boss', password=PASSWORD)
+        response = self.client.post('/api/dashboard/bans/', {'username': 'boss', 'reason': 'x'})
+        self.assertEqual(response.status_code, 400)
+
+    def test_warning_is_shown_until_acknowledged(self):
+        self.client.login(username='boss', password=PASSWORD)
+        self.client.post('/api/dashboard/warnings/', {'username': 'member', 'message': 'Please be kind.'})
+        self.client.login(username='member', password=PASSWORD)
+        warnings = self.client.get('/api/warnings/').json()
+        self.assertEqual(warnings[0]['message'], 'Please be kind.')
+        self.client.post(f"/api/warnings/{warnings[0]['id']}/ack/")
+        self.assertEqual(self.client.get('/api/warnings/').json(), [])
+
+
+class CookieConsentTests(TestCase):
+    def test_banner_and_counting(self):
+        self.assertTrue(self.client.get('/api/cookie-banner/').json()['is_enabled'])
+        self.client.post('/api/cookie-consent/', {'choice': 'essential'})
+        self.assertEqual(self.client.post('/api/cookie-consent/', {'choice': 'nope'}).status_code, 400)
+        self.assertEqual(CookieConsent.objects.count(), 1)

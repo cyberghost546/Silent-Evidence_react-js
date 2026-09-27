@@ -1,6 +1,8 @@
 import random
+from datetime import timedelta
 
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
@@ -9,7 +11,7 @@ from rest_framework.views import APIView
 from categories.models import Category
 from stories.models import Story, stories_for
 from stories.serializers import StoryCardSerializer
-from .models import Announcement, WritingPrompt, Challenge, ChallengeEntry, Bundle
+from .models import Announcement, WritingPrompt, Challenge, ChallengeEntry, Bundle, CookieBanner, CookieConsent
 from .serializers import (
     AnnouncementSerializer, WritingPromptSerializer, ChallengeSerializer,
     BundleSerializer, AdminCategorySerializer,
@@ -224,3 +226,61 @@ class AdminStoryPickerView(APIView):
             }
             for story in stories
         ])
+
+
+# ===============================================================
+# COOKIE CONSENT
+# ===============================================================
+
+# GET /api/cookie-banner/  -> { is_enabled, message }  (anyone)
+class CookieBannerView(APIView):
+    def get(self, request):
+        banner = CookieBanner.load()
+        return Response({'is_enabled': banner.is_enabled, 'message': banner.message})
+
+
+# POST /api/cookie-consent/  { choice: 'all' | 'essential' }  (anyone)
+# Only counts the choice - nothing about WHO chose it is stored.
+class CookieConsentView(APIView):
+    def post(self, request):
+        choice = request.data.get('choice')
+        if choice not in ('all', 'essential'):
+            return Response({'detail': 'Unknown choice.'}, status=400)
+        CookieConsent.objects.create(choice=choice)
+        return Response(status=201)
+
+
+# GET   /api/dashboard/cookie-consent/  -> the settings + the counts
+# PATCH /api/dashboard/cookie-consent/  { is_enabled, message }
+class AdminCookieView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        banner = CookieBanner.load()
+        month_ago = timezone.now() - timedelta(days=30)
+        recent = CookieConsent.objects.filter(created_at__gte=month_ago)
+        return Response({
+            'is_enabled': banner.is_enabled,
+            'message': banner.message,
+            'updated_at': banner.updated_at,
+            'last_30_days': {
+                'all': recent.filter(choice='all').count(),
+                'essential': recent.filter(choice='essential').count(),
+            },
+            'all_time': {
+                'all': CookieConsent.objects.filter(choice='all').count(),
+                'essential': CookieConsent.objects.filter(choice='essential').count(),
+            },
+        })
+
+    def patch(self, request):
+        banner = CookieBanner.load()
+        if 'is_enabled' in request.data:
+            banner.is_enabled = request.data['is_enabled'] in (True, 'true')
+        if 'message' in request.data:
+            message = (request.data['message'] or '').strip()
+            if not message:
+                return Response({'detail': 'The banner needs a message.'}, status=400)
+            banner.message = message[:1000]
+        banner.save()
+        return self.get(request)
