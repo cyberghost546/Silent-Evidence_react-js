@@ -12,6 +12,7 @@ from .site_views import (
     AdminBlockedIPListView, AdminBlockedIPDetailView, AdminAuditLogView,
 )
 from .heatmap_views import ActivityHeatmapView
+from .insights_views import LoginMapView, AnalyticsView
 from .seo_views import AdminSeoView
 from .toxicity_views import ToxicityQueueView, ToxicityScanView, ToxicityReviewView
 from .tools_views import AdminSearchView, EmailLogView, SiteHealthView
@@ -38,6 +39,8 @@ urlpatterns = [
     # SEO, Activity Heatmap, AI Toxicity Queue
     path('dashboard/seo/', AdminSeoView.as_view()),
     path('dashboard/heatmap/', ActivityHeatmapView.as_view()),
+    path('dashboard/login-map/', LoginMapView.as_view()),
+    path('dashboard/analytics/', AnalyticsView.as_view()),
     path('dashboard/toxicity/', ToxicityQueueView.as_view()),
     path('dashboard/toxicity/scan/', ToxicityScanView.as_view()),
     path('dashboard/toxicity/<int:pk>/', ToxicityReviewView.as_view()),

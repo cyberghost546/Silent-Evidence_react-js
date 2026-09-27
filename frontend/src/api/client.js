@@ -26,7 +26,10 @@ export function mediaUrl(path) {
 // A small wrapper around fetch so components don't repeat this.
 // "async/await" is just a nicer way to write .then() chains.
 async function getJSON(path) {
-    const response = await fetch(`${API_HOST}${path}`)
+    // credentials: 'include' = send the login cookie too, so Django
+    // knows who's asking. Needed e.g. during maintenance mode, when
+    // only admins may load anything (dashboard/middleware.py).
+    const response = await fetch(`${API_HOST}${path}`, { credentials: 'include' })
 
     // fetch does NOT throw on a 404 or 500 - it only throws if the
     // network itself failed. So we have to check response.ok ourselves.
@@ -694,7 +697,7 @@ export function getBundle(slug) {
 // Like getJSON, but "204 No Content" (nothing there) gives null
 // instead of crashing on the empty body.
 async function getJSONOrNull(path) {
-    const response = await fetch(`${API_HOST}${path}`)
+    const response = await fetch(`${API_HOST}${path}`, { credentials: 'include' })
     if (response.status === 204) return null
     if (!response.ok) throw new Error(`Request failed: ${response.status}`)
     return response.json()
@@ -1121,6 +1124,17 @@ export function getToxicityQueue(status) {
 // Sends the next batch of unchecked comments to Claude.
 export function scanForToxicity() {
     return authRequest('/api/dashboard/toxicity/scan/', 'POST')
+}
+
+// days = 7 / 30 / 90 / 365
+// -> { geoip_installed, countries: [...], ips: [...], totals }
+export function getLoginMap(days) {
+    return authRequest(`/api/dashboard/login-map/?days=${days}`)
+}
+
+// -> { tiles: [...], series: { signups: [{ date, count }], ... }, top_stories, top_categories }
+export function getAnalytics(days) {
+    return authRequest(`/api/dashboard/analytics/?days=${days}`)
 }
 
 // action = 'hide' | 'approve'

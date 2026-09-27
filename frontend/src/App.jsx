@@ -60,6 +60,8 @@ import EmailTemplatesDashboard from './components/EmailTemplatesDashboard/EmailT
 import SeoDashboard from './components/SeoDashboard/SeoDashboard'
 import HeatmapDashboard from './components/HeatmapDashboard/HeatmapDashboard'
 import ToxicityDashboard from './components/ToxicityDashboard/ToxicityDashboard'
+import LoginMapDashboard from './components/LoginMapDashboard/LoginMapDashboard'
+import AnalyticsDashboard from './components/AnalyticsDashboard/AnalyticsDashboard'
 import FeaturedAuthorsDashboard from './components/FeaturedAuthorsDashboard/FeaturedAuthorsDashboard'
 import SpotlightDashboard from './components/SpotlightDashboard/SpotlightDashboard'
 import PollsDashboard from './components/PollsDashboard/PollsDashboard'
@@ -286,6 +288,8 @@ function App() {
         <Route path='seo' element={<SeoDashboard />} />
         <Route path='heatmap' element={<HeatmapDashboard />} />
         <Route path='toxicity' element={<ToxicityDashboard />} />
+        <Route path='login-map' element={<LoginMapDashboard />} />
+        <Route path='analytics' element={<AnalyticsDashboard />} />
       </Route>
     </Routes>
     </MaintenanceGate>
