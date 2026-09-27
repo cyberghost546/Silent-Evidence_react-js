@@ -116,6 +116,11 @@ function UserRow({ user, isMe, selected, onSelect, onChange, onDelete }) {
                         <span className='rounded bg-yellow-400 px-1.5 py-0.5 text-[10px] font-extrabold text-black'>PRO</span>
                     )}
                 </div>
+                {/* Confirmed age (for 18+ stories) - the number only,
+                    never the birth date itself. */}
+                <p className='mt-0.5 pl-11 text-[11px] text-gray-500'>
+                    {user.age === null ? 'Age not confirmed' : `Age ${user.age}${user.age >= 18 ? '' : ' - no 18+ stories'}`}
+                </p>
             </td>
 
             {/* max-w + truncate: a long email gets "..." instead of
@@ -164,6 +169,16 @@ function UserRow({ user, isMe, selected, onSelect, onChange, onDelete }) {
                     >
                         {user.is_premium ? '− Pro' : '+ Pro'}
                     </button>
+                    {/* They typed the wrong birth date: let them confirm again. */}
+                    {user.age !== null && (
+                        <button
+                            type='button'
+                            onClick={() => window.confirm(`Reset ${user.username}'s age? They'll be asked for their birth date again.`) && onChange(user.id, { reset_birth_date: true })}
+                            className={`${ACTION_BUTTON} border-slate-600 text-gray-300 hover:border-slate-400 hover:text-white`}
+                        >
+                            Reset age
+                        </button>
+                    )}
                     <button
                         type='button'
                         onClick={() => onDelete(user)}

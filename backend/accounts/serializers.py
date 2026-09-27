@@ -65,6 +65,14 @@ class ProfileSettingsSerializer(serializers.ModelSerializer):
         ]
 
     # "creepy,gore,dark" -> max 3 moods.
+    # "Full Access" (18+ stories too) needs a confirmed age of 18+.
+    # self.instance = the Profile being changed.
+    def validate_content_access(self, value):
+        from .age import is_adult   # here, to avoid a circular import
+        if value == 'mature' and not is_adult(self.instance.user):
+            raise serializers.ValidationError('Full Access is for readers 18 and over. Open any 18+ story to confirm your age first.')
+        return value
+
     def validate_fear_moods(self, value):
         moods = [mood for mood in value.split(',') if mood]
         if len(moods) > 3:

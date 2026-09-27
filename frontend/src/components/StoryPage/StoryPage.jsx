@@ -18,6 +18,7 @@ import Comments from './Comments'
 import { SeriesLabel, SeriesNav } from './SeriesNav'
 import styles from './StoryPage.module.css'
 import { usePageTitle } from '../../hooks/usePageTitle'
+import StoryLock from './StoryLock'
 
 
 // The name the reader's text size is saved under in the browser.
@@ -45,6 +46,7 @@ function StoryPage() {
     const { id } = useParams()
 
     const [story, setStory] = useState(null)
+    const [reloadKey, setReloadKey] = useState(0)
     // Browser tab: the story's title (story is null while loading).
     usePageTitle(story?.title)
     const [notFound, setNotFound] = useState(false)
@@ -93,7 +95,9 @@ function StoryPage() {
         return () => {
             ignore = true
         }
-    }, [id])
+        // reloadKey: after confirming your age on the lock screen,
+        // load the story again - now WITH its text.
+    }, [id, reloadKey])
 
     // ---------- Load other stories from the same category ----------
     // ?. = optional chaining: undefined while the story is loading,
@@ -241,19 +245,28 @@ function StoryPage() {
                 )}
 
                 {/* ================= 4. READING TOOLS ================= */}
-                <div className='mt-8'>
-                    <ReadingToolbar
-                        speechPieces={speechPieces}
-                        onFocus={() => setFocus(true)}
-                        textSize={textSize}
-                        onTextSizeChange={setTextSize}
-                    />
-                </div>
+                {/* Not on a locked 18+ story - there's no text to read yet. */}
+                {!story.lock && (
+                    <div className='mt-8'>
+                        <ReadingToolbar
+                            speechPieces={speechPieces}
+                            onFocus={() => setFocus(true)}
+                            textSize={textSize}
+                            onTextSizeChange={setTextSize}
+                        />
+                    </div>
+                )}
 
                 {/* ================= 5. THE STORY ================= */}
-                <div className='mt-8'>
-                    <StoryBody body={story.body} size={textSize} />
-                </div>
+                {/* An 18+ story you can't read yet: the lock screen instead
+                    of the text (Django didn't send the text at all). */}
+                {story.lock ? (
+                    <StoryLock lock={story.lock} onUnlocked={() => setReloadKey(key => key + 1)} />
+                ) : (
+                    <div className='mt-8'>
+                        <StoryBody body={story.body} size={textSize} />
+                    </div>
+                )}
 
                 {/* Previous / next part (only for series). */}
                 <SeriesNav series={story.series} />

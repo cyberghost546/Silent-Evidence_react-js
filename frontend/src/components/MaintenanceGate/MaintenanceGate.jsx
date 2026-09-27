@@ -6,7 +6,7 @@ import { useSiteStatus } from '../../hooks/useSiteStatus'
 
 // ---------------------------------------------------------------
 // MAINTENANCE SCREEN (and the "blocked" screen for IPs on the
-// IP Blocklist). Wraps all the pages in App.jsx (like AgeGate).
+// IP Blocklist). Wraps all the pages in App.jsx.
 //
 // When an admin switches on maintenance mode (Dashboard -> Site
 // Settings), everybody who ISN'T staff sees this screen instead of

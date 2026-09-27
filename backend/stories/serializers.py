@@ -3,6 +3,7 @@ import re
 from django.utils import timezone
 from rest_framework import serializers
 
+from accounts.age import story_lock
 from moderation.content_filter import check_text, BLOCKED_MESSAGE
 from .models import Story, Comment, LastWord, CoAuthorInvite, Tag, Series, wpm_for, stories_for
 
@@ -28,7 +29,8 @@ class StoryCardSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Story
-        fields = ['id', 'title', 'excerpt', 'cover_image', 'category', 'author', 'reading_time', 'views', 'created_at']
+        # content_rating: for the 18+ badge on cards (MatureBadge.jsx).
+        fields = ['id', 'title', 'excerpt', 'cover_image', 'category', 'author', 'reading_time', 'views', 'created_at', 'content_rating']
 
     # self.context['request'] is there because the view passes it
     # (generic views do it by themselves). .get() + the check keep it
@@ -80,18 +82,35 @@ class StoryDetailSerializer(StoryCardSerializer):
     coauthors = serializers.SerializerMethodField()
     tags = serializers.SerializerMethodField()
     series = serializers.SerializerMethodField()
+    # Why the reader can't see this 18+ story yet, or None (accounts/age.py).
+    lock = serializers.SerializerMethodField()
 
     # Meta inherits too: same model, and the card's field list with
     # more added on the end.
     class Meta(StoryCardSerializer.Meta):
         fields = StoryCardSerializer.Meta.fields + [
             'body', 'category_slug', 'word_count', 'like_count', 'comment_count', 'liked', 'saved',
-            'coauthors', 'tags', 'series',
+            'coauthors', 'tags', 'series', 'lock',
             # From the Write a Story page. The story page doesn't show
             # these yet, but they're here for when it does.
             'language', 'video_url', 'audio_url', 'location', 'latitude', 'longitude',
             'mood', 'content_rating', 'content_warnings',
         ]
+
+    def get_lock(self, story):
+        return story_lock(self.context['request'].user, story)
+
+    # to_representation() builds the final JSON. We let DRF build it
+    # as normal, then REMOVE the story's text if it's locked - so it
+    # never leaves the server. (The title and excerpt stay, so the
+    # lock screen can say what the story is.)
+    def to_representation(self, story):
+        data = super().to_representation(story)
+        if data['lock']:
+            data['body'] = ''
+            data['audio_url'] = ''
+            data['video_url'] = ''
+        return data
 
     # Part of a series? -> { id, title, part, total, previous, next }
     # (previous/next = { id, title } or None). Only parts THIS reader

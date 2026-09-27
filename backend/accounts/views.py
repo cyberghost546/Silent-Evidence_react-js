@@ -17,6 +17,7 @@ from moderation.security import is_locked, record_login, client_ip, login_limits
 from dashboard.models import SiteSettings
 from .notifications import notify
 from .email_views import send_verification_email
+from .age import is_adult
 from stories.models import Like, Bookmark, Comment, published_stories
 from .models import Follow, Block, get_profile
 from .premium import refresh_premium
@@ -50,6 +51,9 @@ def user_data(user):
         'is_staff': user.is_staff,
         # False = show the "confirm your email" banner (VerifyEmailBanner.jsx).
         'email_verified': profile.email_verified,
+        # For the lock screen on 18+ stories and the Settings page.
+        'age_confirmed': profile.birth_date is not None,
+        'is_adult': is_adult(user),
         # '/media/avatars/me.jpg', or '' if they never uploaded one.
         # (An empty ImageField has no .url - asking for it crashes.)
         'avatar': profile.avatar.url if profile.avatar else '',

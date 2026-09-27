@@ -10,6 +10,7 @@ from rest_framework.views import APIView
 
 # One app is allowed to import another app's models - that's how
 # the dashboard can count slides and categories.
+from accounts.age import user_age
 from accounts.models import get_profile
 from categories.models import Category
 from slides.models import Slide
@@ -97,6 +98,8 @@ def admin_user_data(user):
         'role': 'admin' if user.is_staff else profile.role,
         'is_verified': profile.is_verified,
         'is_premium': profile.is_premium,
+        # Confirmed age for 18+ stories (None = not confirmed yet).
+        'age': user_age(user),
         'story_count': user.story_count,
         'comment_count': user.comment_count,
         'date_joined': user.date_joined,
@@ -174,6 +177,9 @@ class AdminUserDetailView(APIView):
             profile.is_verified = data['is_verified'] == 'true'
         if 'is_premium' in data:
             profile.is_premium = data['is_premium'] == 'true'
+        # "Reset age": they typed the wrong birth date - let them confirm again.
+        if data.get('reset_birth_date') in (True, 'true'):
+            profile.birth_date = None
 
         profile.save()
 

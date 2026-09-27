@@ -37,7 +37,7 @@ export const TOUR_SEEN_KEY = 'siteTourSeen'
 
 
 // Remember that the tour was seen. try/catch: localStorage can
-// throw in some private-browsing modes (same as AgeGate.jsx).
+// throw in some private-browsing modes.
 function markTourSeen() {
     try {
         localStorage.setItem(TOUR_SEEN_KEY, 'yes')

@@ -15,6 +15,7 @@ from dashboard.limits import hourly_limit_reached
 from dashboard.models import SiteSettings
 
 from accounts.models import Follow, Block, get_profile
+from accounts.age import story_lock
 from accounts.notifications import notify, short_title
 from moderation.content_filter import check_text
 from moderation.models import Report
@@ -175,8 +176,10 @@ class StoryDetailView(generics.RetrieveAPIView):
         # Re-read the new number so the page shows it.
         story.refresh_from_db(fields=['views'])
 
-        # Logged in? Put it in your Reading History.
-        record_reading(request.user, story)
+        # Logged in? Put it in your Reading History - unless it's an
+        # 18+ story they can't read yet (accounts/age.py).
+        if story_lock(request.user, story) is None:
+            record_reading(request.user, story)
 
         return Response(self.get_serializer(story).data)
 

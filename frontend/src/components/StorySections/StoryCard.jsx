@@ -2,6 +2,8 @@ import { Link } from 'react-router-dom'
 import { mediaUrl } from '../../api/client'
 import { ACCENTS } from '../../styles/accents'
 import { pluralize } from '../../utils/format'
+import MatureBadge from './MatureBadge'
+import { useMatureBlur } from '../../hooks/useMatureBlur'
 
 
 // ---------------------------------------------------------------
@@ -15,6 +17,8 @@ import { pluralize } from '../../utils/format'
 //   { id, title, excerpt, cover_image, category, author, reading_time }
 // ---------------------------------------------------------------
 function StoryCard({ story, accent = 'red' }) {
+    // 18+ story and not a confirmed adult: blur the cover.
+    const blur = useMatureBlur(story)
     const colors = ACCENTS[accent]
 
     // "the_keeper" -> "TH" for the little round avatar.
@@ -28,12 +32,14 @@ function StoryCard({ story, accent = 'red' }) {
 
             {/* ---------- PICTURE ---------- */}
             {/* relative = anchor for the fade overlay inside it. */}
-            <div className='relative h-48 shrink-0 sm:h-auto sm:w-2/5'>
+            {/* overflow-hidden: the blurred 18+ cover is zoomed a little -
+                keep it inside its box. */}
+            <div className='relative h-48 shrink-0 overflow-hidden sm:h-auto sm:w-2/5'>
                 {story.cover_image ? (
                     <img
                         src={mediaUrl(story.cover_image)}
                         alt=''
-                        className='h-full w-full object-cover'
+                        className={`h-full w-full object-cover ${blur}`}
                     />
                 ) : (
                     // No picture uploaded - a dark gradient instead of
@@ -47,6 +53,7 @@ function StoryCard({ story, accent = 'red' }) {
                     hidden sm:block = only when the picture is on the
                     left side (not on phones). */}
                 <div className='absolute inset-y-0 right-0 hidden w-1/2 bg-linear-to-r from-transparent to-slate-800 sm:block' />
+                <MatureBadge story={story} />
             </div>
 
             {/* ---------- TEXT ---------- */}

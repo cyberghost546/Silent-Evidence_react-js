@@ -122,6 +122,12 @@ answered in one place - `stories_for(user)` in `backend/stories/models.py`.
 It applies the reader's content rating setting, their blocked users and
 private profiles. Use it for any new list of stories.
 
+**18+ stories:** the site is open to everyone, but the TEXT of a story
+rated "18+ Mature" is only sent to members who confirmed they're 18 or
+older (their birth date, asked once on the story's lock screen). The
+rules are in `backend/accounts/age.py`; the lock screen is
+`StoryPage/StoryLock.jsx`. Admins can reset a member's age on the Users page.
+
 ### The pages
 
 | URL | File | Login? |

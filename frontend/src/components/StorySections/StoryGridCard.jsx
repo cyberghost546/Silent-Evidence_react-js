@@ -2,6 +2,8 @@ import { Link } from 'react-router-dom'
 import { Eye } from 'lucide-react'
 import { mediaUrl } from '../../api/client'
 import { formatShortDate } from '../../utils/format'
+import MatureBadge from './MatureBadge'
+import { useMatureBlur } from '../../hooks/useMatureBlur'
 
 
 // ---------------------------------------------------------------
@@ -18,6 +20,8 @@ import { formatShortDate } from '../../utils/format'
 //     reading_time, created_at }
 // ---------------------------------------------------------------
 function StoryGridCard({ story }) {
+    // 18+ story and not a confirmed adult: blur the cover.
+    const blur = useMatureBlur(story)
     const initials = story.author.slice(0, 2).toUpperCase()
 
     return (
@@ -29,9 +33,11 @@ function StoryGridCard({ story }) {
             className='flex h-full flex-col overflow-hidden rounded-xl border border-slate-700/60 bg-slate-800 transition hover:-translate-y-0.5 hover:border-slate-500'
         >
             {/* ---------- PICTURE ---------- */}
-            <div className='relative h-48'>
+            {/* overflow-hidden: the blurred 18+ cover is zoomed a little -
+                keep it inside its box. */}
+            <div className='relative h-48 overflow-hidden'>
                 {story.cover_image ? (
-                    <img src={mediaUrl(story.cover_image)} alt='' className='h-full w-full object-cover' />
+                    <img src={mediaUrl(story.cover_image)} alt='' className={`h-full w-full object-cover ${blur}`} />
                 ) : (
                     <div className='h-full w-full bg-linear-to-br from-slate-700 to-slate-900' />
                 )}
@@ -43,6 +49,7 @@ function StoryGridCard({ story }) {
                 <span className='absolute bottom-3 left-3 rounded bg-black/60 px-2 py-0.5 text-[11px] font-semibold text-white'>
                     {story.reading_time} min read
                 </span>
+                <MatureBadge story={story} />
             </div>
 
             {/* ---------- TEXT ---------- */}

@@ -13,7 +13,6 @@ import StoryPage from './components/StoryPage/StoryPage'
 import RandomStory from './components/RandomStory/RandomStory'
 import NotFound from './components/NotFound/NotFound'
 import ProtectedRoute from './auth/ProtectedRoute'
-import AgeGate from './components/AgeGate/AgeGate'
 import MaintenanceGate from './components/MaintenanceGate/MaintenanceGate'
 import ErrorBoundary from './components/ErrorBoundary/ErrorBoundary'
 import ContactPage from './components/ContactPage/ContactPage'
@@ -114,10 +113,9 @@ function App() {
     // build on). Its element is a frame with an <Outlet />, and
     // React Router puts the matching child page into that Outlet.
     //
-    // AgeGate wraps everything: until the visitor proves they're 18+,
-    // none of the pages below are shown.
     // MaintenanceGate: during maintenance only admins see the pages.
-    <AgeGate>
+    // (There's no age gate for the whole site: only 18+ STORIES ask
+    // for your age - see StoryLock.jsx and accounts/age.py.)
     <MaintenanceGate>
     {/* A crashing page shows "Something went wrong" instead of a
         blank screen. resetKey: opening another page tries again. */}
@@ -334,7 +332,6 @@ function App() {
     </Routes>
     </ErrorBoundary>
     </MaintenanceGate>
-    </AgeGate>
   )
 }
 

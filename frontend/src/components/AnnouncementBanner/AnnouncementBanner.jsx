@@ -20,7 +20,7 @@ import { BANNER_STYLES } from './bannerStyles'
 const CLOSED_KEY = 'closedAnnouncement'
 
 // localStorage can throw in some private-browsing modes - so both
-// helpers are wrapped in try/catch (same as AgeGate.jsx).
+// helpers are wrapped in try/catch (same as SiteTour.jsx).
 function getClosedId() {
     try {
         return localStorage.getItem(CLOSED_KEY)

@@ -1232,3 +1232,12 @@ export function markErrorFixed(id) {
 export function clearErrorLog() {
     return authRequest('/api/dashboard/errors/', 'DELETE')
 }
+
+
+// --- 18+ stories ---
+
+// birthDate = '1998-04-23'. Only works once per account.
+// -> { age_confirmed: true, is_adult: true/false }
+export function confirmAge(birthDate) {
+    return authRequest('/api/accounts/age/', 'POST', { birth_date: birthDate })
+}

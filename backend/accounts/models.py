@@ -85,6 +85,10 @@ class Profile(models.Model):
     fear_moods = models.CharField(max_length=100, blank=True)
     reading_speed = models.CharField(max_length=10, choices=READING_SPEEDS, default='average')
 
+    # Confirmed once to read 18+ stories (accounts/age.py). null = not yet.
+    # Locked after that - only an admin can reset it (Users page).
+    birth_date = models.DateField(null=True, blank=True)
+
     # Did they click the link in the "confirm your email" email?
     # (accounts/email_views.py) Newsletters and digests only go to
     # confirmed addresses - so nobody gets mail for an account someone

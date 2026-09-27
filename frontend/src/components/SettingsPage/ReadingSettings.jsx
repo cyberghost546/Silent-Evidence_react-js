@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { SettingsSection } from './SettingsParts'
 import { ACCESS_LEVELS, FEAR_MOODS, MAX_MOODS, READING_SPEEDS } from './settingsOptions'
 import { BUTTON_STYLE } from '../../styles/formStyles'
+import { useAuth } from '../../hooks/useAuth'
 
 
 // ---------------------------------------------------------------
@@ -33,6 +34,10 @@ function ReadingSettings({ settings, onSave }) {
 // ---------------------------------------------------------------
 function AgeAccess({ settings, onSave }) {
     const [choosing, setChoosing] = useState(false)
+    // "Full Access" (18+ stories) needs a confirmed age of 18+.
+    // Django checks this too - the greyed-out button just explains it.
+    const { user } = useAuth()
+    const canPickMature = Boolean(user?.is_adult)
 
     // Find the full { value, label, hint } for the saved value.
     const current = ACCESS_LEVELS.find(level => level.value === settings.content_access)
@@ -74,7 +79,8 @@ function AgeAccess({ settings, onSave }) {
                             key={level.value}
                             type='button'
                             onClick={() => pick(level.value)}
-                            className={`rounded-xl border p-4 text-left transition-colors ${
+                            disabled={level.value === 'mature' && !canPickMature}
+                            className={`rounded-xl border p-4 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
                                 level.value === settings.content_access
                                     ? 'border-red-600 bg-red-950/30'
                                     : 'border-slate-700 bg-slate-900 hover:border-slate-500'
@@ -82,6 +88,9 @@ function AgeAccess({ settings, onSave }) {
                         >
                             <p className='text-sm font-semibold text-white'>{level.label}</p>
                             <p className='mt-1 text-xs text-gray-400'>{level.hint}</p>
+                            {level.value === 'mature' && !canPickMature && (
+                                <p className='mt-2 text-xs text-amber-300'>Confirm you're 18+ first: open any 18+ story.</p>
+                            )}
                         </button>
                     ))}
                 </div>

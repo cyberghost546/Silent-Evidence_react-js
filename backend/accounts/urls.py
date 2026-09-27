@@ -1,5 +1,6 @@
 from django.urls import path
 
+from .age_views import ConfirmAgeView
 from .email_views import VerifyEmailView, ResendVerificationView
 from .password_views import PasswordResetRequestView, PasswordResetConfirmView
 from .notification_views import NotificationListView, MarkNotificationsReadView
@@ -13,6 +14,7 @@ from .views import (
 # Included under "api/accounts/" in config/urls.py,
 # so these become /api/accounts/signup/ and so on.
 urlpatterns = [
+    path('age/', ConfirmAgeView.as_view()),
     path('verify-email/', VerifyEmailView.as_view()),
     path('verify-email/resend/', ResendVerificationView.as_view()),
     path('password-reset/', PasswordResetRequestView.as_view()),
