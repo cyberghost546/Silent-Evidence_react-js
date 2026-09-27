@@ -9,6 +9,8 @@ import CategoryDropdown from '../CategoryDropdown/CategoryDropdown'
 import NavDropdown from '../NavDropdown/NavDropdown'
 import SearchModal from '../SearchModal/SearchModal'
 import SiteTour, { TOUR_SEEN_KEY } from '../SiteTour/SiteTour'
+import AskTheWatcher from '../SiteGuide/AskTheWatcher'
+import { OPEN_WATCHER_EVENT } from '../SiteGuide/openWatcher'
 
 
 // ---------------------------------------------------------------
@@ -49,7 +51,6 @@ const MOBILE_LINKS = [
     ...EXPLORE_ITEMS,
     ...FORUM_ITEMS,
     { label: 'Leaderboard', href: '/leaderboard' },
-    { label: 'Ask The Watcher', href: '/watcher' },
     { label: 'About', href: '/about' },
     { label: 'Contact', href: '/contact' },
 ]
@@ -133,6 +134,31 @@ function Header() {
     // function on every render would make that effect stop and start
     // again each time. With useCallback it only runs once per opening.
     const closeSearch = useCallback(() => setSearchOpen(false), [])
+
+    // Is the Ask The Watcher pop-up open? (components/SiteGuide)
+    // It sits in the same corner as the tour, so only one of the two
+    // is ever open: opening one closes the other.
+    const [watcherOpen, setWatcherOpen] = useState(false)
+    // useCallback for the same reason as closeSearch: AskTheWatcher's
+    // Esc-key effect lists onClose in its [ ].
+    const closeWatcher = useCallback(() => setWatcherOpen(false), [])
+
+    function openTour() {
+        setWatcherOpen(false)
+        setTourOpen(true)
+    }
+
+    // Buttons all over the site call openWatcher() (openWatcher.js),
+    // which sends this event. We're the ones who show the pop-up.
+    useEffect(() => {
+        function handleOpen() {
+            setTourOpen(false)
+            setMenuOpen(false)
+            setWatcherOpen(true)
+        }
+        window.addEventListener(OPEN_WATCHER_EVENT, handleOpen)
+        return () => window.removeEventListener(OPEN_WATCHER_EVENT, handleOpen)
+    }, [])
 
     // Keyboard shortcut: Ctrl + K (Cmd + K on a Mac) opens the search
     // from anywhere - the same shortcut many sites use.
@@ -265,7 +291,7 @@ function Header() {
                         <MessagesLink />
                         {/* The bell + dropdown lives in its own component. */}
                         <NotificationMenu />
-                        <UserMenu user={user} onLogout={logout} onOpenTour={() => setTourOpen(true)} />
+                        <UserMenu user={user} onLogout={logout} onOpenTour={openTour} />
                     </>
                 ) : (
                     // <>...</> is a "fragment": it groups both buttons
@@ -316,11 +342,25 @@ function Header() {
                                 type='button'
                                 onClick={() => {
                                     setMenuOpen(false)
-                                    setTourOpen(true)
+                                    openTour()
                                 }}
                                 className='block w-full rounded-lg px-3 py-2 text-left text-sm text-gray-200 hover:bg-slate-800 hover:text-white'
                             >
                                 Site Guide
+                            </button>
+                        </li>
+                        {/* Ask The Watcher opens its pop-up - a button too. */}
+                        <li>
+                            <button
+                                type='button'
+                                onClick={() => {
+                                    setMenuOpen(false)
+                                    setWatcherOpen(true)
+                                    setTourOpen(false)
+                                }}
+                                className='block w-full rounded-lg px-3 py-2 text-left text-sm text-gray-200 hover:bg-slate-800 hover:text-white'
+                            >
+                                Ask The Watcher
                             </button>
                         </li>
                         {MOBILE_LINKS.map(link => (
@@ -348,6 +388,11 @@ function Header() {
             {/* Opened from the user menu, the phone menu, or by itself
                 on a visitor's first visit (see tourOpen above). */}
             {tourOpen && <SiteTour onClose={() => setTourOpen(false)} />}
+
+            {/* ---------- ASK THE WATCHER ---------- */}
+            {/* Same corner, same size as the tour. Opened from anywhere
+                with openWatcher() - see the useEffect above. */}
+            {watcherOpen && <AskTheWatcher onClose={closeWatcher} />}
         </header>
     )
 }

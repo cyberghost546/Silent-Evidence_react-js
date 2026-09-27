@@ -4,6 +4,7 @@ import { LifeBuoy } from 'lucide-react'
 import { getMyTickets, openTicket } from '../../api/client'
 import PageLayout, { PageMessage } from '../PageLayout/PageLayout'
 import TicketThread from './TicketThread'
+import { openWatcher } from '../SiteGuide/openWatcher'
 import { INPUT_STYLE, LABEL_STYLE, BUTTON_STYLE } from '../../styles/formStyles'
 
 
@@ -91,7 +92,7 @@ function TicketList() {
                 {error && <p className='text-sm text-red-400'>{error}</p>}
                 <button type='submit' disabled={!subject.trim() || !body.trim()} className={`${BUTTON_STYLE} w-full`}>Open ticket</button>
                 <p className='text-xs text-gray-500'>
-                    Quick question? Try <Link to='/watcher' className='text-red-400 hover:text-red-300'>Ask The Watcher</Link> first.
+                    Quick question? Try <button type='button' onClick={openWatcher} className='text-red-400 hover:text-red-300'>Ask The Watcher</button> first.
                 </p>
             </form>
         </div>

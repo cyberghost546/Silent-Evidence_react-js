@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { ArrowRight, Brain } from 'lucide-react'
 import PageLayout from '../PageLayout/PageLayout'
 import { GUIDE_GROUPS, GUIDE_TOPICS } from './guideTopics'
+import { openWatcher } from './openWatcher'
 
 
 // ---------------------------------------------------------------
@@ -141,12 +142,14 @@ function SiteGuide() {
                     <p className='font-bold text-white'>Still stuck?</p>
                     <p className='text-sm text-gray-400'>Ask The Watcher. It sees everything that happens here.</p>
                 </div>
-                <Link
-                    to='/watcher'
+                {/* Opens the pop-up chat in the corner (openWatcher.js). */}
+                <button
+                    type='button'
+                    onClick={openWatcher}
                     className='rounded-lg bg-red-600 px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-red-700'
                 >
                     Ask The Watcher
-                </Link>
+                </button>
             </div>
         </PageLayout>
     )

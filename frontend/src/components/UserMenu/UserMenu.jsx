@@ -6,6 +6,7 @@ import {
 } from 'lucide-react'
 import { useDropdown } from '../../hooks/useDropdown'
 import Avatar from '../Avatar/Avatar'
+import { openWatcher } from '../SiteGuide/openWatcher'
 
 // The red scrollbar with the little arrows ("menu-scroll").
 import './UserMenu.css'
@@ -42,11 +43,13 @@ const MENU_GROUPS = [
         { label: 'Settings', to: '/settings', icon: Settings },
     ],
     // Help - its own group, so it gets its own divider line.
-    // action: 'tour' = NOT a link: a button that opens the pop-up
-    // Site Guide tour (components/SiteTour). See the JSX below.
+    // action = NOT a link: a button that opens a pop-up.
+    //   'tour'    -> the Site Guide tour (components/SiteTour)
+    //   'watcher' -> Ask The Watcher (components/SiteGuide)
+    // See the JSX below.
     [
         { label: 'Site Guide', action: 'tour', icon: BookOpenText },
-        { label: 'Ask The Watcher', to: '/watcher', icon: Brain },
+        { label: 'Ask The Watcher', action: 'watcher', icon: Brain },
         { label: 'Help & Support', to: '/support', icon: LifeBuoy },
     ],
 ]
@@ -148,8 +151,9 @@ function UserMenu({ user, onLogout, onOpenTour }) {
                                 // Capital letter so JSX treats it as one: <Icon />
                                 const Icon = item.icon
 
-                                // A button instead of a link (Site Guide).
-                                if (item.action === 'tour') {
+                                // A button instead of a link (Site Guide,
+                                // Ask The Watcher) - both open a pop-up.
+                                if (item.action) {
                                     return (
                                         <button
                                             key={item.label}
@@ -157,7 +161,8 @@ function UserMenu({ user, onLogout, onOpenTour }) {
                                             role='menuitem'
                                             onClick={() => {
                                                 close()
-                                                onOpenTour()
+                                                if (item.action === 'tour') onOpenTour()
+                                                else openWatcher()
                                             }}
                                             className={ITEM_STYLE}
                                         >

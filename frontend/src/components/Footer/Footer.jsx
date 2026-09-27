@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { getCategories } from '../../api/client'
 import { XIcon, RedditIcon, DiscordIcon } from '../BrandIcons/BrandIcons'
+import { openWatcher } from '../SiteGuide/openWatcher'
 
 
 // ===============================================================
@@ -27,7 +28,8 @@ const NAVIGATE_LINKS = [
     { label: 'Write a Story', href: '/write' },
     { label: 'Search', href: '/search' },
     { label: 'Site Guide', href: '/guide' },
-    { label: 'Ask The Watcher', href: '/watcher' },
+    // onClick instead of a page: opens the pop-up chat (openWatcher.js).
+    { label: 'Ask The Watcher', onClick: openWatcher },
     { label: 'About', href: '/about' },
     { label: 'Contact', href: '/contact' },
 ]
@@ -75,10 +77,17 @@ function FooterColumn({ title, links }) {
             <ul className='space-y-3 text-sm'>
                 {links.map(link => (
                     // "key" is required on any list React renders.
-                    <li key={link.href}>
-                        <a href={link.href} className={LINK_STYLE}>
-                            {link.label}
-                        </a>
+                    <li key={link.label}>
+                        {/* A link with onClick opens a pop-up instead of a page. */}
+                        {link.onClick ? (
+                            <button type='button' onClick={link.onClick} className={LINK_STYLE}>
+                                {link.label}
+                            </button>
+                        ) : (
+                            <a href={link.href} className={LINK_STYLE}>
+                                {link.label}
+                            </a>
+                        )}
                     </li>
                 ))}
             </ul>

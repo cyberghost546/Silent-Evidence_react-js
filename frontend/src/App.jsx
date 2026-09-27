@@ -24,7 +24,7 @@ import LeaderboardPage from './components/LeaderboardPage/LeaderboardPage'
 import SearchPage from './components/SearchPage/SearchPage'
 import InfoPage from './components/InfoPage/InfoPage'
 import SiteGuide from './components/SiteGuide/SiteGuide'
-import AskTheWatcher from './components/SiteGuide/AskTheWatcher'
+import WatcherRoute from './components/SiteGuide/WatcherRoute'
 import './App.css'
 
 // ---------------------------------------------------------------
@@ -221,7 +221,7 @@ function App() {
         {/* Help pages - anyone can use them. Both read the topics
             in components/SiteGuide/guideTopics.js. */}
         <Route path='/guide' element={<SiteGuide />} />
-        <Route path='/watcher' element={<AskTheWatcher />} />
+        <Route path='/watcher' element={<WatcherRoute />} />
 
         {/* The text pages: /about, /privacy, /terms, /cookies...
             ONE route for all of them - InfoPage looks up :page in
