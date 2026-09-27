@@ -168,7 +168,17 @@ class StoryWriteSerializer(serializers.ModelSerializer):
         # writing the whole field out again.
         extra_kwargs = {
             'category': {'required': True, 'allow_null': False},
+            # About 15,000 words - more than any story needs, and it
+            # stops someone from posting megabytes of text.
+            'body': {'max_length': 100_000},
         }
+
+    # ImageField already checks it's a real image; this checks the size.
+    # (Same 5 MB limit as avatars in accounts/serializers.py.)
+    def validate_cover_image(self, value):
+        if value and value.size > 5 * 1024 * 1024:
+            raise serializers.ValidationError('The image must be smaller than 5 MB.')
+        return value
 
     # validate() runs after every field was checked on its own, so
     # it's the place for rules about TWO fields together.

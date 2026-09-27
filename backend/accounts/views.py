@@ -8,6 +8,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.throttling import AnonRateThrottle
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -52,7 +53,16 @@ def user_data(user):
 
 
 # POST /api/accounts/signup/
+# Spam brake: at most 10 new accounts per hour from one IP address.
+# (A family or school sharing one address won't get near that; a bot
+# making thousands of accounts will hit it straight away.)
+class SignUpThrottle(AnonRateThrottle):
+    rate = '10/hour'
+
+
 class SignUpView(APIView):
+    throttle_classes = [SignUpThrottle]
+
     def post(self, request):
         # Admins can close sign-ups (Dashboard -> Site Settings).
         if not SiteSettings.load().signups_open:

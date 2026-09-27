@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.core.cache import cache
 from django.test import TestCase
 
 from dashboard.models import SiteSettings, BlockedIP, AuditEntry
@@ -15,6 +16,9 @@ TEST_IP = '127.0.0.1'
 
 class SiteAdminTestCase(TestCase):
     def setUp(self):
+        # Rate limits (sign-up, contact) count in the cache - start clean,
+        # so another test's requests can't use up this test's limit.
+        cache.clear()
         self.admin = User.objects.create_user('boss', password=PASSWORD, is_staff=True)
         self.member = User.objects.create_user('reader', password=PASSWORD)
 
