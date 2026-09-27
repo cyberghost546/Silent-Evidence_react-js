@@ -25,6 +25,21 @@ export function formatShortDate(isoString) {
 }
 
 
+// "2026-09-27T12:00:00Z" -> "just now" / "5m ago" / "3h ago" / "2d ago",
+// and the plain date ("Sep 3") once it's older than a week.
+export function timeAgo(isoString) {
+    const seconds = Math.floor((Date.now() - new Date(isoString).getTime()) / 1000)
+    if (seconds < 60) return 'just now'
+    const minutes = Math.floor(seconds / 60)
+    if (minutes < 60) return `${minutes}m ago`
+    const hours = Math.floor(minutes / 60)
+    if (hours < 24) return `${hours}h ago`
+    const days = Math.floor(hours / 24)
+    if (days < 7) return `${days}d ago`
+    return formatShortDate(isoString)
+}
+
+
 // Plain text -> a list of paragraphs. A blank line = a new paragraph.
 //
 // /\n\s*\n/ is a "regular expression" meaning: a line break, maybe

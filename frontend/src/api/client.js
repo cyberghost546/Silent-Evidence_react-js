@@ -1141,3 +1141,16 @@ export function getAnalytics(days) {
 export function reviewToxicity(id, action) {
     return authRequest(`/api/dashboard/toxicity/${id}/`, 'POST', { action })
 }
+
+
+// --- Notifications (the bell) ---
+
+// -> { unread: 3, items: [ { id, kind, text, link, is_read, created_at, actor } ] }
+export function getNotifications(limit = 10) {
+    return authRequest(`/api/accounts/notifications/?limit=${limit}`)
+}
+
+// ids = [4, 5] marks those as read; no ids = mark ALL read. -> { unread }
+export function markNotificationsRead(ids) {
+    return authRequest('/api/accounts/notifications/read/', 'POST', ids ? { ids } : {})
+}

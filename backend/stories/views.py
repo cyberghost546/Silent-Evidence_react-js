@@ -15,6 +15,7 @@ from dashboard.limits import hourly_limit_reached
 from dashboard.models import SiteSettings
 
 from accounts.models import Follow, Block, get_profile
+from accounts.notifications import notify, short_title
 from moderation.content_filter import check_text
 from moderation.models import Report
 from .models import (
@@ -210,6 +211,10 @@ class ToggleLikeView(APIView):
         # Drafts count as "not found".
         story = get_object_or_404(stories_for(request.user), pk=pk)
         liked = toggle(Like, request.user, story)
+        if liked:
+            # The bell for the author (notify() skips liking your own story).
+            notify(story.author, request.user, 'like',
+                   f'{request.user.username} liked your story "{short_title(story.title)}"', f'/stories/{story.id}')
         return Response({'liked': liked, 'like_count': story.likes.count()})
 
 
@@ -261,6 +266,8 @@ class CommentListView(generics.ListCreateAPIView):
             raise Throttled(detail=f'You can post up to {limit} comments an hour. Take a breather!')
         comment = serializer.save(author=self.request.user, story=self.get_story())
         flag_if_needed(comment.body, comment=comment)
+        notify(comment.story.author, self.request.user, 'comment',
+               f'{self.request.user.username} commented on "{short_title(comment.story.title)}"', f'/stories/{comment.story_id}')
 
 
 # GET /api/stories/random/
@@ -724,6 +731,8 @@ class InviteListView(APIView):
             return Response({'detail': "You can't invite this user."}, status=400)
 
         invite = CoAuthorInvite.objects.create(story=story, from_user=request.user, to_user=person)
+        notify(person, request.user, 'invite',
+               f'{request.user.username} invited you to co-author "{short_title(story.title)}"', '/invites')
         return Response(CoAuthorInviteSerializer(invite).data, status=201)
 
 

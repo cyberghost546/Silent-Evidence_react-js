@@ -117,6 +117,7 @@ private profiles. Use it for any new list of stories.
 | `/history` | `HistoryPage/` | yes |
 | `/invites` | `InvitesPage/` | yes |
 | `/messages` | `MessagesPage/` | yes |
+| `/notifications` | `NotificationsPage/` (the bell in the header; made by `notify()` in `accounts/notifications.py`) | yes |
 | `/settings` | `SettingsPage/` | yes |
 | `/author` | `AuthorDashboard/` | yes |
 | `/dashboard` | `Dashboard/` | admins |

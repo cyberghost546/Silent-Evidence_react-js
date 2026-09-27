@@ -15,6 +15,7 @@ from rest_framework.views import APIView
 from moderation.bans import active_ban, refresh_ban_status, ban_message
 from moderation.security import is_locked, record_login, client_ip, login_limits
 from dashboard.models import SiteSettings
+from .notifications import notify
 from stories.models import Like, Bookmark, Comment, published_stories
 from .models import Follow, Block, get_profile
 from .premium import refresh_premium
@@ -270,6 +271,8 @@ class ToggleFollowView(APIView):
         row, created = Follow.objects.get_or_create(follower=request.user, following=author)
         if not created:
             row.delete()
+        else:
+            notify(author, request.user, 'follow', f'{request.user.username} started following you', f'/profile/{request.user.username}')
 
         return Response({'following': created, 'follower_count': author.followers.count()})
 

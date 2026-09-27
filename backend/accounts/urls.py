@@ -1,5 +1,6 @@
 from django.urls import path
 
+from .notification_views import NotificationListView, MarkNotificationsReadView
 from .views import (
     SignUpView, LogInView, LogOutView, MeView, AuthorListView, ToggleFollowView, ProfileView,
     SettingsView, ChangePasswordView, DeleteAccountView, BlockListView, UnblockView, ExportDataView,
@@ -10,6 +11,8 @@ from .views import (
 # Included under "api/accounts/" in config/urls.py,
 # so these become /api/accounts/signup/ and so on.
 urlpatterns = [
+    path('notifications/', NotificationListView.as_view()),
+    path('notifications/read/', MarkNotificationsReadView.as_view()),
     path('signup/', SignUpView.as_view()),
     path('login/', LogInView.as_view()),
     path('logout/', LogOutView.as_view()),

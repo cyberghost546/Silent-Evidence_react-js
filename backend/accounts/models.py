@@ -182,3 +182,35 @@ class PremiumMembership(models.Model):
         if self.cancelled_at or self.starts_at > now:
             return False
         return self.ends_at is None or self.ends_at > now
+
+
+# ---------------------------------------------------------------
+# NOTIFICATIONS - the bell in the header.
+# "Sarah liked your story", "Mike started following you", ...
+#
+# Don't create these by hand - use notify() in accounts/notifications.py,
+# which skips notifying yourself, blocked people and duplicates.
+# ---------------------------------------------------------------
+class Notification(models.Model):
+    KINDS = [
+        ('like', 'Like'),
+        ('comment', 'Comment'),
+        ('follow', 'Follow'),
+        ('invite', 'Co-author invite'),
+        ('support', 'Support reply'),
+    ]
+
+    recipient = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='notifications')
+    # Who did it. SET_NULL: the notification stays if they delete their account.
+    actor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
+    kind = models.CharField(max_length=10, choices=KINDS)
+    text = models.CharField(max_length=300)
+    link = models.CharField(max_length=200)        # the page to open, e.g. '/stories/5'
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'{self.recipient}: {self.text}'

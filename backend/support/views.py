@@ -7,6 +7,7 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from accounts.notifications import notify, short_title
 from mailings.email_templates import render_email
 from .models import SupportTicket, TicketMessage
 
@@ -99,6 +100,8 @@ class TicketDetailView(APIView):
         # The member wrote -> back to 'open' (waiting for support).
         if is_staff_reply:
             ticket.status = 'answered'
+            notify(ticket.user, request.user, 'support',
+                   f'Support answered your ticket "{short_title(ticket.subject)}"', f'/support/{ticket.id}')
             # Wording: Dashboard -> Email Templates.
             subject, text = render_email(
                 'support_reply',

@@ -46,6 +46,7 @@ const HistoryPage = lazy(() => import('./components/HistoryPage/HistoryPage'))
 const MyStoriesPage = lazy(() => import('./components/MyStoriesPage/MyStoriesPage'))
 const InvitesPage = lazy(() => import('./components/InvitesPage/InvitesPage'))
 const MessagesPage = lazy(() => import('./components/MessagesPage/MessagesPage'))
+const NotificationsPage = lazy(() => import('./components/NotificationsPage/NotificationsPage'))
 
 // The admin pages:
 const Overview = lazy(() => import('./components/Dashboard/Overview'))
@@ -194,6 +195,7 @@ function App() {
         {/* Two URLs, one page: the list alone, or the list + a chat.
             MessagesPage reads :username with useParams(). */}
         <Route path='/messages' element={<ProtectedRoute><MessagesPage /></ProtectedRoute>} />
+        <Route path='/notifications' element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
         <Route path='/messages/:username' element={<ProtectedRoute><MessagesPage /></ProtectedRoute>} />
 
         {/* Writing challenges and story bundles - anyone can look.
