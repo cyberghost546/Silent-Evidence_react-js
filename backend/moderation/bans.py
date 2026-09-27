@@ -49,4 +49,5 @@ def refresh_ban_status(user):
 def ban_message(ban):
     if ban.until is None:
         return 'This account has been banned permanently.'
-    return f'This account is banned until {timezone.localtime(ban.until):%d %B %Y, %H:%M}.'
+    # %Z = the time zone's name (e.g. UTC), so nobody misreads the hour.
+    return f'This account is banned until {timezone.localtime(ban.until):%d %B %Y, %H:%M %Z}.'

@@ -48,6 +48,9 @@ import RevenueDashboard from './components/RevenueDashboard/RevenueDashboard'
 import ScheduledDashboard from './components/ScheduledDashboard/ScheduledDashboard'
 import TagManagerDashboard from './components/TagManagerDashboard/TagManagerDashboard'
 import MoodDashboard from './components/MoodDashboard/MoodDashboard'
+import AdminSearchDashboard from './components/AdminSearchDashboard/AdminSearchDashboard'
+import EmailLogDashboard from './components/EmailLogDashboard/EmailLogDashboard'
+import SiteHealthDashboard from './components/SiteHealthDashboard/SiteHealthDashboard'
 import LeaderboardPage from './components/LeaderboardPage/LeaderboardPage'
 import FeedPage from './components/FeedPage/FeedPage'
 import MyListsPage from './components/MyListsPage/MyListsPage'
@@ -251,6 +254,9 @@ function App() {
         <Route path='scheduled' element={<ScheduledDashboard />} />
         <Route path='tags' element={<TagManagerDashboard />} />
         <Route path='moods' element={<MoodDashboard />} />
+        <Route path='search' element={<AdminSearchDashboard />} />
+        <Route path='email-log' element={<EmailLogDashboard />} />
+        <Route path='health' element={<SiteHealthDashboard />} />
       </Route>
     </Routes>
     </AgeGate>

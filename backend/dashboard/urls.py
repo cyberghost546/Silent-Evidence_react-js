@@ -6,6 +6,7 @@ from .content_views import (
     TagSuggestionsView, AdminTagListView, AdminTagDetailView, MergeTagView,
 )
 from .premium_views import PremiumMembersView, CancelMembershipView, RevenueView
+from .tools_views import AdminSearchView, EmailLogView, SiteHealthView
 from .views import (
     DashboardStatsView, AdminUserListView, AdminUserDetailView,
     AdminStoryListView, AdminStoryDetailView, FunnelView,
@@ -38,6 +39,11 @@ urlpatterns = [
     path('dashboard/tags/', AdminTagListView.as_view()),
     path('dashboard/tags/<int:pk>/', AdminTagDetailView.as_view()),
     path('dashboard/tags/<int:pk>/merge/', MergeTagView.as_view()),
+
+    # Admin Search, Email Log, Site Health (tools_views.py)
+    path('dashboard/search/', AdminSearchView.as_view()),
+    path('dashboard/email-log/', EmailLogView.as_view()),
+    path('dashboard/health/', SiteHealthView.as_view()),
 
     # The Conversion Funnel page
     path('dashboard/funnel/', FunnelView.as_view()),

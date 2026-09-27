@@ -55,11 +55,11 @@ const NAV_ITEMS = [
     { label: 'Premium Members', to: '/dashboard/premium', icon: <Crown className={ICON} /> },
     { label: 'Content Filter', to: '/dashboard/content-filter', icon: <Ban className={ICON} /> },
     { label: 'Warnings & Bans', to: '/dashboard/discipline', icon: <ShieldX className={ICON} /> },
-    { label: 'Admin Search', icon: <Search className={ICON} /> },
+    { label: 'Admin Search', to: '/dashboard/search', icon: <Search className={ICON} /> },
     { label: 'Tag Manager', to: '/dashboard/tags', icon: <Tag className={ICON} /> },
     { label: 'Scheduled Stories', to: '/dashboard/scheduled', icon: <Clock className={ICON} /> },
-    { label: 'Email Log', icon: <Send className={ICON} /> },
-    { label: 'Site Health', icon: <HeartPulse className={ICON} /> },
+    { label: 'Email Log', to: '/dashboard/email-log', icon: <Send className={ICON} /> },
+    { label: 'Site Health', to: '/dashboard/health', icon: <HeartPulse className={ICON} /> },
     { label: 'Mood of Day', to: '/dashboard/moods', icon: <Moon className={ICON} /> },
 ]
 

@@ -136,7 +136,9 @@ STATIC_URL = 'static/'
 
 MAILERS = {
     'default': {
-        'BACKEND': 'django.core.mail.backends.console.EmailBackend',
+        # Prints emails in the terminal AND logs them for the Admin
+        # Dashboard's Email Log (see mailings/backends.py).
+        'BACKEND': 'mailings.backends.LoggingConsoleBackend',
     },
 }
 

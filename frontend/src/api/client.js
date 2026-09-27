@@ -945,3 +945,22 @@ export function changeScheduledStory(id, action, publishAt = null) {
 export function mergeTag(id, intoId) {
     return authRequest(`/api/dashboard/tags/${id}/merge/`, 'POST', { into_id: intoId })
 }
+
+
+// --- Admin Dashboard: search, email log, site health ---
+
+// { users, stories, comments, reports, tickets, contact } - each a
+// list of { title, detail, link }
+export function adminSearch(query) {
+    return authRequest(`/api/dashboard/search/?q=${encodeURIComponent(query)}`)
+}
+
+// { backend, total, last_24h, emails: [...] }
+export function getEmailLog(query = '', failedOnly = false) {
+    return authRequest(`/api/dashboard/email-log/?q=${encodeURIComponent(query)}&failed=${failedOnly ? 1 : 0}`)
+}
+
+// { overall, checked_at, checks: [ { group, name, status, detail, link? } ] }
+export function getSiteHealth() {
+    return authRequest('/api/dashboard/health/')
+}

@@ -85,10 +85,10 @@ sends it along (plus the CSRF token), and `AuthContext.jsx` keeps
 | `accounts` | Sign up / log in, profiles, settings, follows, blocks, leaderboard |
 | `stories` | Stories, likes, saves, comments, reading history, co-author invites, search, feed |
 | `messaging` | Private messages |
-| `moderation` | Reports, appeals, login logs and the login lock-out |
+| `moderation` | Reports, appeals, login logs + lock-out, content filter, verification, warnings & bans |
 | `sitecontent` | Announcement banner, writing prompts, challenges, bundles |
 | `support` | Help tickets (member <-> admin conversations) |
-| `mailings` | Newsletter and the comment digest (`python manage.py send_comment_digests weekly`) |
+| `mailings` | Newsletter, comment digest (`python manage.py send_comment_digests weekly`) and the email log |
 | `categories` | Story categories |
 | `slides` | The homepage slideshow |
 | `dashboard` | Admin dashboard numbers |
@@ -127,6 +127,9 @@ private profiles. Use it for any new list of stories.
 | `/dashboard/login-logs`, `/security` | `LoginLogsDashboard/`, `SecurityDashboard/` | admins |
 | `/dashboard/categories`, `/story-of-week`, `/announcements`, `/prompts`, `/challenges`, `/bundles` | one `...Dashboard/` folder each | admins |
 | `/dashboard/contact`, `/support`, `/newsletter`, `/digest`, `/funnel` | one `...Dashboard/` folder each | admins |
+| `/dashboard/cookies`, `/verification`, `/content-filter`, `/discipline` | one `...Dashboard/` folder each | admins |
+| `/dashboard/premium`, `/revenue`, `/scheduled`, `/tags`, `/moods` | one `...Dashboard/` folder each | admins |
+| `/dashboard/search`, `/email-log`, `/health` | one `...Dashboard/` folder each | admins |
 | `/challenges`, `/bundles` | `ChallengesPage/`, `BundlesPage/` | |
 | `/support` | `SupportPage/` | yes |
 

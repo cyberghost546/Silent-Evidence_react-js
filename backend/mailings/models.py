@@ -40,3 +40,23 @@ class DigestRun(models.Model):
 
     def __str__(self):
         return f'{self.period} digest, {self.emails_sent} emails'
+
+
+# ---------------------------------------------------------------
+# EMAIL LOG - one row for every email the site sends (or tries to).
+# Written by our email backend (mailings/backends.py), so EVERY
+# email is logged, wherever in the code it's sent from.
+# ---------------------------------------------------------------
+class EmailLog(models.Model):
+    to = models.TextField()                 # "a@x.com, b@y.com"
+    subject = models.CharField(max_length=300)
+    body = models.TextField(blank=True)     # the first 5000 characters
+    success = models.BooleanField(default=True)
+    error = models.CharField(max_length=500, blank=True)
+    sent_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-sent_at']
+
+    def __str__(self):
+        return f'{self.subject} -> {self.to}'
