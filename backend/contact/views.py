@@ -9,6 +9,7 @@ from rest_framework.views import APIView
 from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
 
 from dashboard.models import SiteSettings
+from mailings.email_templates import render_email
 from .models import ContactMessage, SUBJECTS
 from .serializers import ContactMessageSerializer
 
@@ -106,10 +107,17 @@ class AdminContactDetailView(APIView):
         # send_mail(subject, text, from, [to]) - Django's email helper.
         # With the console backend (settings.py) it's printed in the
         # runserver terminal instead of sent.
+        # The wording comes from Dashboard -> Email Templates.
+        subject, text = render_email(
+            'contact_reply',
+            name=message.name,
+            subject=dict(SUBJECTS).get(message.subject, 'Your message'),
+            reply=reply,
+            original_message=message.message,
+        )
         send_mail(
-            subject=f'Re: {dict(SUBJECTS).get(message.subject, "Your message")}',
-            message=f'Hi {message.name},\n\n{reply}\n\n- The Silent Evidence team\n\n'
-                    f'--- You wrote: ---\n{message.message}',
+            subject=subject,
+            message=text,
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[message.email],
         )

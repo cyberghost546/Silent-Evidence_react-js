@@ -5,6 +5,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { useSiteStatus } from '../../hooks/useSiteStatus'
 import { sendContactMessage } from '../../api/client'
 import { LABEL_STYLE, INPUT_STYLE, BUTTON_STYLE, FIELD_ERROR_STYLE } from '../../styles/formStyles'
+import { usePageTitle } from '../../hooks/usePageTitle'
 
 
 // ---------------------------------------------------------------
@@ -67,6 +68,7 @@ function InfoCard({ icon: Icon, label, value }) {
 //        the messages in the Django admin.
 // ---------------------------------------------------------------
 function ContactPage() {
+    usePageTitle('Contact')
     const { user } = useAuth()
     // The email set in Dashboard -> Site Settings replaces the
     // default one in CONTACT_INFO (if an admin filled it in).

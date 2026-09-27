@@ -7,6 +7,7 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from mailings.email_templates import render_email
 from .models import SupportTicket, TicketMessage
 
 
@@ -98,12 +99,17 @@ class TicketDetailView(APIView):
         # The member wrote -> back to 'open' (waiting for support).
         if is_staff_reply:
             ticket.status = 'answered'
+            # Wording: Dashboard -> Email Templates.
+            subject, text = render_email(
+                'support_reply',
+                username=ticket.user.username,
+                ticket_subject=ticket.subject,
+                reply=body,
+                link=f'{settings.SITE_URL}/support/{ticket.id}',
+            )
             send_mail(
-                subject=f'Support answered: {ticket.subject}',
-                message=(
-                    f'Hi {ticket.user.username},\n\nSupport answered your ticket "{ticket.subject}":\n\n'
-                    f'{body}\n\nReply here: {settings.SITE_URL}/support/{ticket.id}\n'
-                ),
+                subject=subject,
+                message=text,
                 from_email=settings.DEFAULT_FROM_EMAIL,
                 recipient_list=[ticket.user.email],
                 # A missing/bad email address mustn't break the reply.

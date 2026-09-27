@@ -6,6 +6,7 @@ import { useAuth } from '../../hooks/useAuth'
 import Avatar from '../Avatar/Avatar'
 import EmptyState from '../StorySections/EmptyState'
 import styles from './LeaderboardPage.module.css'
+import { usePageTitle } from '../../hooks/usePageTitle'
 
 
 // ---------------------------------------------------------------
@@ -142,6 +143,7 @@ function LeaderboardRow({ writer, isMe }) {
 // THE PAGE
 // ---------------------------------------------------------------
 function LeaderboardPage() {
+    usePageTitle('Leaderboard')
     const { user } = useAuth()
 
     const [tab, setTab] = useState('all')

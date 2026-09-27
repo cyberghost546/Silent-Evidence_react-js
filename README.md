@@ -85,13 +85,13 @@ sends it along (plus the CSRF token), and `AuthContext.jsx` keeps
 | `accounts` | Sign up / log in, profiles, settings, follows, blocks, leaderboard |
 | `stories` | Stories, likes, saves, comments, reading history, co-author invites, search, feed |
 | `messaging` | Private messages |
-| `moderation` | Reports, appeals, login logs + lock-out, content filter, verification, warnings & bans |
-| `sitecontent` | Announcement banner, writing prompts, challenges, bundles |
+| `moderation` | Reports, appeals, login logs + lock-out, content filter, verification, warnings & bans, AI toxicity checks |
+| `sitecontent` | Announcement banner, writing prompts, challenges, bundles, featured authors, spotlight, polls |
 | `support` | Help tickets (member <-> admin conversations) |
-| `mailings` | Newsletter, comment digest (`python manage.py send_comment_digests weekly`) and the email log |
+| `mailings` | Newsletter, comment digest (`python manage.py send_comment_digests weekly`), the email log and the email templates (`render_email()` in `email_templates.py`) |
 | `categories` | Story categories |
 | `slides` | The homepage slideshow |
-| `dashboard` | Admin dashboard numbers |
+| `dashboard` | Admin dashboard numbers, site settings + rate limits (`SiteSettings.load()`), IP blocklist, audit log (both in `middleware.py`), SEO (`/sitemap.xml`, `/robots.txt`), heatmap |
 | `contact` | The contact form |
 
 **One rule worth knowing:** "which stories may this person see?" is
@@ -130,6 +130,9 @@ private profiles. Use it for any new list of stories.
 | `/dashboard/cookies`, `/verification`, `/content-filter`, `/discipline` | one `...Dashboard/` folder each | admins |
 | `/dashboard/premium`, `/revenue`, `/scheduled`, `/tags`, `/moods` | one `...Dashboard/` folder each | admins |
 | `/dashboard/search`, `/email-log`, `/health` | one `...Dashboard/` folder each | admins |
+| `/dashboard/featured-authors`, `/spotlight`, `/polls`, `/calendar`, `/merge` | one `...Dashboard/` folder each | admins |
+| `/dashboard/site-settings`, `/rate-limits`, `/blocklist`, `/audit-log` | one `...Dashboard/` folder each | admins |
+| `/dashboard/email-templates`, `/seo`, `/heatmap`, `/toxicity` (needs `ANTHROPIC_API_KEY`) | one `...Dashboard/` folder each | admins |
 | `/challenges`, `/bundles` | `ChallengesPage/`, `BundlesPage/` | |
 | `/support` | `SupportPage/` | yes |
 
@@ -150,6 +153,8 @@ All routes live in `frontend/src/App.jsx`.
 | `Dashboard/AdminParts` | Admin list pages: `AdminSearch`, `AdminFilters`, `PageMessages` |
 | `SettingsParts` | `SettingsSection`, `SettingRow`, `Toggle` (on/off switch) |
 | `styles/formStyles.js` | The shared classes for labels, inputs, buttons |
+| `usePageTitle('...')` | The browser-tab title of a page (site name from the SEO page) |
+| `useSiteStatus()` | Maintenance mode, sign-ups open, contact email, site title (asked once per page load) |
 
 Every file starts with a comment explaining what it does and how to use it.
 

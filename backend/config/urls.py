@@ -19,8 +19,13 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 
+from dashboard.seo_views import sitemap_xml, robots_txt
+
 urlpatterns = [
     path('admin/', admin.site.urls),
+    # For search engines - at the top level, where they look for them.
+    path('sitemap.xml', sitemap_xml),
+    path('robots.txt', robots_txt),
     path('api/', include('categories.urls')),
     path('api/', include('slides.urls')),
     path('api/accounts/', include('accounts.urls')),

@@ -6,6 +6,7 @@ import WriteCallToAction from '../HomeFeed/WriteCallToAction'
 import LastWords from '../HomeFeed/LastWords'
 import MoodOfTheDay from '../HomeFeed/MoodOfTheDay'
 import SpotlightBanner from '../HomeFeed/SpotlightBanner'
+import { usePageTitle } from '../../hooks/usePageTitle'
 
 
 // The homepage ("/") is just its sections stacked top to bottom.
@@ -16,6 +17,9 @@ import SpotlightBanner from '../HomeFeed/SpotlightBanner'
 // The sections themselves have none - that's what lets you drop
 // <CategoryGrid /> onto another page without fighting its padding.
 function HomePage() {
+    // No title = just the site name in the browser tab.
+    usePageTitle()
+
     return (
         // <>...</> (a fragment) groups them without an extra <div>.
         <>

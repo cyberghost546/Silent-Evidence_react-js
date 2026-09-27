@@ -60,3 +60,19 @@ class EmailLog(models.Model):
 
     def __str__(self):
         return f'{self.subject} -> {self.to}'
+
+
+# ---------------------------------------------------------------
+# EMAIL TEMPLATES - an admin's own wording for an automatic email.
+# Only CHANGED templates get a row; the rest use the defaults in
+# mailings/email_templates.py. Deleting the row = "reset to default".
+# ---------------------------------------------------------------
+class EmailTemplate(models.Model):
+    key = models.CharField(max_length=50, unique=True)   # 'contact_reply', ...
+    subject = models.CharField(max_length=200, blank=True)
+    body = models.TextField(max_length=10000)
+    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.key

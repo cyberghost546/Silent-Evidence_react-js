@@ -7,6 +7,7 @@ from django.db.models import Q
 from django.utils import timezone
 
 from stories.models import Comment
+from .email_templates import render_email
 from .models import DigestRun
 
 
@@ -55,8 +56,7 @@ def build_digest(user, period):
     if not comments:
         return None
 
-    word = 'today' if period == 'daily' else 'this week'
-    lines = [f'Hi {user.username},', '', f'{len(comments)} new comments on your stories {word}:', '']
+    lines = []
     current_story = None
     for comment in comments:
         # A heading each time we get to another story.
@@ -66,12 +66,16 @@ def build_digest(user, period):
         # [:200] = keep long comments short in the email.
         lines.append(f'  {comment.author.username}: {comment.body[:200]}')
 
-    lines += ['', 'Change how often you get this email in Settings -> Notifications.']
-    return {
-        'subject': f'{len(comments)} new comments on your stories',
-        'body': '\n'.join(lines),
-        'comment_count': len(comments),
-    }
+    # The rest of the wording: Dashboard -> Email Templates.
+    subject, body = render_email(
+        'comment_digest',
+        username=user.username,
+        count=len(comments),
+        period='today' if period == 'daily' else 'this week',
+        comment_list='\n'.join(lines),
+        settings_link=f'{settings.SITE_URL}/settings',
+    )
+    return {'subject': subject, 'body': body, 'comment_count': len(comments)}
 
 
 # Build and send them all. Returns the DigestRun (how many were sent).

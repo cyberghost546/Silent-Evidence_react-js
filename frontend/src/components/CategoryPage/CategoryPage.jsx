@@ -11,6 +11,7 @@ import StoryCard from '../StorySections/StoryCard'
 import EmptyState from '../StorySections/EmptyState'
 import NotFound from '../NotFound/NotFound'
 import styles from './CategoryPage.module.css'
+import { usePageTitle } from '../../hooks/usePageTitle'
 
 
 // The toggle buttons' options live outside the component - they
@@ -49,6 +50,7 @@ function CategoryPage() {
     const { slug } = useParams()
 
     const [category, setCategory] = useState(null)
+    usePageTitle(category?.name)
     const [notFound, setNotFound] = useState(false)
 
     // null = still loading, [] = loaded but empty.

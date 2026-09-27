@@ -56,6 +56,10 @@ import SiteSettingsDashboard from './components/SiteSettingsDashboard/SiteSettin
 import RateLimitsDashboard from './components/RateLimitsDashboard/RateLimitsDashboard'
 import BlocklistDashboard from './components/BlocklistDashboard/BlocklistDashboard'
 import AuditLogDashboard from './components/AuditLogDashboard/AuditLogDashboard'
+import EmailTemplatesDashboard from './components/EmailTemplatesDashboard/EmailTemplatesDashboard'
+import SeoDashboard from './components/SeoDashboard/SeoDashboard'
+import HeatmapDashboard from './components/HeatmapDashboard/HeatmapDashboard'
+import ToxicityDashboard from './components/ToxicityDashboard/ToxicityDashboard'
 import FeaturedAuthorsDashboard from './components/FeaturedAuthorsDashboard/FeaturedAuthorsDashboard'
 import SpotlightDashboard from './components/SpotlightDashboard/SpotlightDashboard'
 import PollsDashboard from './components/PollsDashboard/PollsDashboard'
@@ -278,6 +282,10 @@ function App() {
         <Route path='rate-limits' element={<RateLimitsDashboard />} />
         <Route path='blocklist' element={<BlocklistDashboard />} />
         <Route path='audit-log' element={<AuditLogDashboard />} />
+        <Route path='email-templates' element={<EmailTemplatesDashboard />} />
+        <Route path='seo' element={<SeoDashboard />} />
+        <Route path='heatmap' element={<HeatmapDashboard />} />
+        <Route path='toxicity' element={<ToxicityDashboard />} />
       </Route>
     </Routes>
     </MaintenanceGate>

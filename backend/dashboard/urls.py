@@ -11,6 +11,9 @@ from .site_views import (
     SiteStatusView, AdminSiteSettingsView, AdminRateLimitsView,
     AdminBlockedIPListView, AdminBlockedIPDetailView, AdminAuditLogView,
 )
+from .heatmap_views import ActivityHeatmapView
+from .seo_views import AdminSeoView
+from .toxicity_views import ToxicityQueueView, ToxicityScanView, ToxicityReviewView
 from .tools_views import AdminSearchView, EmailLogView, SiteHealthView
 from .views import (
     DashboardStatsView, AdminUserListView, AdminUserDetailView,
@@ -31,6 +34,13 @@ urlpatterns = [
     path('dashboard/blocked-ips/', AdminBlockedIPListView.as_view()),
     path('dashboard/blocked-ips/<int:pk>/', AdminBlockedIPDetailView.as_view()),
     path('dashboard/audit-log/', AdminAuditLogView.as_view()),
+
+    # SEO, Activity Heatmap, AI Toxicity Queue
+    path('dashboard/seo/', AdminSeoView.as_view()),
+    path('dashboard/heatmap/', ActivityHeatmapView.as_view()),
+    path('dashboard/toxicity/', ToxicityQueueView.as_view()),
+    path('dashboard/toxicity/scan/', ToxicityScanView.as_view()),
+    path('dashboard/toxicity/<int:pk>/', ToxicityReviewView.as_view()),
 
     path('dashboard/stats/', DashboardStatsView.as_view()),
 

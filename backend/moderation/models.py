@@ -222,3 +222,33 @@ class Ban(models.Model):
         if self.lifted_at:
             return False
         return self.until is None or self.until > timezone.now()
+
+
+# ---------------------------------------------------------------
+# AI TOXICITY QUEUE - Claude's opinion about one comment.
+# Made by the "Scan comments" button (dashboard/toxicity_views.py).
+# One row per comment, so a comment is never scanned (and paid
+# for) twice.
+# ---------------------------------------------------------------
+class ToxicityCheck(models.Model):
+    STATUSES = [
+        ('clean', 'Looks fine'),         # low score - nothing to do
+        ('flagged', 'Waiting for review'),
+        ('hidden', 'Hidden by an admin'),
+        ('approved', 'Approved by an admin'),
+    ]
+
+    comment = models.OneToOneField(Comment, on_delete=models.CASCADE, related_name='toxicity')
+    score = models.PositiveSmallIntegerField()        # 0 = friendly ... 100 = very toxic
+    category = models.CharField(max_length=20)        # 'harassment', 'hate', 'none', ...
+    reason = models.CharField(max_length=300, blank=True)
+    status = models.CharField(max_length=10, choices=STATUSES)
+    checked_at = models.DateTimeField(auto_now_add=True)
+    reviewed_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-score', '-checked_at']
+
+    def __str__(self):
+        return f'{self.comment_id}: {self.score} ({self.status})'

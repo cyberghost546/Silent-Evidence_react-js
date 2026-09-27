@@ -16,6 +16,7 @@ import FocusView from './FocusView'
 import LikeButton from './LikeButton'
 import Comments from './Comments'
 import styles from './StoryPage.module.css'
+import { usePageTitle } from '../../hooks/usePageTitle'
 
 
 // The name the reader's text size is saved under in the browser.
@@ -43,6 +44,8 @@ function StoryPage() {
     const { id } = useParams()
 
     const [story, setStory] = useState(null)
+    // Browser tab: the story's title (story is null while loading).
+    usePageTitle(story?.title)
     const [notFound, setNotFound] = useState(false)
     const [otherStories, setOtherStories] = useState([])
 

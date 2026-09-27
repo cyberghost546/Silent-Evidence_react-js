@@ -8,6 +8,7 @@ import SectionHeading from '../StorySections/SectionHeading'
 import StoryGridCard from '../StorySections/StoryGridCard'
 import EmptyState from '../StorySections/EmptyState'
 import PublicationMap from './PublicationMap'
+import { usePageTitle } from '../../hooks/usePageTitle'
 
 
 // ---------------------------------------------------------------
@@ -48,6 +49,7 @@ function ProfilePage() {
     // there's no :username, so we use the logged-in user's name.
     const params = useParams()
     const username = params.username || user.username
+    usePageTitle(username)
 
     // null = still loading. 'not-found' = no such user.
     const [profile, setProfile] = useState(null)

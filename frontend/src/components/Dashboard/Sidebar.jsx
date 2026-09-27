@@ -68,13 +68,13 @@ const NAV_ITEMS = [
     { label: 'Poll Manager', to: '/dashboard/polls', icon: <ChartColumn className={ICON} /> },
     { label: 'Audit Log', to: '/dashboard/audit-log', icon: <ScrollText className={ICON} /> },
     { label: 'Content Calendar', to: '/dashboard/calendar', icon: <CalendarDays className={ICON} /> },
-    { label: 'Email Templates', icon: <FileText className={ICON} /> },
-    { label: 'SEO Dashboard', icon: <Globe className={ICON} /> },
-    { label: 'Activity Heatmap', icon: <Grid3x3 className={ICON} /> },
+    { label: 'Email Templates', to: '/dashboard/email-templates', icon: <FileText className={ICON} /> },
+    { label: 'SEO Dashboard', to: '/dashboard/seo', icon: <Globe className={ICON} /> },
+    { label: 'Activity Heatmap', to: '/dashboard/heatmap', icon: <Grid3x3 className={ICON} /> },
     { label: 'Rate Limits', to: '/dashboard/rate-limits', icon: <Gauge className={ICON} /> },
     { label: 'Site Settings', to: '/dashboard/site-settings', icon: <Settings className={ICON} /> },
     { label: 'Merge Stories', to: '/dashboard/merge', icon: <GitMerge className={ICON} /> },
-    { label: 'AI Toxicity Queue', icon: <BotMessageSquare className={ICON} /> },
+    { label: 'AI Toxicity Queue', to: '/dashboard/toxicity', icon: <BotMessageSquare className={ICON} /> },
     { label: 'IP Blocklist', to: '/dashboard/blocklist', icon: <ShieldBan className={ICON} /> },
 ]
 

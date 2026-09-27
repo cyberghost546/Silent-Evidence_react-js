@@ -21,6 +21,9 @@ class SiteStatusView(APIView):
             'maintenance_message': site.maintenance_message,
             'signups_open': site.signups_open,
             'contact_email': site.contact_email,
+            # For the browser tab and search results (SEO Dashboard).
+            'site_title': site.site_title,
+            'site_description': site.site_description,
         })
 
 

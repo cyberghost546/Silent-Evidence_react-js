@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .digests import digest_recipients, build_digest, send_digests
+from .email_templates import render_email
 from .models import Newsletter, DigestRun
 
 
@@ -51,7 +52,9 @@ class NewsletterView(APIView):
         if not subject or not body:
             return Response({'detail': 'A newsletter needs a subject and a text.'}, status=400)
 
-        footer = f'\n\n---\nYou get this because "Weekly Horror Digest" is on. Switch it off: {settings.SITE_URL}/settings'
+        # The footer text is an Email Template too.
+        _, footer_text = render_email('newsletter_footer', settings_link=f'{settings.SITE_URL}/settings')
+        footer = '\n\n' + footer_text
 
         # A test goes only to you, and isn't saved as "sent".
         if request.data.get('test_only') in (True, 'true'):

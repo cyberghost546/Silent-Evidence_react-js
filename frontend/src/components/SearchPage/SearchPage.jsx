@@ -6,6 +6,7 @@ import Avatar from '../Avatar/Avatar'
 import StoryGridCard from '../StorySections/StoryGridCard'
 import SearchBox from '../SearchBox/SearchBox'
 import { BUTTON_STYLE } from '../../styles/formStyles'
+import { usePageTitle } from '../../hooks/usePageTitle'
 
 
 // ---------------------------------------------------------------
@@ -27,6 +28,7 @@ function SearchPage() {
 
     // What's in the URL right now ('' if there's no ?q=).
     const query = searchParams.get('q') || ''
+    usePageTitle(query ? `Search: ${query}` : 'Search')
 
     // null = nothing searched yet. Otherwise
     // { query: 'house', stories: [...], authors: [...] }.

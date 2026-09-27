@@ -1081,3 +1081,49 @@ export function getAuditLog(filters = {}) {
     const params = new URLSearchParams(filters)
     return authRequest(`/api/dashboard/audit-log/?${params}`)
 }
+
+
+// --- Email Templates, SEO, Activity Heatmap, AI Toxicity Queue ---
+
+export function getEmailTemplates() {
+    return authRequest('/api/dashboard/email-templates/')
+}
+
+// key = 'contact_reply', 'support_reply', ... Answers with the template.
+export function saveEmailTemplate(key, subject, body) {
+    return authRequest(`/api/dashboard/email-templates/${key}/`, 'PATCH', { subject, body })
+}
+
+export function resetEmailTemplate(key) {
+    return authRequest(`/api/dashboard/email-templates/${key}/`, 'DELETE')
+}
+
+// -> { settings, sitemap_count, story_count, issues, sitemap_url, robots_url }
+export function getSeo() {
+    return authRequest('/api/dashboard/seo/')
+}
+
+// changes = { site_title, site_description, allow_indexing } (any of them)
+export function updateSeo(changes) {
+    return authRequest('/api/dashboard/seo/', 'PATCH', changes)
+}
+
+// metric = 'comments' | 'likes' | 'logins' | 'reads' | 'signups', days = 7/30/90/365
+export function getHeatmap(metric, days) {
+    return authRequest(`/api/dashboard/heatmap/?metric=${metric}&days=${days}`)
+}
+
+// status = 'flagged' | 'hidden' | 'approved' | 'clean' | 'all'
+export function getToxicityQueue(status) {
+    return authRequest(`/api/dashboard/toxicity/?status=${status}`)
+}
+
+// Sends the next batch of unchecked comments to Claude.
+export function scanForToxicity() {
+    return authRequest('/api/dashboard/toxicity/scan/', 'POST')
+}
+
+// action = 'hide' | 'approve'
+export function reviewToxicity(id, action) {
+    return authRequest(`/api/dashboard/toxicity/${id}/`, 'POST', { action })
+}

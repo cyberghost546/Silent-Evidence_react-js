@@ -30,6 +30,15 @@ class SiteSettings(models.Model):
     comments_per_hour = models.PositiveIntegerField(default=30, validators=[MinValueValidator(1)])
     messages_per_hour = models.PositiveIntegerField(default=60, validators=[MinValueValidator(1)])
 
+    # --- SEO Dashboard page ---
+    # site_title: the browser-tab name ("Story title · Silent Evidence").
+    # site_description: the short text Google may show under the link.
+    # allow_indexing off = robots.txt tells search engines "stay out"
+    # (handy while the site is still a test site).
+    site_title = models.CharField(max_length=70, default='Silent Evidence')
+    site_description = models.CharField(max_length=160, default='A community for horror story readers and writers.')
+    allow_indexing = models.BooleanField(default=True)
+
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
