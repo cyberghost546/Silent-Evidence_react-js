@@ -242,6 +242,13 @@ class Comment(models.Model):
     body = models.TextField(max_length=2000)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    # A REPLY points to the comment it answers; a normal comment has
+    # parent = None. Only ONE level deep: a reply to a reply is saved
+    # under the same top comment (CommentListView takes care of that),
+    # so threads never get squashed into a narrow staircase.
+    # 'self' = a link to another row of this same table.
+    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='replies')
+
     # Hidden by an admin (Admin Dashboard -> Moderation or Reports).
     # Hidden = not shown on the site, but not deleted.
     is_hidden = models.BooleanField(default=False)

@@ -74,6 +74,31 @@ describe('Comments', () => {
         expect(screen.getByRole('button', { name: 'Post Comment' })).toBeDisabled()
     })
 
+    it('shows replies under the comment they answer', async () => {
+        getComments.mockResolvedValue([
+            { id: 5, author: 'owl', body: 'Same here!', created_at: '2026-09-21T10:00:00Z', parent: 1 },
+            { ...OLD_COMMENT, parent: null },
+        ])
+        renderComments()
+        const reply = await screen.findByText('Same here!')
+        // The reply is INSIDE the first comment's list item.
+        const topItem = screen.getByText('The ending got me.').closest('li')
+        expect(topItem).toContainElement(reply)
+    })
+
+    it('sends a reply with the id of the comment it answers', async () => {
+        getComments.mockResolvedValue([{ ...OLD_COMMENT, parent: null }])
+        postComment.mockResolvedValue({ id: 6, author: 'raven', body: 'Agreed', created_at: '2026-09-27T10:00:00Z', parent: 1 })
+        renderComments()
+
+        await userEvent.click(await screen.findByRole('button', { name: 'Reply' }))
+        await userEvent.type(screen.getByLabelText('Reply to moth'), 'Agreed')
+        await userEvent.click(screen.getByRole('button', { name: 'Reply' }))
+
+        expect(postComment).toHaveBeenCalledWith(7, 'Agreed', 1)
+        expect(await screen.findByText('Agreed')).toBeInTheDocument()
+    })
+
     it('asks visitors to log in instead of showing the form', async () => {
         user = null
         renderComments()

@@ -9,7 +9,7 @@ from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.exceptions import Throttled
+from rest_framework.exceptions import Throttled, ValidationError
 
 from dashboard.limits import hourly_limit_reached
 from dashboard.models import SiteSettings
@@ -247,6 +247,9 @@ class CommentListView(generics.ListCreateAPIView):
         # in the same query.
         # is_hidden=False: leave out comments an admin hid (Moderation).
         comments = self.get_story().comments.filter(is_hidden=False).select_related('author')
+        # A reply under a HIDDEN comment would float around without its
+        # conversation - hide it too.
+        comments = comments.exclude(parent__is_hidden=True)
 
         # Hide comments by people you blocked (Settings -> Blocked Users).
         if self.request.user.is_authenticated:
@@ -264,10 +267,32 @@ class CommentListView(generics.ListCreateAPIView):
         limit = SiteSettings.load().comments_per_hour
         if hourly_limit_reached(self.request.user, self.request.user.comments.all(), limit):
             raise Throttled(detail=f'You can post up to {limit} comments an hour. Take a breather!')
-        comment = serializer.save(author=self.request.user, story=self.get_story())
+        story = self.get_story()
+
+        # A REPLY: check the comment it answers.
+        parent = serializer.validated_data.get('parent')
+        if parent is not None:
+            # It must be on THIS story (someone could send any id).
+            if parent.story_id != story.id or parent.is_hidden:
+                raise ValidationError({'parent': ['You can only reply to a comment on this story.']})
+            # Only one level deep: a reply to a reply goes under the
+            # same top comment.
+            if parent.parent_id is not None:
+                parent = parent.parent
+
+        comment = serializer.save(author=self.request.user, story=story, parent=parent)
         flag_if_needed(comment.body, comment=comment)
-        notify(comment.story.author, self.request.user, 'comment',
-               f'{self.request.user.username} commented on "{short_title(comment.story.title)}"', f'/stories/{comment.story_id}')
+
+        link = f'/stories/{story.id}'
+        if parent is not None:
+            # Tell the person you answered (notify() skips replying to yourself).
+            notify(parent.author, self.request.user, 'reply',
+                   f'{self.request.user.username} replied to your comment on "{short_title(story.title)}"', link)
+        # And the story's author, as before - unless they're the one
+        # who was just answered (one notification is enough).
+        if parent is None or parent.author_id != story.author_id:
+            notify(story.author, self.request.user, 'comment',
+                   f'{self.request.user.username} commented on "{short_title(story.title)}"', link)
 
 
 # GET /api/stories/random/

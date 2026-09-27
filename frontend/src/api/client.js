@@ -258,9 +258,11 @@ export function getComments(storyId) {
 }
 
 // Answers with the new comment, in the same shape as the list above.
-export function postComment(storyId, body) {
+// parentId = the comment you're replying to (leave it out for a normal comment).
+export function postComment(storyId, body, parentId) {
     const data = new FormData()
     data.append('body', body)
+    if (parentId) data.append('parent', parentId)
     return authRequest(`/api/stories/${storyId}/comments/`, 'POST', data)
 }
 

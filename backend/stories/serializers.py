@@ -239,7 +239,10 @@ class CommentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Comment
-        fields = ['id', 'author', 'body', 'created_at']
+        # parent: the id of the comment this answers (or null). Sent in
+        # when replying, and shown so React can put replies under it.
+        fields = ['id', 'author', 'body', 'created_at', 'parent']
+        extra_kwargs = {'parent': {'required': False, 'allow_null': True}}
 
     # validate_<field> runs by itself during is_valid(). A blocked word
     # (Content Filter) refuses the comment.
