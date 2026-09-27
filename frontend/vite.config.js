@@ -24,5 +24,8 @@ export default defineConfig({
     setupFiles: './src/test/setup.js',
     // Don't try to load CSS in tests - it's not needed and slows them down.
     css: false,
+    // Typing into forms is simulated key by key; when all test files
+    // run at once that can take longer than the default 5 seconds.
+    testTimeout: 15000,
   },
 })
