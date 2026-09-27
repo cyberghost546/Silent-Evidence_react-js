@@ -53,6 +53,16 @@ Open http://localhost:5173. The Django admin is at http://localhost:8000/admin.
 > add categories and stories in the admin, or sign up and write some.
 
 
+## Backups
+
+```bash
+python manage.py backup_site            # database + pictures -> backups/backup-<date>.zip
+python manage.py restore_site <the .zip>
+```
+
+More (and nightly backups on the live site) in DEPLOY.md.
+
+
 ## Putting it online
 
 See **[DEPLOY.md](DEPLOY.md)** - Django on Render, React on Vercel,

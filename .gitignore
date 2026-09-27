@@ -37,3 +37,6 @@ backend/staticfiles/
 .env
 *.env
 !.env.example
+
+# Made by "python manage.py backup_site" - your users' data, never in git.
+backend/backups/

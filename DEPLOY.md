@@ -115,6 +115,29 @@ Test with Dashboard → Newsletter → "Send test".
     rate limits all use this address. A wrong value can lock out
     everybody at once, or let people fake their address.
 
+## 6. Backups
+
+Your members' stories live in the database - back it up.
+
+```bash
+python manage.py backup_site             # -> backups/backup-<date>.zip (keeps the newest 10)
+python manage.py restore_site backups/backup-<date>.zip
+```
+
+The .zip holds the whole database (`data.json`) **and** the uploaded
+pictures. It works for SQLite and Postgres alike - you can even move
+your local test data to the live site with it.
+
+- **By hand:** before every big change (a new migration, a big import).
+- **Every night on Render:** New → **Cron Job**, same repo, Root Directory
+  `backend`, schedule `0 3 * * *` (03:00 every night), command
+  `python manage.py backup_site`. Give it the same environment variables
+  as the web service. The backups land on the service's disk, so point
+  `BACKUP_DIR` at your persistent disk (e.g. `/var/data/backups`), and
+  now and then download one to your own computer - a backup on the same
+  server as the site doesn't help if that server is lost.
+- **Restoring** is safest on a fresh database: `migrate`, then `restore_site`.
+
 ## If something goes wrong
 
 | What you see | Likely cause |
