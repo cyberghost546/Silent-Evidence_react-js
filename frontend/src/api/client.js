@@ -1176,3 +1176,16 @@ export function requestPasswordReset(email) {
 export function confirmPasswordReset(uid, token, password) {
     return authRequest('/api/accounts/password-reset/confirm/', 'POST', { uid, token, password })
 }
+
+
+// --- Confirm email ---
+
+// uid + token from the link in the "confirm your email" email.
+export function verifyEmail(uid, token) {
+    return authRequest('/api/accounts/verify-email/', 'POST', { uid, token })
+}
+
+// The "Send it again" button in the yellow banner.
+export function resendVerification() {
+    return authRequest('/api/accounts/verify-email/resend/', 'POST')
+}

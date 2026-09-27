@@ -20,7 +20,7 @@ from .models import Newsletter, DigestRun
 def newsletter_recipients():
     return (
         get_user_model().objects
-        .filter(is_active=True)
+        .filter(is_active=True, profile__email_verified=True)   # confirmed addresses only
         .exclude(email='')
         .exclude(profile__weekly_digest=False)
     )

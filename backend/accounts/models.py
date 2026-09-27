@@ -85,6 +85,12 @@ class Profile(models.Model):
     fear_moods = models.CharField(max_length=100, blank=True)
     reading_speed = models.CharField(max_length=10, choices=READING_SPEEDS, default='average')
 
+    # Did they click the link in the "confirm your email" email?
+    # (accounts/email_views.py) Newsletters and digests only go to
+    # confirmed addresses - so nobody gets mail for an account someone
+    # else made with their address.
+    email_verified = models.BooleanField(default=False)
+
     # --- Notifications ---
     weekly_digest = models.BooleanField(default=True)
     comment_digest = models.CharField(max_length=10, choices=DIGEST_CHOICES, default='weekly')

@@ -16,6 +16,7 @@ from moderation.bans import active_ban, refresh_ban_status, ban_message
 from moderation.security import is_locked, record_login, client_ip, login_limits
 from dashboard.models import SiteSettings
 from .notifications import notify
+from .email_views import send_verification_email
 from stories.models import Like, Bookmark, Comment, published_stories
 from .models import Follow, Block, get_profile
 from .premium import refresh_premium
@@ -47,6 +48,8 @@ def user_data(user):
         'username': user.username,
         'email': user.email,
         'is_staff': user.is_staff,
+        # False = show the "confirm your email" banner (VerifyEmailBanner.jsx).
+        'email_verified': profile.email_verified,
         # '/media/avatars/me.jpg', or '' if they never uploaded one.
         # (An empty ImageField has no .url - asking for it crashes.)
         'avatar': profile.avatar.url if profile.avatar else '',
@@ -80,6 +83,10 @@ class SignUpView(APIView):
         serializer.is_valid(raise_exception=True)
 
         user = serializer.save()
+
+        # "Confirm your email" - the link marks the address as theirs
+        # (accounts/email_views.py).
+        send_verification_email(user)
 
         # Log them straight in - nobody wants to sign up and then
         # type the same password again.

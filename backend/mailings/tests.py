@@ -19,6 +19,16 @@ from support.models import SupportTicket
 PASSWORD = 'Str0ng-pass-123'
 
 
+# A member who clicked the "confirm your email" link - newsletters and
+# digests only go to confirmed addresses (accounts/email_views.py).
+def confirmed_user(*args, **kwargs):
+    user = User.objects.create_user(*args, **kwargs)
+    profile = get_profile(user)
+    profile.email_verified = True
+    profile.save()
+    return user
+
+
 class ContactInboxTests(TestCase):
     def test_reply_is_emailed_and_marks_it_handled(self):
         User.objects.create_user('boss', 'boss@example.com', PASSWORD, is_staff=True)
@@ -65,9 +75,9 @@ class SupportTests(TestCase):
 
 class NewsletterTests(TestCase):
     def test_only_to_members_who_want_it(self):
-        User.objects.create_user('boss', 'boss@example.com', PASSWORD, is_staff=True)
-        User.objects.create_user('fan', 'fan@example.com', PASSWORD)
-        no_thanks = User.objects.create_user('quiet', 'quiet@example.com', PASSWORD)
+        confirmed_user('boss', 'boss@example.com', PASSWORD, is_staff=True)
+        confirmed_user('fan', 'fan@example.com', PASSWORD)
+        no_thanks = confirmed_user('quiet', 'quiet@example.com', PASSWORD)
         profile = get_profile(no_thanks)
         profile.weekly_digest = False
         profile.save()
@@ -79,8 +89,8 @@ class NewsletterTests(TestCase):
         self.assertEqual(sent_to, ['boss@example.com', 'fan@example.com'])
 
     def test_test_email_only_goes_to_you(self):
-        User.objects.create_user('boss', 'boss@example.com', PASSWORD, is_staff=True)
-        User.objects.create_user('fan', 'fan@example.com', PASSWORD)
+        confirmed_user('boss', 'boss@example.com', PASSWORD, is_staff=True)
+        confirmed_user('fan', 'fan@example.com', PASSWORD)
         self.client.login(username='boss', password=PASSWORD)
         self.client.post('/api/dashboard/newsletter/', {'subject': 'Hi', 'body': 'x', 'test_only': 'true'})
         self.assertEqual(len(mail.outbox), 1)
@@ -89,8 +99,8 @@ class NewsletterTests(TestCase):
 
 class CommentDigestTests(TestCase):
     def setUp(self):
-        self.writer = User.objects.create_user('writer', 'writer@example.com', PASSWORD)
-        reader = User.objects.create_user('reader', 'reader@example.com', PASSWORD)
+        self.writer = confirmed_user('writer', 'writer@example.com', PASSWORD)
+        reader = confirmed_user('reader', 'reader@example.com', PASSWORD)
         story = Story.objects.create(title='Mine', body='x', author=self.writer, is_published=True)
         Comment.objects.create(story=story, author=reader, body='Great story')
         Comment.objects.create(story=story, author=self.writer, body='Thanks')   # own: not counted

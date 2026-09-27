@@ -4,6 +4,7 @@ import Header from '../Header/Header'
 import AnnouncementBanner from '../AnnouncementBanner/AnnouncementBanner'
 import CookieBanner from '../CookieBanner/CookieBanner'
 import WarningNotice from '../WarningNotice/WarningNotice'
+import VerifyEmailBanner from '../VerifyEmail/VerifyEmailBanner'
 import Footer from '../Footer/Footer'
 import BackToTop from '../BackToTop/BackToTop'
 
@@ -25,6 +26,8 @@ function SiteLayout() {
             {/* The admins' announcement (if one is switched on). */}
             <AnnouncementBanner />
             <Header />
+            {/* "Please confirm your email" - only for members who haven't yet. */}
+            <VerifyEmailBanner />
 
             <main className='flex-1'>
                 {/* Some pages are loaded lazily (see App.jsx): Suspense

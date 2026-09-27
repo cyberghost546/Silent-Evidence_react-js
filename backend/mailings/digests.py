@@ -3,7 +3,6 @@ from datetime import timedelta
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
-from django.db.models import Q
 from django.utils import timezone
 
 from stories.models import Comment
@@ -29,13 +28,13 @@ PERIOD_DAYS = {'daily': 1, 'weekly': 7}
 
 
 def digest_recipients(period):
-    # Members who chose this period. Members WITHOUT a Profile row
-    # yet have the default choice, which is 'weekly' - hence the
-    # "or no profile" for weekly.
-    choice = Q(profile__comment_digest=period)
-    if period == 'weekly':
-        choice |= Q(profile__isnull=True)
-    return get_user_model().objects.filter(choice, is_active=True).exclude(email='')
+    # Members who chose this period - and only CONFIRMED email
+    # addresses (profile__email_verified, see accounts/email_views.py).
+    return (
+        get_user_model().objects
+        .filter(profile__comment_digest=period, profile__email_verified=True, is_active=True)
+        .exclude(email='')
+    )
 
 
 def new_comments_for(user, period):
