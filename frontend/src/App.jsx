@@ -7,6 +7,7 @@ import SignUp from './components/SignUp/SignUp'
 import ForgotPassword from './components/ForgotPassword/ForgotPassword'
 import ResetPassword from './components/ResetPassword/ResetPassword'
 import VerifyEmail from './components/VerifyEmail/VerifyEmail'
+import SeriesPage from './components/SeriesPage/SeriesPage'
 import CategoryPage from './components/CategoryPage/CategoryPage'
 import StoryPage from './components/StoryPage/StoryPage'
 import RandomStory from './components/RandomStory/RandomStory'
@@ -230,6 +231,9 @@ function App() {
 
         {/* Anyone can send a message - no ProtectedRoute. */}
         <Route path='/contact' element={<ContactPage />} />
+
+        {/* A story series and its parts - anyone can look. */}
+        <Route path='/series/:id' element={<SeriesPage />} />
 
         {/* The link in the "confirm your email" email. */}
         <Route path='/verify-email/:uid/:token' element={<VerifyEmail />} />

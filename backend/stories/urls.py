@@ -1,5 +1,6 @@
 from django.urls import path
 
+from .series_views import MySeriesView, SeriesDetailView
 from .views import (
     StoryListView, StoryCreateView, StoryDetailView, FeaturedStoriesView, RandomStoryView,
     ToggleLikeView, ToggleSaveView, CommentListView, LastWordListView, AuthorStatsView,
@@ -10,6 +11,8 @@ from .views import (
 
 # Included under "api/" in config/urls.py -> /api/stories/...
 urlpatterns = [
+    path('series/mine/', MySeriesView.as_view()),
+    path('series/<int:pk>/', SeriesDetailView.as_view()),
     path('stories/', StoryListView.as_view()),
     path('stories/new/', StoryCreateView.as_view()),
     path('stories/featured/', FeaturedStoriesView.as_view()),

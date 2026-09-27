@@ -129,6 +129,13 @@ class Story(models.Model):
     #   story.tags.all()   /   tag.stories.all()
     tags = models.ManyToManyField(Tag, blank=True, related_name='stories')
 
+    # SERIES: "Part 2 of The Lighthouse Diaries". 'Series' in quotes
+    # because the Series class is written further down this file.
+    # SET_NULL: deleting a series keeps its stories (they just stop
+    # being "part N of" anything).
+    series = models.ForeignKey('Series', on_delete=models.SET_NULL, null=True, blank=True, related_name='parts')
+    series_part = models.PositiveSmallIntegerField(null=True, blank=True)   # 1, 2, 3...
+
     # Empty = show it straight away. A date = stay hidden until then
     # (see published_stories() below).
     publish_at = models.DateTimeField(null=True, blank=True)
@@ -397,3 +404,22 @@ class CoAuthorInvite(models.Model):
 
     def __str__(self):
         return f'{self.from_user} invited {self.to_user} to "{self.story}" ({self.status})'
+
+
+# ---------------------------------------------------------------
+# A SERIES - one author's stories that belong together, in order:
+# "The Lighthouse Diaries", part 1, part 2, part 3...
+# The stories point to it (Story.series + Story.series_part).
+# ---------------------------------------------------------------
+class Series(models.Model):
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='series')
+    title = models.CharField(max_length=150)
+    description = models.CharField(max_length=300, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name_plural = 'series'   # not "seriess"
+
+    def __str__(self):
+        return self.title

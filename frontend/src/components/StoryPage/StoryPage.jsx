@@ -15,6 +15,7 @@ import StoryBody from './StoryBody'
 import FocusView from './FocusView'
 import LikeButton from './LikeButton'
 import Comments from './Comments'
+import { SeriesLabel, SeriesNav } from './SeriesNav'
 import styles from './StoryPage.module.css'
 import { usePageTitle } from '../../hooks/usePageTitle'
 
@@ -184,6 +185,9 @@ function StoryPage() {
                     </Link>
                 )}
 
+                {/* "Part 2 of 5 · The Lighthouse Diaries" (only for series). */}
+                <SeriesLabel series={story.series} />
+
                 <h1 className='mt-2 text-3xl font-extrabold tracking-tight text-white sm:text-4xl'>{story.title}</h1>
 
                 {/* Author on the left, Actions on the right. */}
@@ -250,6 +254,9 @@ function StoryPage() {
                 <div className='mt-8'>
                     <StoryBody body={story.body} size={textSize} />
                 </div>
+
+                {/* Previous / next part (only for series). */}
+                <SeriesNav series={story.series} />
 
                 {/* The story's tags. Each one opens a search for it -
                     search also looks at tags (SearchView in Django). */}

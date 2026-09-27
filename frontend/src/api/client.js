@@ -1191,3 +1191,22 @@ export function verifyEmail(uid, token) {
 export function resendVerification() {
     return authRequest('/api/accounts/verify-email/resend/', 'POST')
 }
+
+
+// --- Story series ---
+
+// Your own series, for the picker on the Write page.
+// -> [ { id, title, description, author, part_count } ]
+export function getMySeries() {
+    return authRequest('/api/series/mine/')
+}
+
+export function createSeries(title, description = '') {
+    return authRequest('/api/series/mine/', 'POST', { title, description })
+}
+
+// One series with its parts (anyone can look).
+// -> { id, title, description, author, part_count, parts: [...story cards] }
+export function getSeries(id) {
+    return getJSON(`/api/series/${id}/`)
+}

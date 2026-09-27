@@ -10,6 +10,7 @@ import TagInput from './TagInput'
 import { LANGUAGES, MOODS, CONTENT_RATINGS, CONTENT_WARNINGS, TEMPLATES } from './storyOptions'
 import { LABEL_STYLE, INPUT_STYLE, BUTTON_STYLE, FIELD_ERROR_STYLE } from '../../styles/formStyles'
 import { countWords } from '../../utils/storyFormat'
+import SeriesPicker from './SeriesPicker'
 
 
 // ---------------------------------------------------------------
@@ -53,6 +54,7 @@ const EMPTY_FORM = {
     tags: [],               // e.g. ['lighthouse', 'vhs'] - see TagInput
     publishAt: '',          // from <input type='datetime-local'>
     audioUrl: '',
+    series: '',             // a series id, '' = a single story
 }
 
 // The short description is shown on cards - Django allows 300 characters.
@@ -277,6 +279,7 @@ function WriteStory() {
         data.append('language', form.language)
         data.append('content_rating', form.contentRating)
         data.append('is_published', 'true')
+        if (form.series) data.append('series', form.series)
 
         // Optional fields: only send them if they were filled in.
         // Django would refuse an EMPTY latitude ("not a number"), and
@@ -602,14 +605,12 @@ function WriteStory() {
                     )}
                 </div>
 
-                {/* ---------- STORY SERIES (not built yet) ---------- */}
+                {/* ---------- STORY SERIES (optional) ---------- */}
+                {/* Its own component (SeriesPicker.jsx) - it loads your
+                    series and can make a new one. */}
                 <div>
-                    <label htmlFor='series' className={LABEL_STYLE}>Story Series<Hint>(optional)</Hint></label>
-                    {/* disabled until there's a Series model in Django. */}
-                    <select id='series' disabled className={`${INPUT_STYLE} cursor-not-allowed opacity-60`}>
-                        <option>— Not part of a series —</option>
-                    </select>
-                    <p className='mt-1 text-xs text-gray-500'>Series are coming soon.</p>
+                    <SeriesPicker value={form.series} onChange={id => updateField('series', id)} />
+                    <FieldError messages={errors.series} />
                 </div>
 
                 {/* ---------- LOCATION ---------- */}

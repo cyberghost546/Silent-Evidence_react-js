@@ -4,7 +4,7 @@ from django.utils import timezone
 from rest_framework import serializers
 
 from moderation.content_filter import check_text, BLOCKED_MESSAGE
-from .models import Story, Comment, LastWord, CoAuthorInvite, Tag, wpm_for
+from .models import Story, Comment, LastWord, CoAuthorInvite, Tag, Series, wpm_for, stories_for
 
 
 # Everything a story CARD needs - not the full body, which could be
@@ -79,18 +79,44 @@ class StoryDetailSerializer(StoryCardSerializer):
     saved = serializers.SerializerMethodField()
     coauthors = serializers.SerializerMethodField()
     tags = serializers.SerializerMethodField()
+    series = serializers.SerializerMethodField()
 
     # Meta inherits too: same model, and the card's field list with
     # more added on the end.
     class Meta(StoryCardSerializer.Meta):
         fields = StoryCardSerializer.Meta.fields + [
             'body', 'category_slug', 'word_count', 'like_count', 'comment_count', 'liked', 'saved',
-            'coauthors', 'tags',
+            'coauthors', 'tags', 'series',
             # From the Write a Story page. The story page doesn't show
             # these yet, but they're here for when it does.
             'language', 'video_url', 'audio_url', 'location', 'latitude', 'longitude',
             'mood', 'content_rating', 'content_warnings',
         ]
+
+    # Part of a series? -> { id, title, part, total, previous, next }
+    # (previous/next = { id, title } or None). Only parts THIS reader
+    # may see count - a draft part 3 doesn't show up as "next".
+    def get_series(self, story):
+        if story.series_id is None:
+            return None
+        parts = list(
+            stories_for(self.context['request'].user)
+            .filter(series_id=story.series_id)
+            .order_by('series_part')
+            .values('id', 'title')
+        )
+        ids = [part['id'] for part in parts]
+        if story.id not in ids:
+            return None
+        where = ids.index(story.id)
+        return {
+            'id': story.series_id,
+            'title': story.series.title,
+            'part': where + 1,
+            'total': len(parts),
+            'previous': parts[where - 1] if where > 0 else None,
+            'next': parts[where + 1] if where + 1 < len(parts) else None,
+        }
 
     def get_category_slug(self, story):
         if story.category:
@@ -160,7 +186,7 @@ class StoryWriteSerializer(serializers.ModelSerializer):
             'id', 'title', 'excerpt', 'body', 'category', 'cover_image', 'cover_image_url',
             'language', 'video_url', 'audio_url', 'location', 'latitude', 'longitude',
             'mood', 'content_rating', 'content_warnings', 'publish_at', 'is_published',
-            'tag_names',
+            'tag_names', 'series',
         ]
         # The model allows a story without a category (so deleting a
         # category doesn't delete its stories), but a NEW story must
@@ -172,6 +198,13 @@ class StoryWriteSerializer(serializers.ModelSerializer):
             # stops someone from posting megabytes of text.
             'body': {'max_length': 100_000},
         }
+
+    # You can only add a story to YOUR OWN series. (The view puts the
+    # request in `context`, that's how we know who's asking.)
+    def validate_series(self, series):
+        if series and series.author != self.context['request'].user:
+            raise serializers.ValidationError("That's not one of your series.")
+        return series
 
     # ImageField already checks it's a real image; this checks the size.
     # (Same 5 MB limit as avatars in accounts/serializers.py.)
@@ -218,6 +251,13 @@ class StoryWriteSerializer(serializers.ModelSerializer):
     # out first, let DRF create the story, then attach the tags.
     def create(self, validated_data):
         tag_names = validated_data.pop('tag_names', [])
+
+        # In a series: this story becomes the next part (last part + 1).
+        series = validated_data.get('series')
+        if series:
+            last = series.parts.order_by('-series_part').values_list('series_part', flat=True).first()
+            validated_data['series_part'] = (last or 0) + 1
+
         story = super().create(validated_data)
 
         tags = []
