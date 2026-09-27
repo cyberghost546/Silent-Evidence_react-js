@@ -5,7 +5,8 @@ import { useSiteStatus } from '../../hooks/useSiteStatus'
 
 
 // ---------------------------------------------------------------
-// MAINTENANCE SCREEN. Wraps all the pages in App.jsx (like AgeGate).
+// MAINTENANCE SCREEN (and the "blocked" screen for IPs on the
+// IP Blocklist). Wraps all the pages in App.jsx (like AgeGate).
 //
 // When an admin switches on maintenance mode (Dashboard -> Site
 // Settings), everybody who ISN'T staff sees this screen instead of
@@ -19,6 +20,20 @@ function MaintenanceGate({ children }) {
     const site = useSiteStatus()
     const { user } = useAuth()
     const { pathname } = useLocation()
+
+    // Blocked IP (Dashboard -> IP Blocklist): nothing works for them,
+    // so a clear message beats a site full of loading errors.
+    if (site?.blocked) {
+        return (
+            <div className='flex min-h-screen items-center justify-center bg-[#020617] px-4'>
+                <div className='w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900/80 p-8 text-center'>
+                    <p className='text-2xl font-extrabold text-red-600'>Silent Evidence</p>
+                    <h1 className='mt-6 text-xl font-bold text-white'>Access blocked</h1>
+                    <p className='mt-2 text-sm text-gray-400'>Access from your network has been blocked. If you think this is a mistake, contact the site team.</p>
+                </div>
+            </div>
+        )
+    }
 
     const showScreen = site?.maintenance_mode && !user?.is_staff && pathname !== '/login'
     if (!showScreen) return children

@@ -22,8 +22,13 @@ let request = null
 
 function loadOnce() {
     if (request === null) {
-        // .catch(() => null): no status = act like everything is normal.
-        request = getSiteStatus().catch(() => null)
+        request = getSiteStatus().catch(err => {
+            // This visitor's IP is on the IP Blocklist: Django refuses
+            // everything, so say so (MaintenanceGate shows a screen).
+            if (err.data?.code === 'ip_blocked') return { blocked: true }
+            // Any other problem: act like everything is normal.
+            return null
+        })
     }
     return request
 }

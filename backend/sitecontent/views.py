@@ -433,9 +433,12 @@ class VoteView(APIView):
     def post(self, request, pk):
         poll = get_object_or_404(Poll, pk=pk, is_active=True)
         option = get_object_or_404(PollOption, pk=request.data.get('option_id'), poll=poll)
-        if PollVote.objects.filter(poll=poll, user=request.user).exists():
+        # get_or_create instead of "check, then create": with a fast
+        # double-click, two requests could both pass the check and the
+        # second create would crash on the one-vote-per-member rule.
+        _, created = PollVote.objects.get_or_create(poll=poll, user=request.user, defaults={'option': option})
+        if not created:
             return Response({'detail': 'You already voted.'}, status=400)
-        PollVote.objects.create(poll=poll, option=option, user=request.user)
         return Response(poll_data(poll, request.user))
 
 
@@ -451,7 +454,11 @@ class AdminPollListView(APIView):
     def post(self, request):
         question = (request.data.get('question') or '').strip()
         # Keep only the options that aren't empty.
-        options = [text.strip() for text in request.data.get('options', []) if text.strip()]
+        # str(): someone could send numbers instead of text.
+        raw = request.data.get('options')
+        if not isinstance(raw, list):
+            raw = []
+        options = [str(text).strip() for text in raw if str(text).strip()]
         if not question:
             return Response({'detail': 'Write the question.'}, status=400)
         if len(options) < 2:

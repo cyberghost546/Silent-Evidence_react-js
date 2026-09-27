@@ -21,13 +21,18 @@ function todayText() {
     return new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 10)
 }
 
-const EMPTY_FORM = { story_id: '', headline: '', blurb: '', starts_on: todayText(), ends_on: todayText() }
+// A function, not a fixed object: "today" is worked out each time the
+// form is emptied (a tab left open overnight would otherwise keep
+// yesterday's date).
+function emptyForm() {
+    return { story_id: '', headline: '', blurb: '', starts_on: todayText(), ends_on: todayText() }
+}
 
 
 function SpotlightDashboard() {
     const [spotlights, setSpotlights] = useState(null)
     const [stories, setStories] = useState([])
-    const [form, setForm] = useState(EMPTY_FORM)
+    const [form, setForm] = useState(emptyForm)
     const [error, setError] = useState('')
     const [reloadKey, setReloadKey] = useState(0)
     const reload = () => setReloadKey(current => current + 1)
@@ -51,7 +56,7 @@ function SpotlightDashboard() {
         setError('')
         try {
             await createAdminItem('spotlights', form)
-            setForm(EMPTY_FORM)
+            setForm(emptyForm())
             reload()
         } catch (err) {
             setError(err.data ? Object.values(err.data).flat().join(' ') : 'Could not save.')

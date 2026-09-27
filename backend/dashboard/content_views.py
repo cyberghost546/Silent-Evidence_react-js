@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from mailings.models import Newsletter
-from moderation.models import Report
+from moderation.models import Report, Appeal
 from sitecontent.models import Challenge, ChallengeEntry, MoodOfDay, Spotlight
 from stories.models import Story, Tag, Like, Bookmark, Comment, ReadingHistory
 from stories.serializers import StoryWriteSerializer
@@ -250,6 +250,13 @@ class MergeStoriesView(APIView):
             # Reports, reading history, challenge entries, spotlights:
             # move what doesn't clash; the rest disappears with the source.
             Report.objects.filter(story=source).update(story=target)
+            Appeal.objects.filter(story=source).update(story=target)
+            # A challenge the duplicate WON: the original is the winner now.
+            # (Without this, deleting the duplicate would empty `winner`.)
+            Challenge.objects.filter(winner=source).update(winner=target)
+            # Bundles that had the duplicate get the original instead.
+            for bundle in source.bundles.all():
+                bundle.stories.add(target)
             for row in ReadingHistory.objects.filter(story=source):
                 ReadingHistory.objects.get_or_create(user_id=row.user_id, story=target)
             for entry in ChallengeEntry.objects.filter(story=source):

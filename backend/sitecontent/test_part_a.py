@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from django.test import TestCase
 from django.utils import timezone
 
-from sitecontent.models import FeaturedAuthor, Spotlight, Poll
+from sitecontent.models import FeaturedAuthor, Spotlight, Poll, Challenge, Bundle
 from stories.models import Story, Like, Comment, Tag
 
 
@@ -101,3 +101,25 @@ class CalendarAndMergeTests(TestCase):
         self.assertEqual(original.views, 15)
         self.assertEqual(original.likes.count(), 2)
         self.assertEqual([t.name for t in original.tags.all()], ['fog'])
+
+    def test_merge_keeps_challenge_wins_and_bundles(self):
+        original = Story.objects.create(title='Original', body='x', author=self.writer, is_published=True)
+        copy = Story.objects.create(title='Copy', body='x', author=self.writer, is_published=True)
+        challenge = Challenge.objects.create(title='Fog week', theme='fog', deadline=timezone.now(), winner=copy)
+        bundle = Bundle.objects.create(title='Best', slug='best')
+        bundle.stories.add(copy)
+
+        self.client.post('/api/dashboard/stories/merge/', {'source_id': copy.id, 'target_id': original.id})
+
+        challenge.refresh_from_db()
+        self.assertEqual(challenge.winner, original)
+        self.assertEqual(list(bundle.stories.all()), [original])
+
+    def test_double_vote_is_a_clean_400(self):
+        poll = Poll.objects.create(question='Q?', is_active=True)
+        option = poll.options.create(text='A')
+        poll.options.create(text='B')
+        self.client.login(username='fan', password=PASSWORD)
+        url = f'/api/polls/{poll.id}/vote/'
+        self.assertEqual(self.client.post(url, {'option_id': option.id}).status_code, 200)
+        self.assertEqual(self.client.post(url, {'option_id': option.id}).status_code, 400)
