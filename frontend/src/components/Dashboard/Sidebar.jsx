@@ -66,16 +66,16 @@ const NAV_ITEMS = [
     { label: 'Featured Authors', to: '/dashboard/featured-authors', icon: <Star className={ICON} /> },
     { label: 'Story Spotlight', to: '/dashboard/spotlight', icon: <Flashlight className={ICON} /> },
     { label: 'Poll Manager', to: '/dashboard/polls', icon: <ChartColumn className={ICON} /> },
-    { label: 'Audit Log', icon: <ScrollText className={ICON} /> },
+    { label: 'Audit Log', to: '/dashboard/audit-log', icon: <ScrollText className={ICON} /> },
     { label: 'Content Calendar', to: '/dashboard/calendar', icon: <CalendarDays className={ICON} /> },
     { label: 'Email Templates', icon: <FileText className={ICON} /> },
     { label: 'SEO Dashboard', icon: <Globe className={ICON} /> },
     { label: 'Activity Heatmap', icon: <Grid3x3 className={ICON} /> },
-    { label: 'Rate Limits', icon: <Gauge className={ICON} /> },
-    { label: 'Site Settings', icon: <Settings className={ICON} /> },
+    { label: 'Rate Limits', to: '/dashboard/rate-limits', icon: <Gauge className={ICON} /> },
+    { label: 'Site Settings', to: '/dashboard/site-settings', icon: <Settings className={ICON} /> },
     { label: 'Merge Stories', to: '/dashboard/merge', icon: <GitMerge className={ICON} /> },
     { label: 'AI Toxicity Queue', icon: <BotMessageSquare className={ICON} /> },
-    { label: 'IP Blocklist', icon: <ShieldBan className={ICON} /> },
+    { label: 'IP Blocklist', to: '/dashboard/blocklist', icon: <ShieldBan className={ICON} /> },
 ]
 
 

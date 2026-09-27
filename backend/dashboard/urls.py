@@ -7,6 +7,10 @@ from .content_views import (
     ContentCalendarView, MergeStoriesView,
 )
 from .premium_views import PremiumMembersView, CancelMembershipView, RevenueView
+from .site_views import (
+    SiteStatusView, AdminSiteSettingsView, AdminRateLimitsView,
+    AdminBlockedIPListView, AdminBlockedIPDetailView, AdminAuditLogView,
+)
 from .tools_views import AdminSearchView, EmailLogView, SiteHealthView
 from .views import (
     DashboardStatsView, AdminUserListView, AdminUserDetailView,
@@ -18,6 +22,16 @@ from .views import (
 # /api/dashboard/stats/ (next to /api/dashboard/slides/ from the
 # slides app).
 urlpatterns = [
+    # Public: maintenance / sign-ups open / contact email
+    path('site-status/', SiteStatusView.as_view()),
+
+    # Site Settings, Rate Limits, IP Blocklist, Audit Log
+    path('dashboard/site-settings/', AdminSiteSettingsView.as_view()),
+    path('dashboard/rate-limits/', AdminRateLimitsView.as_view()),
+    path('dashboard/blocked-ips/', AdminBlockedIPListView.as_view()),
+    path('dashboard/blocked-ips/<int:pk>/', AdminBlockedIPDetailView.as_view()),
+    path('dashboard/audit-log/', AdminAuditLogView.as_view()),
+
     path('dashboard/stats/', DashboardStatsView.as_view()),
 
     # The Users page

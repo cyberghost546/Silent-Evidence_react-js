@@ -59,6 +59,10 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    # Ours (dashboard/middleware.py) - after AuthenticationMiddleware,
+    # because both need to know who is logged in.
+    'dashboard.middleware.SiteGuardMiddleware',
+    'dashboard.middleware.AuditLogMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]

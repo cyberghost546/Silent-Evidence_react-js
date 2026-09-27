@@ -6,6 +6,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from accounts.models import Block
+from dashboard.limits import hourly_limit_reached
+from dashboard.models import SiteSettings
 from .models import Message
 
 
@@ -121,6 +123,11 @@ class ConversationView(APIView):
             return Response({'detail': 'Write a message first.'}, status=400)
         if len(body) > 2000:
             return Response({'detail': 'Messages can be up to 2000 characters.'}, status=400)
+
+        # Spam brake: max N messages an hour (Rate Limits page).
+        limit = SiteSettings.load().messages_per_hour
+        if hourly_limit_reached(me, me.messages_sent.all(), limit):
+            return Response({'detail': f'You can send up to {limit} messages an hour. Try again later.'}, status=429)
 
         message = Message.objects.create(sender=me, recipient=other, body=body)
         return Response(message_data(message, me), status=201)

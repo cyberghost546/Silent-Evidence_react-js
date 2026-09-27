@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { CheckCircle2 } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
+import { useSiteStatus } from '../../hooks/useSiteStatus'
 import PasswordInput from '../PasswordInput/PasswordInput'
 import PasswordStrength from '../PasswordStrength/PasswordStrength'
 import AuthLayout from '../AuthLayout/AuthLayout'
@@ -63,6 +64,7 @@ function FieldError({ messages }) {
 function SignUp() {
     const { signup } = useAuth()
     const navigate = useNavigate()
+    const site = useSiteStatus()
 
     const [form, setForm] = useState({
         username: '',
@@ -117,6 +119,11 @@ function SignUp() {
     // nothing to compare.
     const passwordsMatch = form.password2 !== '' && form.password === form.password2
 
+    // Admins can close sign-ups (Dashboard -> Site Settings). Then we
+    // show a notice instead of the form. (Django refuses too - this
+    // is just so nobody fills in the whole form for nothing.)
+    const signupsClosed = site && !site.signups_open
+
     return (
         // <AuthLayout> = the dark full-screen page with the
         // "Back to site" link. Same as Log In.
@@ -131,6 +138,13 @@ function SignUp() {
                 <h1 className='text-3xl font-extrabold'>Create an account</h1>
                 <p className='mt-1 text-sm text-gray-400'>Join Silent Evidence today</p>
 
+                {signupsClosed ? (
+                    <div className='mt-8 rounded-xl border border-amber-800 bg-amber-950/30 p-5 text-sm text-amber-100'>
+                        <p className='font-semibold'>Sign-ups are closed right now.</p>
+                        <p className='mt-1 text-amber-200/80'>Please try again later. Already have an account? <Link to='/login' className='font-semibold text-red-400 hover:text-red-300'>Log in</Link></p>
+                    </div>
+                ) : (
+                <>
                 {/* ---------- SOCIAL BUTTONS ---------- */}
                 {/* space-y-3 = a gap between the two buttons. */}
                 <div className='mt-8 space-y-3'>
@@ -260,6 +274,8 @@ function SignUp() {
                         reloading the whole app. */}
                     <Link to='/login' className='font-semibold text-red-500 hover:text-red-400'>Sign in</Link>
                 </p>
+                </>
+                )}
             </div>
 
             <p className='mt-8 text-center text-sm text-slate-500'>

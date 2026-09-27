@@ -9,6 +9,7 @@ import RandomStory from './components/RandomStory/RandomStory'
 import NotFound from './components/NotFound/NotFound'
 import ProtectedRoute from './auth/ProtectedRoute'
 import AgeGate from './components/AgeGate/AgeGate'
+import MaintenanceGate from './components/MaintenanceGate/MaintenanceGate'
 import WriteStory from './components/WriteStory/WriteStory'
 import ContactPage from './components/ContactPage/ContactPage'
 import ProfilePage from './components/ProfilePage/ProfilePage'
@@ -51,6 +52,10 @@ import MoodDashboard from './components/MoodDashboard/MoodDashboard'
 import AdminSearchDashboard from './components/AdminSearchDashboard/AdminSearchDashboard'
 import EmailLogDashboard from './components/EmailLogDashboard/EmailLogDashboard'
 import SiteHealthDashboard from './components/SiteHealthDashboard/SiteHealthDashboard'
+import SiteSettingsDashboard from './components/SiteSettingsDashboard/SiteSettingsDashboard'
+import RateLimitsDashboard from './components/RateLimitsDashboard/RateLimitsDashboard'
+import BlocklistDashboard from './components/BlocklistDashboard/BlocklistDashboard'
+import AuditLogDashboard from './components/AuditLogDashboard/AuditLogDashboard'
 import FeaturedAuthorsDashboard from './components/FeaturedAuthorsDashboard/FeaturedAuthorsDashboard'
 import SpotlightDashboard from './components/SpotlightDashboard/SpotlightDashboard'
 import PollsDashboard from './components/PollsDashboard/PollsDashboard'
@@ -79,7 +84,9 @@ function App() {
     //
     // AgeGate wraps everything: until the visitor proves they're 18+,
     // none of the pages below are shown.
+    // MaintenanceGate: during maintenance only admins see the pages.
     <AgeGate>
+    <MaintenanceGate>
     <Routes>
 
       {/* ---------- PUBLIC SITE: header + footer ---------- */}
@@ -267,8 +274,13 @@ function App() {
         <Route path='polls' element={<PollsDashboard />} />
         <Route path='calendar' element={<CalendarDashboard />} />
         <Route path='merge' element={<MergeStoriesDashboard />} />
+        <Route path='site-settings' element={<SiteSettingsDashboard />} />
+        <Route path='rate-limits' element={<RateLimitsDashboard />} />
+        <Route path='blocklist' element={<BlocklistDashboard />} />
+        <Route path='audit-log' element={<AuditLogDashboard />} />
       </Route>
     </Routes>
+    </MaintenanceGate>
     </AgeGate>
   )
 }

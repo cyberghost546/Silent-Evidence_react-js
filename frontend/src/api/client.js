@@ -1036,3 +1036,48 @@ export function getCalendar(month) {
 export function mergeStories(sourceId, targetId) {
     return authRequest('/api/dashboard/stories/merge/', 'POST', { source_id: sourceId, target_id: targetId })
 }
+
+
+// --- Site Settings, Rate Limits, IP Blocklist, Audit Log ---
+
+// Public: { maintenance_mode, maintenance_message, signups_open, contact_email }
+export function getSiteStatus() {
+    return authRequest('/api/site-status/')
+}
+
+// Site Settings and Rate Limits are ONE row each - no id in the URL.
+// changes = only the fields you changed, e.g. { signups_open: false }
+export function getSiteSettings() {
+    return authRequest('/api/dashboard/site-settings/')
+}
+
+export function updateSiteSettings(changes) {
+    return authRequest('/api/dashboard/site-settings/', 'PATCH', changes)
+}
+
+export function getRateLimits() {
+    return authRequest('/api/dashboard/rate-limits/')
+}
+
+export function updateRateLimits(changes) {
+    return authRequest('/api/dashboard/rate-limits/', 'PATCH', changes)
+}
+
+// -> { my_ip, blocked: [ { id, ip_address, reason, blocked_by, created_at } ] }
+export function getBlockedIps() {
+    return authRequest('/api/dashboard/blocked-ips/')
+}
+
+export function blockIp(ipAddress, reason = '') {
+    return authRequest('/api/dashboard/blocked-ips/', 'POST', { ip_address: ipAddress, reason })
+}
+
+export function unblockIp(id) {
+    return authRequest(`/api/dashboard/blocked-ips/${id}/`, 'DELETE')
+}
+
+// filters = { q: 'ban', user: 'christopher' } -> { admins: [...], entries: [...] }
+export function getAuditLog(filters = {}) {
+    const params = new URLSearchParams(filters)
+    return authRequest(`/api/dashboard/audit-log/?${params}`)
+}

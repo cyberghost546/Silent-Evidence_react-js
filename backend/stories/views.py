@@ -9,6 +9,10 @@ from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.exceptions import Throttled
+
+from dashboard.limits import hourly_limit_reached
+from dashboard.models import SiteSettings
 
 from accounts.models import Follow, Block, get_profile
 from moderation.content_filter import check_text
@@ -250,6 +254,11 @@ class CommentListView(generics.ListCreateAPIView):
     # saving. We add the two things the visitor must NOT choose
     # themselves: who wrote it, and which story it's on.
     def perform_create(self, serializer):
+        # Spam brake: max N comments an hour (Rate Limits page).
+        # Throttled = DRF's ready-made 429 "Too Many Requests" error.
+        limit = SiteSettings.load().comments_per_hour
+        if hourly_limit_reached(self.request.user, self.request.user.comments.all(), limit):
+            raise Throttled(detail=f'You can post up to {limit} comments an hour. Take a breather!')
         comment = serializer.save(author=self.request.user, story=self.get_story())
         flag_if_needed(comment.body, comment=comment)
 

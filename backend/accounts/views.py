@@ -12,7 +12,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from moderation.bans import active_ban, refresh_ban_status, ban_message
-from moderation.security import is_locked, record_login, client_ip, LOCK_MINUTES
+from moderation.security import is_locked, record_login, client_ip, login_limits
+from dashboard.models import SiteSettings
 from stories.models import Like, Bookmark, Comment, published_stories
 from .models import Follow, Block, get_profile
 from .premium import refresh_premium
@@ -53,6 +54,10 @@ def user_data(user):
 # POST /api/accounts/signup/
 class SignUpView(APIView):
     def post(self, request):
+        # Admins can close sign-ups (Dashboard -> Site Settings).
+        if not SiteSettings.load().signups_open:
+            return Response({'detail': 'Sign-ups are closed right now. Please try again later.'}, status=status.HTTP_403_FORBIDDEN)
+
         serializer = SignUpSerializer(data=request.data)
 
         # raise_exception=True: if anything is wrong, stop here and
@@ -102,7 +107,7 @@ class LogInView(APIView):
         # the lock lifts. 429 = "Too Many Requests".
         if is_locked(login_name, client_ip(request)):
             return Response(
-                {'detail': f'Too many failed attempts. Try again in {LOCK_MINUTES} minutes.'},
+                {'detail': f"Too many failed attempts. Try again in {login_limits()['lock_minutes']} minutes."},
                 status=status.HTTP_429_TOO_MANY_REQUESTS,
             )
 

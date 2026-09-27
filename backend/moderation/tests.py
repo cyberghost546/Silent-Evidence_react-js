@@ -128,7 +128,7 @@ class LoginSecurityTests(TestCase):
         self.assertEqual(list(LoginEvent.objects.order_by('id').values_list('success', flat=True)), [False, True])
 
     def test_locked_after_too_many_failures_even_with_right_password(self):
-        for _ in range(security.MAX_FAILURES_PER_USERNAME):
+        for _ in range(security.login_limits()['max_failures_per_username']):
             self.assertEqual(self.login('wrong').status_code, 400)
 
         self.assertEqual(self.login(PASSWORD).status_code, 429)
@@ -138,7 +138,7 @@ class LoginSecurityTests(TestCase):
         self.assertEqual(self.login(PASSWORD).status_code, 200)
 
     def test_security_page_shows_the_lock(self):
-        for _ in range(security.MAX_FAILURES_PER_USERNAME):
+        for _ in range(security.login_limits()['max_failures_per_username']):
             self.login('wrong')
         User.objects.create_user('boss', password=PASSWORD, is_staff=True)
         self.client.login(username='boss', password=PASSWORD)

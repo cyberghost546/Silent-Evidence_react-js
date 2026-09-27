@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { getLoginLogs } from '../../api/client'
-import { AdminSearch, AdminFilters } from '../Dashboard/AdminParts'
+import { getLoginLogs, blockIp } from '../../api/client'
+import { AdminSearch, AdminFilters, PageMessages } from '../Dashboard/AdminParts'
 
 
 // ---------------------------------------------------------------
@@ -55,12 +55,30 @@ function LoginLogsDashboard() {
     const [error, setError] = useState('')
     const [filter, setFilter] = useState('all')
     const [search, setSearch] = useState('')
+    const [notice, setNotice] = useState('')
+    // The IPs blocked from THIS page, so their button can say "Blocked".
+    const [blockedIps, setBlockedIps] = useState([])
 
     useEffect(() => {
         getLoginLogs()
             .then(data => setEvents(data))
             .catch(() => setError('Could not load the login logs.'))
     }, [])
+
+    // "Block" next to an IP -> it goes on the IP Blocklist page.
+    async function handleBlock(event) {
+        if (!window.confirm(`Block ${event.ip_address}? Nobody on that address can use the site until you unblock it (Dashboard -> IP Blocklist).`)) return
+        setError('')
+        setNotice('')
+        try {
+            await blockIp(event.ip_address, `From Login Logs (tried "${event.username}")`)
+            setBlockedIps([...blockedIps, event.ip_address])
+            setNotice(`${event.ip_address} is blocked.`)
+        } catch (err) {
+            // e.g. "That's your own IP address" or "already exists".
+            setError(err.data?.detail || err.data?.ip_address?.[0] || 'Could not block that IP.')
+        }
+    }
 
     if (!events) {
         return <p className='text-gray-400'>{error || 'Loading login logs...'}</p>
@@ -84,6 +102,8 @@ function LoginLogsDashboard() {
             <p className='mt-1 text-gray-400'>
                 The last {events.length} login attempts · <span className='text-red-400'>{failedCount} failed</span>
             </p>
+
+            <PageMessages error={error} notice={notice} />
 
             <div className='mt-6 flex flex-col gap-3 xl:flex-row xl:items-center'>
                 <AdminSearch value={search} onChange={setSearch} placeholder='Search by username or IP address...' />
@@ -130,7 +150,18 @@ function LoginLogsDashboard() {
                                 </td>
                                 {/* font-mono = every character the same width,
                                     so IP addresses line up nicely. */}
-                                <td className='px-4 py-3 font-mono text-xs text-gray-300'>{event.ip_address ?? '—'}</td>
+                                <td className='whitespace-nowrap px-4 py-3 font-mono text-xs text-gray-300'>
+                                    {event.ip_address ?? '—'}
+                                    {event.ip_address && (
+                                        blockedIps.includes(event.ip_address) ? (
+                                            <span className='ml-2 font-sans text-red-400'>Blocked</span>
+                                        ) : (
+                                            <button type='button' onClick={() => handleBlock(event)} className='ml-2 rounded border border-slate-700 px-1.5 py-0.5 font-sans text-[11px] text-gray-400 hover:border-red-700 hover:text-red-400'>
+                                                Block
+                                            </button>
+                                        )
+                                    )}
+                                </td>
                                 {/* title = hover to see the full browser text. */}
                                 <td className='px-4 py-3 text-gray-400' title={event.user_agent}>{readableBrowser(event.user_agent)}</td>
                             </tr>

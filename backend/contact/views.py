@@ -8,24 +8,31 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
 
+from dashboard.models import SiteSettings
 from .models import ContactMessage, SUBJECTS
 from .serializers import ContactMessageSerializer
 
 
 # ---------------------------------------------------------------
-# SPAM PROTECTION: at most 5 messages an hour.
+# SPAM PROTECTION: at most N messages an hour.
 #
 # A "throttle" counts requests. After the limit DRF answers
 # 429 Too Many Requests by itself. Two classes because DRF counts
 # logged-out visitors (by IP address) and logged-in users (by
 # account) separately - and we want a limit on both.
 # ---------------------------------------------------------------
+#
+# The number comes from the Rate Limits page (SiteSettings).
+# get_rate() is what DRF calls to ask "what's the limit?" - normally
+# it reads the `rate` text; we build that text from the database.
 class ContactAnonThrottle(AnonRateThrottle):
-    rate = '5/hour'
+    def get_rate(self):
+        return f'{SiteSettings.load().contact_per_hour}/hour'
 
 
 class ContactUserThrottle(UserRateThrottle):
-    rate = '5/hour'
+    def get_rate(self):
+        return f'{SiteSettings.load().contact_per_hour}/hour'
 
 
 # POST /api/contact/  -> saves the message, answers with it.

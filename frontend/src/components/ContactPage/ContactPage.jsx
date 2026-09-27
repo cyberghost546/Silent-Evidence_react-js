@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { Mail, MapPin, Clock, CheckCircle2 } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
+import { useSiteStatus } from '../../hooks/useSiteStatus'
 import { sendContactMessage } from '../../api/client'
 import { LABEL_STYLE, INPUT_STYLE, BUTTON_STYLE, FIELD_ERROR_STYLE } from '../../styles/formStyles'
 
@@ -67,6 +68,12 @@ function InfoCard({ icon: Icon, label, value }) {
 // ---------------------------------------------------------------
 function ContactPage() {
     const { user } = useAuth()
+    // The email set in Dashboard -> Site Settings replaces the
+    // default one in CONTACT_INFO (if an admin filled it in).
+    const site = useSiteStatus()
+    const contactInfo = CONTACT_INFO.map(info =>
+        info.label === 'Email' && site?.contact_email ? { ...info, value: site.contact_email } : info
+    )
 
     // Another page can open this one with a subject already picked:
     //   <Link to='/contact' state={{ subject: 'account' }}>
@@ -148,7 +155,7 @@ function ContactPage() {
                     </p>
 
                     <div className='mt-10 space-y-5'>
-                        {CONTACT_INFO.map(info => (
+                        {contactInfo.map(info => (
                             <InfoCard key={info.label} icon={info.icon} label={info.label} value={info.value} />
                         ))}
                     </div>

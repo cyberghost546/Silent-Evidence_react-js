@@ -326,11 +326,7 @@ class AdminSecurityView(APIView):
         admins = get_user_model().objects.filter(is_staff=True).order_by('username')
 
         return Response({
-            'rules': {
-                'max_failures_per_username': security.MAX_FAILURES_PER_USERNAME,
-                'max_failures_per_ip': security.MAX_FAILURES_PER_IP,
-                'lock_minutes': security.LOCK_MINUTES,
-            },
+            'rules': security.login_limits(),
             'last_24h': {
                 'successful': last_day.filter(success=True).count(),
                 'failed': failed.count(),
