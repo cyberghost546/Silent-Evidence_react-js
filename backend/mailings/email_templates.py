@@ -59,6 +59,33 @@ TEMPLATES = {
             'settings_link': 'http://localhost:5173/settings',
         },
     },
+    'password_reset': {
+        'name': 'Password reset',
+        'description': 'Sent when someone clicks "Forgot password?" on the Log In page. The link works for 3 days, once.',
+        'subject': 'Reset your Silent Evidence password',
+        'body': (
+            'Hi {username},\n\nSomeone (hopefully you) asked to reset your password. '
+            'Choose a new one here:\n\n{link}\n\n'
+            "Didn't ask for this? Just ignore this email - your password stays the same."
+        ),
+        'sample': {
+            'username': 'night_owl',
+            'link': 'http://localhost:5173/reset-password/MQ/abc123-token',
+        },
+    },
+    'verify_email': {
+        'name': 'Confirm email address',
+        'description': 'Sent after signing up (and on "Send the email again"), so we know the address really belongs to them.',
+        'subject': 'Confirm your email for Silent Evidence',
+        'body': (
+            'Welcome, {username}!\n\nClick to confirm this is your email address:\n\n{link}\n\n'
+            "Didn't sign up? Then someone typed your address by mistake - just ignore this email."
+        ),
+        'sample': {
+            'username': 'night_owl',
+            'link': 'http://localhost:5173/verify-email/MQ/abc123-token',
+        },
+    },
     'newsletter_footer': {
         'name': 'Newsletter footer',
         'description': 'Added under every newsletter. No subject - it goes at the end of the newsletter text.',

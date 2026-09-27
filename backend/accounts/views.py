@@ -58,6 +58,10 @@ def user_data(user):
 # (A family or school sharing one address won't get near that; a bot
 # making thousands of accounts will hit it straight away.)
 class SignUpThrottle(AnonRateThrottle):
+    # scope = the NAME of this counter. Every AnonRateThrottle is called
+    # 'anon' unless we rename it - and then sign-ups, contact messages
+    # and reset emails would all use up ONE shared limit.
+    scope = 'signup'
     rate = '10/hour'
 
 

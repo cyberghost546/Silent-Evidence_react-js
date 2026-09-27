@@ -35,7 +35,10 @@ function MaintenanceGate({ children }) {
         )
     }
 
-    const showScreen = site?.maintenance_mode && !user?.is_staff && pathname !== '/login'
+    // Log In and the two "forgot password" pages stay open, so admins
+    // can always get in.
+    const openPage = pathname === '/login' || pathname === '/forgot-password' || pathname.startsWith('/reset-password/')
+    const showScreen = site?.maintenance_mode && !user?.is_staff && !openPage
     if (!showScreen) return children
 
     return (

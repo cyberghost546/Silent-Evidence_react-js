@@ -110,11 +110,9 @@ function LogIn() {
                     <div className='mb-2 flex items-center justify-between'>
                         <label htmlFor='password' className='text-sm font-semibold text-gray-200'>Password</label>
 
-                        {/* There's no automatic reset email yet, so this
-                            opens the Contact page with "Help with my
-                            account" already picked (ContactPage reads
-                            location.state.subject). */}
-                        <Link to='/contact' state={{ subject: 'account' }} className='text-sm text-red-400 hover:text-red-300'>
+                        {/* Opens ForgotPassword.jsx: we email a link
+                            to choose a new password. */}
+                        <Link to='/forgot-password' className='text-sm text-red-400 hover:text-red-300'>
                             Forgot password?
                         </Link>
                     </div>

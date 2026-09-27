@@ -33,6 +33,8 @@ MAINTENANCE_ALLOWED = (
     '/api/accounts/login/',
     '/api/accounts/logout/',
     '/api/accounts/me/',
+    # An admin who forgot their password must be able to reset it.
+    '/api/accounts/password-reset/',
     '/admin/',
     '/media/',
     '/static/',

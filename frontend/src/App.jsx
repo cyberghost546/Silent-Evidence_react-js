@@ -4,6 +4,8 @@ import SiteLayout from './components/SiteLayout/SiteLayout'
 import HomePage from './components/HomePage/HomePage'
 import LogIn from './components/LogIn/LogIn'
 import SignUp from './components/SignUp/SignUp'
+import ForgotPassword from './components/ForgotPassword/ForgotPassword'
+import ResetPassword from './components/ResetPassword/ResetPassword'
 import CategoryPage from './components/CategoryPage/CategoryPage'
 import StoryPage from './components/StoryPage/StoryPage'
 import RandomStory from './components/RandomStory/RandomStory'
@@ -245,6 +247,9 @@ function App() {
           "Back to site" link. */}
       <Route path='/login' element={<LogIn />} />
       <Route path='/signup' element={<SignUp />} />
+      <Route path='/forgot-password' element={<ForgotPassword />} />
+      {/* :uid and :token come from the link in the email. */}
+      <Route path='/reset-password/:uid/:token' element={<ResetPassword />} />
 
       {/* ---------- ADMIN DASHBOARD: sidebar, no site header ---------- */}
       {/* The guard wraps the whole layout, so EVERY page inside is

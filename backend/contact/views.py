@@ -27,11 +27,18 @@ from .serializers import ContactMessageSerializer
 # get_rate() is what DRF calls to ask "what's the limit?" - normally
 # it reads the `rate` text; we build that text from the database.
 class ContactAnonThrottle(AnonRateThrottle):
+    # scope = the NAME of this counter. Every AnonRateThrottle is called
+    # 'anon' unless we rename it - and then sign-ups, contact messages
+    # and reset emails would all use up ONE shared limit.
+    scope = 'contact_anon'
+
     def get_rate(self):
         return f'{SiteSettings.load().contact_per_hour}/hour'
 
 
 class ContactUserThrottle(UserRateThrottle):
+    scope = 'contact_user'
+
     def get_rate(self):
         return f'{SiteSettings.load().contact_per_hour}/hour'
 

@@ -1163,3 +1163,16 @@ export function getNotifications(limit = 10) {
 export function markNotificationsRead(ids) {
     return authRequest('/api/accounts/notifications/read/', 'POST', ids ? { ids } : {})
 }
+
+
+// --- Forgot password ---
+
+// Always answers with the same { detail } - whether the email exists or not.
+export function requestPasswordReset(email) {
+    return authRequest('/api/accounts/password-reset/', 'POST', { email })
+}
+
+// uid + token come from the link in the email (the page's URL).
+export function confirmPasswordReset(uid, token, password) {
+    return authRequest('/api/accounts/password-reset/confirm/', 'POST', { uid, token, password })
+}
