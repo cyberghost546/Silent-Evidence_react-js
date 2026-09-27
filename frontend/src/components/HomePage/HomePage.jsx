@@ -4,6 +4,7 @@ import CategoryGrid from '../CategoryGrid/CategoryGrid'
 import HomeFeed from '../HomeFeed/HomeFeed'
 import WriteCallToAction from '../HomeFeed/WriteCallToAction'
 import LastWords from '../HomeFeed/LastWords'
+import MoodOfTheDay from '../HomeFeed/MoodOfTheDay'
 
 
 // The homepage ("/") is just its sections stacked top to bottom.
@@ -23,6 +24,8 @@ function HomePage() {
                 space-y-20 = the same gap between every section. */}
             <div className='space-y-20 bg-gray-900 px-4 py-14'>
                 <StorySections />
+                {/* Only shows when an admin planned a mood for today. */}
+                <MoodOfTheDay />
                 <CategoryGrid />
 
                 {/* Authors, Latest Stories and the sidebar

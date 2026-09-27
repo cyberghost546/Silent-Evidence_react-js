@@ -895,3 +895,53 @@ export function banMember(username, reason, days) {
 export function liftBan(id) {
     return authRequest(`/api/dashboard/bans/${id}/lift/`, 'POST')
 }
+
+
+// --- Tags and Mood of the Day (public) ---
+
+// Tag suggestions for the Write page: [ { name, story_count } ]
+export function getTagSuggestions(start = '') {
+    return getJSON(`/api/tags/?q=${encodeURIComponent(start)}`)
+}
+
+// { date, mood, mood_label, note, stories: [...] } or null.
+export function getMoodOfTheDay() {
+    return getJSONOrNull('/api/mood-of-the-day/')
+}
+
+
+// --- Admin Dashboard: premium, revenue, scheduled, tags ---
+
+// { currency, members: [...], history: [...] }
+export function getPremium() {
+    return authRequest('/api/dashboard/premium/')
+}
+
+// values = { username, plan, amount, note, gift_days }
+export function grantPremium(values) {
+    return authRequest('/api/dashboard/premium/', 'POST', values)
+}
+
+export function cancelPremium(id) {
+    return authRequest(`/api/dashboard/premium/${id}/cancel/`, 'POST')
+}
+
+// { currency, total_all_time, this_month, last_month, months: [...], by_plan: [...] }
+export function getRevenue() {
+    return authRequest('/api/dashboard/revenue/')
+}
+
+export function getScheduledStories() {
+    return authRequest('/api/dashboard/scheduled/')
+}
+
+// action = 'now' | 'cancel' | 'move' (move also needs publishAt)
+export function changeScheduledStory(id, action, publishAt = null) {
+    return authRequest(`/api/dashboard/scheduled/${id}/`, 'POST', { action, publish_at: publishAt })
+}
+
+// The tag admin list, rename and delete use the shared helpers:
+//   getAdminList('tags'), updateAdminItem('tags', id, { name }), deleteAdminItem('tags', id)
+export function mergeTag(id, intoId) {
+    return authRequest(`/api/dashboard/tags/${id}/merge/`, 'POST', { into_id: intoId })
+}

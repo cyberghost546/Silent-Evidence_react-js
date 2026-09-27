@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.db import models
+from django.utils import timezone
 
 
 # ---------------------------------------------------------------
@@ -136,3 +137,48 @@ class Block(models.Model):
 
     def __str__(self):
         return f'{self.blocker} blocked {self.blocked}'
+
+
+
+# ---------------------------------------------------------------
+# PREMIUM MEMBERSHIP - one row per time someone got premium.
+#
+# There's no online payment yet: an admin records it on
+# Admin Dashboard -> Premium Members ("gift", or with the amount
+# they paid another way). The Revenue page adds up `amount`.
+#
+# Profile.is_premium follows the memberships: on while one is
+# running, off when the last one ends (see accounts/premium.py).
+# ---------------------------------------------------------------
+class PremiumMembership(models.Model):
+    PLANS = [
+        ('monthly', '1 month'),
+        ('yearly', '1 year'),
+        ('lifetime', 'Lifetime'),
+        ('gift', 'Gift (free)'),
+    ]
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='premium_memberships')
+    plan = models.CharField(max_length=10, choices=PLANS)
+    # DecimalField for money - never FloatField: 0.1 + 0.2 is not
+    # exactly 0.3 with floats, and money must add up to the cent.
+    amount = models.DecimalField(max_digits=8, decimal_places=2, default=0)
+    starts_at = models.DateTimeField()
+    # Empty = never ends (lifetime).
+    ends_at = models.DateTimeField(null=True, blank=True)
+    cancelled_at = models.DateTimeField(null=True, blank=True)
+    note = models.CharField(max_length=200, blank=True)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='+')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-starts_at']
+
+    def __str__(self):
+        return f'{self.user} - {self.plan}'
+
+    def is_active(self):
+        now = timezone.now()
+        if self.cancelled_at or self.starts_at > now:
+            return False
+        return self.ends_at is None or self.ends_at > now

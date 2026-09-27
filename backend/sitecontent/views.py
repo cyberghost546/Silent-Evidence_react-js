@@ -11,10 +11,10 @@ from rest_framework.views import APIView
 from categories.models import Category
 from stories.models import Story, stories_for
 from stories.serializers import StoryCardSerializer
-from .models import Announcement, WritingPrompt, Challenge, ChallengeEntry, Bundle, CookieBanner, CookieConsent
+from .models import Announcement, WritingPrompt, Challenge, ChallengeEntry, Bundle, CookieBanner, CookieConsent, MoodOfDay
 from .serializers import (
     AnnouncementSerializer, WritingPromptSerializer, ChallengeSerializer,
-    BundleSerializer, AdminCategorySerializer,
+    BundleSerializer, AdminCategorySerializer, MoodOfDaySerializer,
 )
 
 
@@ -284,3 +284,43 @@ class AdminCookieView(APIView):
             banner.message = message[:1000]
         banner.save()
         return self.get(request)
+
+
+# ===============================================================
+# MOOD OF THE DAY
+# ===============================================================
+
+# GET /api/mood-of-the-day/
+#   -> { date, mood, mood_label, note, stories: [...cards] } or 204
+# The homepage section. Up to 6 stories in that mood, most viewed first.
+class MoodOfTheDayView(APIView):
+    def get(self, request):
+        today = MoodOfDay.objects.filter(date=timezone.localdate()).first()
+        if today is None:
+            return Response(status=204)
+
+        stories = (
+            stories_for(request.user)
+            .filter(mood=today.mood)
+            .select_related('author', 'category')
+            .order_by('-views')[:6]
+        )
+        data = MoodOfDaySerializer(today).data
+        data['mood_label'] = today.get_mood_display()
+        data['stories'] = StoryCardSerializer(stories, many=True, context={'request': request}).data
+        return Response(data)
+
+
+# Admin: plan moods ahead. GET lists them (from 7 days ago onwards).
+class AdminMoodListView(generics.ListCreateAPIView):
+    permission_classes = [IsAdminUser]
+    serializer_class = MoodOfDaySerializer
+
+    def get_queryset(self):
+        return MoodOfDay.objects.filter(date__gte=timezone.localdate() - timedelta(days=7))
+
+
+class AdminMoodDetailView(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = [IsAdminUser]
+    serializer_class = MoodOfDaySerializer
+    queryset = MoodOfDay.objects.all()

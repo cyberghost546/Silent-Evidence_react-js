@@ -43,6 +43,11 @@ import CookieConsentDashboard from './components/CookieConsentDashboard/CookieCo
 import VerificationDashboard from './components/VerificationDashboard/VerificationDashboard'
 import ContentFilterDashboard from './components/ContentFilterDashboard/ContentFilterDashboard'
 import DisciplineDashboard from './components/DisciplineDashboard/DisciplineDashboard'
+import PremiumDashboard from './components/PremiumDashboard/PremiumDashboard'
+import RevenueDashboard from './components/RevenueDashboard/RevenueDashboard'
+import ScheduledDashboard from './components/ScheduledDashboard/ScheduledDashboard'
+import TagManagerDashboard from './components/TagManagerDashboard/TagManagerDashboard'
+import MoodDashboard from './components/MoodDashboard/MoodDashboard'
 import LeaderboardPage from './components/LeaderboardPage/LeaderboardPage'
 import FeedPage from './components/FeedPage/FeedPage'
 import MyListsPage from './components/MyListsPage/MyListsPage'
@@ -241,6 +246,11 @@ function App() {
         <Route path='verification' element={<VerificationDashboard />} />
         <Route path='content-filter' element={<ContentFilterDashboard />} />
         <Route path='discipline' element={<DisciplineDashboard />} />
+        <Route path='premium' element={<PremiumDashboard />} />
+        <Route path='revenue' element={<RevenueDashboard />} />
+        <Route path='scheduled' element={<ScheduledDashboard />} />
+        <Route path='tags' element={<TagManagerDashboard />} />
+        <Route path='moods' element={<MoodDashboard />} />
       </Route>
     </Routes>
     </AgeGate>

@@ -1,8 +1,10 @@
+import re
+
 from django.utils import timezone
 from rest_framework import serializers
 
 from moderation.content_filter import check_text, BLOCKED_MESSAGE
-from .models import Story, Comment, LastWord, CoAuthorInvite, wpm_for
+from .models import Story, Comment, LastWord, CoAuthorInvite, Tag, wpm_for
 
 
 # Everything a story CARD needs - not the full body, which could be
@@ -76,13 +78,14 @@ class StoryDetailSerializer(StoryCardSerializer):
     liked = serializers.SerializerMethodField()
     saved = serializers.SerializerMethodField()
     coauthors = serializers.SerializerMethodField()
+    tags = serializers.SerializerMethodField()
 
     # Meta inherits too: same model, and the card's field list with
     # more added on the end.
     class Meta(StoryCardSerializer.Meta):
         fields = StoryCardSerializer.Meta.fields + [
             'body', 'category_slug', 'word_count', 'like_count', 'comment_count', 'liked', 'saved',
-            'coauthors',
+            'coauthors', 'tags',
             # From the Write a Story page. The story page doesn't show
             # these yet, but they're here for when it does.
             'language', 'video_url', 'audio_url', 'location', 'latitude', 'longitude',
@@ -123,6 +126,10 @@ class StoryDetailSerializer(StoryCardSerializer):
 
     # ['night_owl'] - people who ACCEPTED a co-author invite.
     # story.invites exists because of related_name on CoAuthorInvite.
+    # ['lighthouse', 'vhs'] - the story's tag names.
+    def get_tags(self, story):
+        return [tag.name for tag in story.tags.all()]
+
     def get_coauthors(self, story):
         accepted = story.invites.filter(status='accepted').order_by('to_user__username')
         return [invite.to_user.username for invite in accepted]
@@ -140,12 +147,20 @@ class StoryDetailSerializer(StoryCardSerializer):
 # must never be able to set those themselves.
 # ---------------------------------------------------------------
 class StoryWriteSerializer(serializers.ModelSerializer):
+    # TAGS: the Write page sends up to 5 words, e.g. ['lighthouse', 'VHS'].
+    # A ListField = "a list of these". write_only: it only goes IN -
+    # the story page gets `tags` from StoryDetailSerializer instead.
+    tag_names = serializers.ListField(
+        child=serializers.CharField(max_length=30), write_only=True, required=False, max_length=5,
+    )
+
     class Meta:
         model = Story
         fields = [
             'id', 'title', 'excerpt', 'body', 'category', 'cover_image', 'cover_image_url',
             'language', 'video_url', 'audio_url', 'location', 'latitude', 'longitude',
             'mood', 'content_rating', 'content_warnings', 'publish_at', 'is_published',
+            'tag_names',
         ]
         # The model allows a story without a category (so deleting a
         # category doesn't delete its stories), but a NEW story must
@@ -175,11 +190,35 @@ class StoryWriteSerializer(serializers.ModelSerializer):
         # CONTENT FILTER (Admin Dashboard -> Content Filter): a banned
         # word in the title, excerpt or text = refused. ("flag" words
         # are allowed - StoryCreateView reports them to the admins.)
-        text = ' '.join([data.get('title', ''), data.get('excerpt', ''), data.get('body', '')])
+        text = ' '.join([data.get('title', ''), data.get('excerpt', ''), data.get('body', '')] + data.get('tag_names', []))
         if check_text(text)[0] == 'block':
             raise serializers.ValidationError({'body': [BLOCKED_MESSAGE]})
 
         return data
+
+    # "  Cursed Object! " -> "cursed-object". Lower case, spaces become
+    # dashes, and only letters, numbers and dashes are kept.
+    @staticmethod
+    def clean_tag(name):
+        name = re.sub(r'\s+', '-', name.strip().lower())
+        return re.sub(r'[^a-z0-9-]', '', name).strip('-')
+
+    # create() makes the Story. A ManyToMany (tags) can only be set
+    # AFTER the story exists (it needs an id), so we take tag_names
+    # out first, let DRF create the story, then attach the tags.
+    def create(self, validated_data):
+        tag_names = validated_data.pop('tag_names', [])
+        story = super().create(validated_data)
+
+        tags = []
+        for name in tag_names:
+            cleaned = self.clean_tag(name)
+            if cleaned:
+                # get_or_create: reuse the tag if it exists, else make it.
+                tag, _ = Tag.objects.get_or_create(name=cleaned)
+                tags.append(tag)
+        story.tags.set(tags)
+        return story
 
 
 class CommentSerializer(serializers.ModelSerializer):

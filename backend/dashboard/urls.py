@@ -1,6 +1,11 @@
 from django.urls import path
 
 from .ai import AIStatusView, GenerateStoryView, SaveGeneratedStoryView
+from .content_views import (
+    ScheduledStoriesView, ScheduledStoryActionView,
+    TagSuggestionsView, AdminTagListView, AdminTagDetailView, MergeTagView,
+)
+from .premium_views import PremiumMembersView, CancelMembershipView, RevenueView
 from .views import (
     DashboardStatsView, AdminUserListView, AdminUserDetailView,
     AdminStoryListView, AdminStoryDetailView, FunnelView,
@@ -20,6 +25,19 @@ urlpatterns = [
     # The Stories page
     path('dashboard/stories/', AdminStoryListView.as_view()),
     path('dashboard/stories/<int:pk>/', AdminStoryDetailView.as_view()),
+
+    # Premium Members + Revenue (premium_views.py)
+    path('dashboard/premium/', PremiumMembersView.as_view()),
+    path('dashboard/premium/<int:pk>/cancel/', CancelMembershipView.as_view()),
+    path('dashboard/revenue/', RevenueView.as_view()),
+
+    # Scheduled Stories + Tag Manager (content_views.py)
+    path('dashboard/scheduled/', ScheduledStoriesView.as_view()),
+    path('dashboard/scheduled/<int:pk>/', ScheduledStoryActionView.as_view()),
+    path('tags/', TagSuggestionsView.as_view()),
+    path('dashboard/tags/', AdminTagListView.as_view()),
+    path('dashboard/tags/<int:pk>/', AdminTagDetailView.as_view()),
+    path('dashboard/tags/<int:pk>/merge/', MergeTagView.as_view()),
 
     # The Conversion Funnel page
     path('dashboard/funnel/', FunnelView.as_view()),

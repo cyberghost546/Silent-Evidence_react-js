@@ -51,16 +51,16 @@ const NAV_ITEMS = [
     { label: 'Writing Prompts', to: '/dashboard/prompts', icon: <PenLine className={ICON} /> },
     { label: 'Cookie Consent', to: '/dashboard/cookies', icon: <Cookie className={ICON} /> },
     { label: 'Verification', to: '/dashboard/verification', icon: <CircleCheck className={ICON} /> },
-    { label: 'Revenue', icon: <DollarSign className={ICON} /> },
-    { label: 'Premium Members', icon: <Crown className={ICON} /> },
+    { label: 'Revenue', to: '/dashboard/revenue', icon: <DollarSign className={ICON} /> },
+    { label: 'Premium Members', to: '/dashboard/premium', icon: <Crown className={ICON} /> },
     { label: 'Content Filter', to: '/dashboard/content-filter', icon: <Ban className={ICON} /> },
     { label: 'Warnings & Bans', to: '/dashboard/discipline', icon: <ShieldX className={ICON} /> },
     { label: 'Admin Search', icon: <Search className={ICON} /> },
-    { label: 'Tag Manager', icon: <Tag className={ICON} /> },
-    { label: 'Scheduled Stories', icon: <Clock className={ICON} /> },
+    { label: 'Tag Manager', to: '/dashboard/tags', icon: <Tag className={ICON} /> },
+    { label: 'Scheduled Stories', to: '/dashboard/scheduled', icon: <Clock className={ICON} /> },
     { label: 'Email Log', icon: <Send className={ICON} /> },
     { label: 'Site Health', icon: <HeartPulse className={ICON} /> },
-    { label: 'Mood of Day', icon: <Moon className={ICON} /> },
+    { label: 'Mood of Day', to: '/dashboard/moods', icon: <Moon className={ICON} /> },
 ]
 
 

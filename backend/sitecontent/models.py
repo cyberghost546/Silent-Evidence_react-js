@@ -2,7 +2,7 @@ from django.conf import settings
 from django.db import models
 from django.utils import timezone
 
-from stories.models import Story
+from stories.models import Story, MOODS
 
 
 # ---------------------------------------------------------------
@@ -150,3 +150,23 @@ class CookieConsent(models.Model):
 
     def __str__(self):
         return self.choice
+
+
+
+# ---------------------------------------------------------------
+# MOOD OF THE DAY - one mood per date, picked by admins ahead of
+# time. The homepage shows today's, with stories in that mood.
+# The moods are the same ones writers pick on Write a Story
+# (MOODS in stories/models.py).
+# ---------------------------------------------------------------
+class MoodOfDay(models.Model):
+    date = models.DateField(unique=True)   # one per day
+    mood = models.CharField(max_length=20, choices=MOODS)
+    # An optional line under the heading: "For the first frost..."
+    note = models.CharField(max_length=200, blank=True)
+
+    class Meta:
+        ordering = ['date']
+
+    def __str__(self):
+        return f'{self.date}: {self.mood}'

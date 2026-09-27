@@ -248,6 +248,22 @@ function StoryPage() {
                     <StoryBody body={story.body} size={textSize} />
                 </div>
 
+                {/* The story's tags. Each one opens a search for it -
+                    search also looks at tags (SearchView in Django). */}
+                {story.tags?.length > 0 && (
+                    <div className='mt-8 flex flex-wrap gap-2'>
+                        {story.tags.map(tag => (
+                            <Link
+                                key={tag}
+                                to={`/search?q=${encodeURIComponent(tag)}`}
+                                className='rounded-full border border-slate-700 px-3 py-1 text-sm text-gray-300 transition-colors hover:border-red-700 hover:text-white'
+                            >
+                                #{tag}
+                            </Link>
+                        ))}
+                    </div>
+                )}
+
                 {/* ================= 6. RECOMMENDATION ================= */}
                 {recommended && (
                     <section className='mt-14'>

@@ -6,6 +6,7 @@ import { getCategories, createStory } from '../../api/client'
 import SegmentedControl from '../SegmentedControl/SegmentedControl'
 import StoryEditor from './StoryEditor'
 import PromptBox from './PromptBox'
+import TagInput from './TagInput'
 import { LANGUAGES, MOODS, CONTENT_RATINGS, CONTENT_WARNINGS, TEMPLATES } from './storyOptions'
 import { LABEL_STYLE, INPUT_STYLE, BUTTON_STYLE, FIELD_ERROR_STYLE } from '../../styles/formStyles'
 import { countWords } from '../../utils/storyFormat'
@@ -49,6 +50,7 @@ const EMPTY_FORM = {
     mood: '',
     contentRating: 'all',
     warnings: [],           // e.g. ['Violence', 'Gore']
+    tags: [],               // e.g. ['lighthouse', 'vhs'] - see TagInput
     publishAt: '',          // from <input type='datetime-local'>
     audioUrl: '',
 }
@@ -302,6 +304,10 @@ function WriteStory() {
         if (form.warnings.length > 0) {
             data.append('content_warnings', form.warnings.join(','))
         }
+
+        // Tags go as the SAME field name several times - that's how
+        // FormData sends a list. Django reads them all into tag_names.
+        form.tags.forEach(tag => data.append('tag_names', tag))
 
         // The date input gives local time with no timezone
         // ("2026-10-01T20:00"). toISOString() turns it into UTC, so
@@ -696,6 +702,12 @@ function WriteStory() {
                             )
                         })}
                     </div>
+                </div>
+
+                {/* ---------- TAGS ---------- */}
+                <div>
+                    <p className={LABEL_STYLE}>Tags<Hint>(up to 5 - they help readers find your story)</Hint></p>
+                    <TagInput tags={form.tags} onChange={newTags => updateField('tags', newTags)} />
                 </div>
 
                 {/* ---------- CONTENT WARNINGS ---------- */}

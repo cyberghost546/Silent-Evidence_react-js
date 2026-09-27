@@ -44,3 +44,11 @@ export function formatLongDate(isoString) {
         day: 'numeric',
     })
 }
+
+
+// Money in the right currency and the visitor's own number style:
+//   formatMoney('4.99', 'EUR') -> "€4.99" (or "4,99 €" in Dutch)
+// Intl.NumberFormat is built into JavaScript.
+export function formatMoney(amount, currency) {
+    return new Intl.NumberFormat(undefined, { style: 'currency', currency }).format(Number(amount))
+}

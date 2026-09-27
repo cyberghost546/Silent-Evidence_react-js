@@ -185,5 +185,8 @@ if 'test' in sys.argv:
 # ---------------------------------------------------------------
 DEFAULT_FROM_EMAIL = 'Silent Evidence <no-reply@silentevidence.example>'
 
+# The money on the Revenue / Premium Members pages.
+CURRENCY = 'EUR'
+
 # Used to build links inside emails ("read it here: ...").
 SITE_URL = 'http://localhost:5173'

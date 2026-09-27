@@ -15,6 +15,7 @@ from moderation.bans import active_ban, refresh_ban_status, ban_message
 from moderation.security import is_locked, record_login, client_ip, LOCK_MINUTES
 from stories.models import Like, Bookmark, Comment, published_stories
 from .models import Follow, Block, get_profile
+from .premium import refresh_premium
 from .serializers import SignUpSerializer, ProfileSettingsSerializer
 
 
@@ -162,6 +163,9 @@ class MeView(APIView):
         if not request.user.is_authenticated:
             return Response(status=status.HTTP_204_NO_CONTENT)
 
+        # A premium membership that ran out switches the PRO badge off
+        # here (accounts/premium.py) - checked on every page load.
+        refresh_premium(request.user)
         return Response(user_data(request.user))
 
 

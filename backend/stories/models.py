@@ -8,6 +8,29 @@ from categories.models import Category
 
 
 # ---------------------------------------------------------------
+# TAGS - short labels writers add to a story ("lighthouse", "vhs",
+# "cursed-object"). Search finds stories by tag, and admins tidy
+# them up on Admin Dashboard -> Tag Manager.
+#
+# Defined ABOVE Story because Story points at it (ManyToManyField).
+# ---------------------------------------------------------------
+class Tag(models.Model):
+    # Always lower case, so "VHS" and "vhs" are one tag (see save()).
+    name = models.CharField(max_length=30, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['name']
+
+    def save(self, *args, **kwargs):
+        self.name = self.name.strip().lower()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.name
+
+
+# ---------------------------------------------------------------
 # CHOICES for the Write a Story page.
 #
 # Each pair is (what's saved in the database, what a human reads).
@@ -101,6 +124,10 @@ class Story(models.Model):
     # The ticked warnings, saved as one string: "Violence,Gore".
     # Simple, and good enough until we need to search by warning.
     content_warnings = models.CharField(max_length=300, blank=True)
+
+    # Many tags per story, and many stories per tag:
+    #   story.tags.all()   /   tag.stories.all()
+    tags = models.ManyToManyField(Tag, blank=True, related_name='stories')
 
     # Empty = show it straight away. A date = stay hidden until then
     # (see published_stories() below).

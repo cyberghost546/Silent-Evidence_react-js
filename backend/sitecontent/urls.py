@@ -11,6 +11,7 @@ from .views import (
     AdminCategoryListView, AdminCategoryDetailView,
     AdminStoryPickerView,
     CookieBannerView, CookieConsentView, AdminCookieView,
+    MoodOfTheDayView, AdminMoodListView, AdminMoodDetailView,
 )
 
 
@@ -26,6 +27,7 @@ urlpatterns = [
     path('bundles/<slug:slug>/', BundleDetailView.as_view()),
     path('cookie-banner/', CookieBannerView.as_view()),
     path('cookie-consent/', CookieConsentView.as_view()),
+    path('mood-of-the-day/', MoodOfTheDayView.as_view()),
 
     # Admin Dashboard
     path('dashboard/announcements/', AdminAnnouncementListView.as_view()),
@@ -40,4 +42,6 @@ urlpatterns = [
     path('dashboard/categories/<int:pk>/', AdminCategoryDetailView.as_view()),
     path('dashboard/story-picker/', AdminStoryPickerView.as_view()),
     path('dashboard/cookie-consent/', AdminCookieView.as_view()),
+    path('dashboard/moods/', AdminMoodListView.as_view()),
+    path('dashboard/moods/<int:pk>/', AdminMoodDetailView.as_view()),
 ]

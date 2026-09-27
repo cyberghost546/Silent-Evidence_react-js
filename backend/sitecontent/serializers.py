@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from categories.models import Category
 from stories.models import Story
-from .models import Announcement, WritingPrompt, Challenge, Bundle
+from .models import Announcement, WritingPrompt, Challenge, Bundle, MoodOfDay
 
 
 # ---------------------------------------------------------------
@@ -75,3 +75,9 @@ class AdminCategorySerializer(serializers.ModelSerializer):
 
     def get_story_count(self, category):
         return category.stories.count()
+
+
+class MoodOfDaySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MoodOfDay
+        fields = ['id', 'date', 'mood', 'note']

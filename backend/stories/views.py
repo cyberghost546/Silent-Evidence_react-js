@@ -649,7 +649,11 @@ class SearchView(APIView):
                 | Q(excerpt__icontains=query)
                 | Q(body__icontains=query)
                 | Q(author__username__icontains=query)
+                | Q(tags__name__icontains=query)
             )
+            # A story matching in several ways (title AND a tag) would
+            # otherwise be listed twice.
+            .distinct()
             .select_related('author', 'category')
             .order_by('-views')[:30]
         )
