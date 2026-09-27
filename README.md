@@ -61,7 +61,14 @@ python manage.py test        # Django tests (settings, feed, privacy, messages..
 
 cd frontend
 npm run lint                 # checks the React code for mistakes
+npm test                     # React tests (Vitest) - once
+npm run test:watch           # React tests - again on every save
 ```
+
+React tests live next to the component they test (`LogIn.test.jsx`
+next to `LogIn.jsx`). Start from `utils/format.test.js` (plain
+functions) and `StoryPage/Comments.test.jsx` (a component, with
+Django faked by `vi.mock`) - both explain every step.
 
 
 ## How it fits together

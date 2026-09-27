@@ -15,4 +15,14 @@ export default defineConfig({
       '/robots.txt': 'http://localhost:8000',
     },
   },
+  // Settings for the tests (npm test). Vitest reads them from here.
+  test: {
+    // jsdom = a pretend browser inside Node, so components can render
+    // without opening Chrome.
+    environment: 'jsdom',
+    // Runs before every test file (src/test/setup.js).
+    setupFiles: './src/test/setup.js',
+    // Don't try to load CSS in tests - it's not needed and slows them down.
+    css: false,
+  },
 })
