@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { TrendingUp, ArrowUp, ArrowDown } from 'lucide-react'
 import { getAnalytics } from '../../api/client'
 import SegmentedControl from '../SegmentedControl/SegmentedControl'
+import { useApi } from '../../hooks/useApi'
 
 
 // ---------------------------------------------------------------
@@ -51,22 +52,10 @@ function Change({ total, previous }) {
 function AnalyticsDashboard() {
     const [days, setDays] = useState(30)
     const [metric, setMetric] = useState('signups')
-    const [data, setData] = useState(null)
-    const [error, setError] = useState('')
+    // [days]: load again when you pick another range (hooks/useApi.js).
+    const { data, error } = useApi(() => getAnalytics(days), [days])
     // The bar under the mouse (its index), or null.
     const [hovered, setHovered] = useState(null)
-
-    useEffect(() => {
-        let ignore = false
-        getAnalytics(days)
-            .then(result => {
-                if (!ignore) setData(result)
-            })
-            .catch(() => setError('Could not load the analytics.'))
-        return () => {
-            ignore = true
-        }
-    }, [days])
 
     const series = data?.series[metric] ?? []
     const tile = data?.tiles.find(item => item.key === metric)

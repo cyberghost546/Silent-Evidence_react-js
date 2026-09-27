@@ -167,6 +167,7 @@ All routes live in `frontend/src/App.jsx`.
 | `Dashboard/AdminParts` | Admin list pages: `AdminSearch`, `AdminFilters`, `PageMessages` |
 | `SettingsParts` | `SettingsSection`, `SettingRow`, `Toggle` (on/off switch) |
 | `styles/formStyles.js` | The shared classes for labels, inputs, buttons |
+| `useApi(() => getX(), [deps])` | Loading data from Django in one line: `data`, `error`, `loading`, `reload()` (examples: `PollsDashboard`, `SeriesPage`) |
 | `usePageTitle('...')` | The browser-tab title of a page (site name from the SEO page) |
 | `useSiteStatus()` | Maintenance mode, sign-ups open, contact email, site title (asked once per page load) |
 

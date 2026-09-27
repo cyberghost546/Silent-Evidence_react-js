@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { getSeries } from '../../api/client'
 import { usePageTitle } from '../../hooks/usePageTitle'
+import { useApi } from '../../hooks/useApi'
 import { pluralize } from '../../utils/format'
 import PageLayout, { PageMessage } from '../PageLayout/PageLayout'
 
@@ -13,25 +13,11 @@ import PageLayout, { PageMessage } from '../PageLayout/PageLayout'
 // ---------------------------------------------------------------
 function SeriesPage() {
     const { id } = useParams()
-    const [series, setSeries] = useState(null)
-    const [notFound, setNotFound] = useState(false)
+    // [id]: load again when you go from one series to another.
+    const { data: series, error } = useApi(() => getSeries(id), [id])
     usePageTitle(series?.title)
 
-    useEffect(() => {
-        let ignore = false
-        getSeries(id)
-            .then(data => {
-                if (!ignore) setSeries(data)
-            })
-            .catch(() => {
-                if (!ignore) setNotFound(true)
-            })
-        return () => {
-            ignore = true
-        }
-    }, [id])
-
-    if (notFound) {
+    if (error) {
         return <PageLayout title='Series not found'><PageMessage title='This series does not exist.' /></PageLayout>
     }
     if (!series) {

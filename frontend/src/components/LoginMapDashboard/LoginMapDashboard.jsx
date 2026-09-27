@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Map, TriangleAlert } from 'lucide-react'
 import { getLoginMap, blockIp } from '../../api/client'
 import { PageMessages } from '../Dashboard/AdminParts'
 import SegmentedControl from '../SegmentedControl/SegmentedControl'
+import { useApi } from '../../hooks/useApi'
 
 
 // ---------------------------------------------------------------
@@ -36,22 +37,11 @@ const KIND_LABELS = {
 
 function LoginMapDashboard() {
     const [days, setDays] = useState(30)
-    const [data, setData] = useState(null)
+    // [days]: load again when you pick another range (hooks/useApi.js).
+    const { data, error: loadError, reload } = useApi(() => getLoginMap(days), [days])
+    // Messages from the Block button.
     const [error, setError] = useState('')
     const [notice, setNotice] = useState('')
-    const [reloadKey, setReloadKey] = useState(0)
-
-    useEffect(() => {
-        let ignore = false
-        getLoginMap(days)
-            .then(result => {
-                if (!ignore) setData(result)
-            })
-            .catch(() => setError('Could not load the login map.'))
-        return () => {
-            ignore = true
-        }
-    }, [days, reloadKey])
 
     async function handleBlock(row) {
         if (!window.confirm(`Block ${row.ip_address}? Nobody on that address can use the site until you unblock it (IP Blocklist).`)) return
@@ -60,7 +50,7 @@ function LoginMapDashboard() {
         try {
             await blockIp(row.ip_address, `From Login Map (${row.failed} failed logins)`)
             setNotice(`${row.ip_address} is blocked.`)
-            setReloadKey(current => current + 1)
+            reload()
         } catch (err) {
             setError(err.data?.detail || err.data?.ip_address?.[0] || 'Could not block it.')
         }
@@ -81,7 +71,7 @@ function LoginMapDashboard() {
                 <SegmentedControl label='Time range' options={RANGES} value={days} onChange={setDays} />
             </div>
 
-            <PageMessages error={error} notice={notice} />
+            <PageMessages error={error || loadError} notice={notice} />
 
             {data && (
                 <>

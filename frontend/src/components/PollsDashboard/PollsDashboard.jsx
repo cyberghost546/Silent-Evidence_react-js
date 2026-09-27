@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { ChartColumn, Plus, Trash2, X } from 'lucide-react'
 import { getPolls, createPoll, setPollActive, deletePoll } from '../../api/client'
 import { PageMessages } from '../Dashboard/AdminParts'
+import { useApi } from '../../hooks/useApi'
 import { INPUT_STYLE, LABEL_STYLE, BUTTON_STYLE } from '../../styles/formStyles'
 
 
@@ -14,19 +15,14 @@ import { INPUT_STYLE, LABEL_STYLE, BUTTON_STYLE } from '../../styles/formStyles'
 // Below: every poll with its results; re-open or close any of them.
 // ---------------------------------------------------------------
 function PollsDashboard() {
-    const [polls, setPolls] = useState(null)
+    // The list of polls. reload() = ask Django again after a change
+    // (useApi, hooks/useApi.js).
+    const { data: polls, error: loadError, reload } = useApi(() => getPolls())
     const [question, setQuestion] = useState('')
     // The answers being typed - start with two empty boxes.
     const [options, setOptions] = useState(['', ''])
+    // Errors from creating / closing / deleting a poll.
     const [error, setError] = useState('')
-    const [reloadKey, setReloadKey] = useState(0)
-    const reload = () => setReloadKey(current => current + 1)
-
-    useEffect(() => {
-        getPolls()
-            .then(data => setPolls(data))
-            .catch(() => setError('Could not load the polls.'))
-    }, [reloadKey])
 
     // Change the text of answer number `index`. .map makes a new list
     // where only that one item is different.
@@ -68,7 +64,7 @@ function PollsDashboard() {
             </h1>
             <p className='mt-1 text-gray-400'>The poll in the homepage sidebar. One runs at a time.</p>
 
-            <PageMessages error={error} notice='' />
+            <PageMessages error={error || loadError} notice='' />
 
             <form onSubmit={handleCreate} className='mt-6 space-y-4 rounded-2xl border border-slate-800 bg-slate-900/60 p-6'>
                 <div>

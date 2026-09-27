@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react'
 import { CheckCheck } from 'lucide-react'
 import { getNotifications, markNotificationsRead } from '../../api/client'
 import { usePageTitle } from '../../hooks/usePageTitle'
+import { useApi } from '../../hooks/useApi'
 import PageLayout, { PageMessage } from '../PageLayout/PageLayout'
 import NotificationItem from '../NotificationMenu/NotificationItem'
 
@@ -13,14 +13,8 @@ import NotificationItem from '../NotificationMenu/NotificationItem'
 // ---------------------------------------------------------------
 function NotificationsPage() {
     usePageTitle('Notifications')
-    const [data, setData] = useState(null)
-    const [error, setError] = useState('')
-
-    useEffect(() => {
-        getNotifications(100)
-            .then(result => setData(result))
-            .catch(() => setError('Could not load your notifications.'))
-    }, [])
+    // useApi = load + error + loading in one line (hooks/useApi.js).
+    const { data, error, setData } = useApi(() => getNotifications(100))
 
     function markRead(item) {
         if (item.is_read) return
