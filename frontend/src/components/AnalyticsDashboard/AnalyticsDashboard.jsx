@@ -118,13 +118,13 @@ function AnalyticsDashboard() {
                                     <>{shortDate(series[hovered].date)}: <span className='font-semibold text-white'>{series[hovered].count}</span></>
                                 ) : (
                                     // Nothing hovered: give the scale instead (there's no y-axis).
-                                    <span className='text-gray-500'>Busiest day: {highest === 1 && series.every(point => point.count === 0) ? 0 : highest} · hover a bar for its number</span>
+                                    <span className='text-gray-500'>Busiest day: {Math.max(0, ...series.map(point => point.count))} · hover a bar for its number</span>
                                 )}
                             </p>
                         </div>
 
                         {/* The bars. items-end = bars grow up from the bottom. */}
-                        <div className='mt-4 flex h-48 items-end gap-[2px] border-b border-slate-700' onMouseLeave={() => setHovered(null)}>
+                        <div className='mt-4 flex h-48 items-end gap-0.5 border-b border-slate-700' onMouseLeave={() => setHovered(null)}>
                             {series.map((point, index) => (
                                 // The hover area is the whole column (easier to hit
                                 // than a thin bar); the bar is drawn inside it.
@@ -143,7 +143,7 @@ function AnalyticsDashboard() {
                             ))}
                         </div>
                         {/* Dates under the chart, every few bars. */}
-                        <div className='mt-1 flex gap-[2px]'>
+                        <div className='mt-1 flex gap-0.5'>
                             {series.map((point, index) => (
                                 <span key={point.date} className='flex-1 truncate text-[10px] text-gray-500'>
                                     {index % labelEvery === 0 ? shortDate(point.date) : ''}

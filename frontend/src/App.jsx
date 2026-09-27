@@ -1,3 +1,4 @@
+import { lazy } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import SiteLayout from './components/SiteLayout/SiteLayout'
 import HomePage from './components/HomePage/HomePage'
@@ -10,75 +11,91 @@ import NotFound from './components/NotFound/NotFound'
 import ProtectedRoute from './auth/ProtectedRoute'
 import AgeGate from './components/AgeGate/AgeGate'
 import MaintenanceGate from './components/MaintenanceGate/MaintenanceGate'
-import WriteStory from './components/WriteStory/WriteStory'
 import ContactPage from './components/ContactPage/ContactPage'
 import ProfilePage from './components/ProfilePage/ProfilePage'
-import AuthorDashboard from './components/AuthorDashboard/AuthorDashboard'
 import DashboardLayout from './components/Dashboard/DashboardLayout'
-import Overview from './components/Dashboard/Overview'
-import SlideDashboard from './components/SlideDashboard/SlideDashboard'
-import SettingsPage from './components/SettingsPage/SettingsPage'
-import UsersDashboard from './components/UsersDashboard/UsersDashboard'
-import StoriesDashboard from './components/StoriesDashboard/StoriesDashboard'
-import AIGeneratorDashboard from './components/AIGeneratorDashboard/AIGeneratorDashboard'
-import ModerationDashboard from './components/ModerationDashboard/ModerationDashboard'
-import ReportsDashboard from './components/ReportsDashboard/ReportsDashboard'
-import AppealsDashboard from './components/AppealsDashboard/AppealsDashboard'
-import LoginLogsDashboard from './components/LoginLogsDashboard/LoginLogsDashboard'
-import SecurityDashboard from './components/SecurityDashboard/SecurityDashboard'
-import CategoriesDashboard from './components/CategoriesDashboard/CategoriesDashboard'
-import StoryOfWeekDashboard from './components/StoryOfWeekDashboard/StoryOfWeekDashboard'
-import AnnouncementsDashboard from './components/AnnouncementsDashboard/AnnouncementsDashboard'
-import PromptsDashboard from './components/PromptsDashboard/PromptsDashboard'
-import ChallengesDashboard from './components/ChallengesDashboard/ChallengesDashboard'
-import BundlesDashboard from './components/BundlesDashboard/BundlesDashboard'
 import ChallengesPage from './components/ChallengesPage/ChallengesPage'
 import BundlesPage from './components/BundlesPage/BundlesPage'
-import ContactInboxDashboard from './components/ContactInboxDashboard/ContactInboxDashboard'
-import SupportDashboard from './components/SupportDashboard/SupportDashboard'
-import NewsletterDashboard from './components/NewsletterDashboard/NewsletterDashboard'
-import CommentDigestDashboard from './components/CommentDigestDashboard/CommentDigestDashboard'
-import SupportPage from './components/SupportPage/SupportPage'
-import FunnelDashboard from './components/FunnelDashboard/FunnelDashboard'
-import CookieConsentDashboard from './components/CookieConsentDashboard/CookieConsentDashboard'
-import VerificationDashboard from './components/VerificationDashboard/VerificationDashboard'
-import ContentFilterDashboard from './components/ContentFilterDashboard/ContentFilterDashboard'
-import DisciplineDashboard from './components/DisciplineDashboard/DisciplineDashboard'
-import PremiumDashboard from './components/PremiumDashboard/PremiumDashboard'
-import RevenueDashboard from './components/RevenueDashboard/RevenueDashboard'
-import ScheduledDashboard from './components/ScheduledDashboard/ScheduledDashboard'
-import TagManagerDashboard from './components/TagManagerDashboard/TagManagerDashboard'
-import MoodDashboard from './components/MoodDashboard/MoodDashboard'
-import AdminSearchDashboard from './components/AdminSearchDashboard/AdminSearchDashboard'
-import EmailLogDashboard from './components/EmailLogDashboard/EmailLogDashboard'
-import SiteHealthDashboard from './components/SiteHealthDashboard/SiteHealthDashboard'
-import SiteSettingsDashboard from './components/SiteSettingsDashboard/SiteSettingsDashboard'
-import RateLimitsDashboard from './components/RateLimitsDashboard/RateLimitsDashboard'
-import BlocklistDashboard from './components/BlocklistDashboard/BlocklistDashboard'
-import AuditLogDashboard from './components/AuditLogDashboard/AuditLogDashboard'
-import EmailTemplatesDashboard from './components/EmailTemplatesDashboard/EmailTemplatesDashboard'
-import SeoDashboard from './components/SeoDashboard/SeoDashboard'
-import HeatmapDashboard from './components/HeatmapDashboard/HeatmapDashboard'
-import ToxicityDashboard from './components/ToxicityDashboard/ToxicityDashboard'
-import LoginMapDashboard from './components/LoginMapDashboard/LoginMapDashboard'
-import AnalyticsDashboard from './components/AnalyticsDashboard/AnalyticsDashboard'
-import FeaturedAuthorsDashboard from './components/FeaturedAuthorsDashboard/FeaturedAuthorsDashboard'
-import SpotlightDashboard from './components/SpotlightDashboard/SpotlightDashboard'
-import PollsDashboard from './components/PollsDashboard/PollsDashboard'
-import CalendarDashboard from './components/CalendarDashboard/CalendarDashboard'
-import MergeStoriesDashboard from './components/MergeStoriesDashboard/MergeStoriesDashboard'
 import LeaderboardPage from './components/LeaderboardPage/LeaderboardPage'
-import FeedPage from './components/FeedPage/FeedPage'
-import MyListsPage from './components/MyListsPage/MyListsPage'
-import HistoryPage from './components/HistoryPage/HistoryPage'
-import MyStoriesPage from './components/MyStoriesPage/MyStoriesPage'
-import InvitesPage from './components/InvitesPage/InvitesPage'
-import MessagesPage from './components/MessagesPage/MessagesPage'
 import SearchPage from './components/SearchPage/SearchPage'
 import InfoPage from './components/InfoPage/InfoPage'
 import SiteGuide from './components/SiteGuide/SiteGuide'
 import AskTheWatcher from './components/SiteGuide/AskTheWatcher'
 import './App.css'
+
+// ---------------------------------------------------------------
+// THE ADMIN PAGES ARE LOADED "LAZILY".
+//
+// A normal import puts a page in the one big JavaScript file that
+// EVERY visitor downloads - also the ~50 admin pages that only
+// admins ever see. lazy(() => import(...)) makes each admin page its
+// own small file, downloaded the first time someone opens it.
+// While it downloads, <Suspense> in DashboardLayout shows "Loading...".
+//
+// To add an admin page: add a lazy line here (not a normal import).
+// ---------------------------------------------------------------
+
+// Pages only logged-in members use - same idea (Suspense in SiteLayout).
+const WriteStory = lazy(() => import('./components/WriteStory/WriteStory'))
+const AuthorDashboard = lazy(() => import('./components/AuthorDashboard/AuthorDashboard'))
+const SettingsPage = lazy(() => import('./components/SettingsPage/SettingsPage'))
+const SupportPage = lazy(() => import('./components/SupportPage/SupportPage'))
+const FeedPage = lazy(() => import('./components/FeedPage/FeedPage'))
+const MyListsPage = lazy(() => import('./components/MyListsPage/MyListsPage'))
+const HistoryPage = lazy(() => import('./components/HistoryPage/HistoryPage'))
+const MyStoriesPage = lazy(() => import('./components/MyStoriesPage/MyStoriesPage'))
+const InvitesPage = lazy(() => import('./components/InvitesPage/InvitesPage'))
+const MessagesPage = lazy(() => import('./components/MessagesPage/MessagesPage'))
+
+// The admin pages:
+const Overview = lazy(() => import('./components/Dashboard/Overview'))
+const SlideDashboard = lazy(() => import('./components/SlideDashboard/SlideDashboard'))
+const UsersDashboard = lazy(() => import('./components/UsersDashboard/UsersDashboard'))
+const StoriesDashboard = lazy(() => import('./components/StoriesDashboard/StoriesDashboard'))
+const AIGeneratorDashboard = lazy(() => import('./components/AIGeneratorDashboard/AIGeneratorDashboard'))
+const ModerationDashboard = lazy(() => import('./components/ModerationDashboard/ModerationDashboard'))
+const ReportsDashboard = lazy(() => import('./components/ReportsDashboard/ReportsDashboard'))
+const AppealsDashboard = lazy(() => import('./components/AppealsDashboard/AppealsDashboard'))
+const LoginLogsDashboard = lazy(() => import('./components/LoginLogsDashboard/LoginLogsDashboard'))
+const SecurityDashboard = lazy(() => import('./components/SecurityDashboard/SecurityDashboard'))
+const CategoriesDashboard = lazy(() => import('./components/CategoriesDashboard/CategoriesDashboard'))
+const StoryOfWeekDashboard = lazy(() => import('./components/StoryOfWeekDashboard/StoryOfWeekDashboard'))
+const AnnouncementsDashboard = lazy(() => import('./components/AnnouncementsDashboard/AnnouncementsDashboard'))
+const PromptsDashboard = lazy(() => import('./components/PromptsDashboard/PromptsDashboard'))
+const ChallengesDashboard = lazy(() => import('./components/ChallengesDashboard/ChallengesDashboard'))
+const BundlesDashboard = lazy(() => import('./components/BundlesDashboard/BundlesDashboard'))
+const ContactInboxDashboard = lazy(() => import('./components/ContactInboxDashboard/ContactInboxDashboard'))
+const SupportDashboard = lazy(() => import('./components/SupportDashboard/SupportDashboard'))
+const NewsletterDashboard = lazy(() => import('./components/NewsletterDashboard/NewsletterDashboard'))
+const CommentDigestDashboard = lazy(() => import('./components/CommentDigestDashboard/CommentDigestDashboard'))
+const FunnelDashboard = lazy(() => import('./components/FunnelDashboard/FunnelDashboard'))
+const CookieConsentDashboard = lazy(() => import('./components/CookieConsentDashboard/CookieConsentDashboard'))
+const VerificationDashboard = lazy(() => import('./components/VerificationDashboard/VerificationDashboard'))
+const ContentFilterDashboard = lazy(() => import('./components/ContentFilterDashboard/ContentFilterDashboard'))
+const DisciplineDashboard = lazy(() => import('./components/DisciplineDashboard/DisciplineDashboard'))
+const PremiumDashboard = lazy(() => import('./components/PremiumDashboard/PremiumDashboard'))
+const RevenueDashboard = lazy(() => import('./components/RevenueDashboard/RevenueDashboard'))
+const ScheduledDashboard = lazy(() => import('./components/ScheduledDashboard/ScheduledDashboard'))
+const TagManagerDashboard = lazy(() => import('./components/TagManagerDashboard/TagManagerDashboard'))
+const MoodDashboard = lazy(() => import('./components/MoodDashboard/MoodDashboard'))
+const AdminSearchDashboard = lazy(() => import('./components/AdminSearchDashboard/AdminSearchDashboard'))
+const EmailLogDashboard = lazy(() => import('./components/EmailLogDashboard/EmailLogDashboard'))
+const SiteHealthDashboard = lazy(() => import('./components/SiteHealthDashboard/SiteHealthDashboard'))
+const SiteSettingsDashboard = lazy(() => import('./components/SiteSettingsDashboard/SiteSettingsDashboard'))
+const RateLimitsDashboard = lazy(() => import('./components/RateLimitsDashboard/RateLimitsDashboard'))
+const BlocklistDashboard = lazy(() => import('./components/BlocklistDashboard/BlocklistDashboard'))
+const AuditLogDashboard = lazy(() => import('./components/AuditLogDashboard/AuditLogDashboard'))
+const EmailTemplatesDashboard = lazy(() => import('./components/EmailTemplatesDashboard/EmailTemplatesDashboard'))
+const SeoDashboard = lazy(() => import('./components/SeoDashboard/SeoDashboard'))
+const HeatmapDashboard = lazy(() => import('./components/HeatmapDashboard/HeatmapDashboard'))
+const ToxicityDashboard = lazy(() => import('./components/ToxicityDashboard/ToxicityDashboard'))
+const LoginMapDashboard = lazy(() => import('./components/LoginMapDashboard/LoginMapDashboard'))
+const AnalyticsDashboard = lazy(() => import('./components/AnalyticsDashboard/AnalyticsDashboard'))
+const FeaturedAuthorsDashboard = lazy(() => import('./components/FeaturedAuthorsDashboard/FeaturedAuthorsDashboard'))
+const SpotlightDashboard = lazy(() => import('./components/SpotlightDashboard/SpotlightDashboard'))
+const PollsDashboard = lazy(() => import('./components/PollsDashboard/PollsDashboard'))
+const CalendarDashboard = lazy(() => import('./components/CalendarDashboard/CalendarDashboard'))
+const MergeStoriesDashboard = lazy(() => import('./components/MergeStoriesDashboard/MergeStoriesDashboard'))
 
 function App() {
 

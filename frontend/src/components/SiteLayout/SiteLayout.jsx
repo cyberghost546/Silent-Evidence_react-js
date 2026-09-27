@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { Outlet } from 'react-router-dom'
 import Header from '../Header/Header'
 import AnnouncementBanner from '../AnnouncementBanner/AnnouncementBanner'
@@ -26,7 +27,11 @@ function SiteLayout() {
             <Header />
 
             <main className='flex-1'>
-                <Outlet />
+                {/* Some pages are loaded lazily (see App.jsx): Suspense
+                    shows the fallback while their file downloads. */}
+                <Suspense fallback={<p className='px-6 py-16 text-center text-gray-400'>Loading...</p>}>
+                    <Outlet />
+                </Suspense>
             </main>
 
             <Footer />

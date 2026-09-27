@@ -171,3 +171,8 @@ Every file starts with a comment explaining what it does and how to use it.
    `<PageLayout>`, load the data in a `useEffect`.
 6. **Route:** a `<Route>` in `App.jsx` (inside `<ProtectedRoute>` if
    you must be logged in), and a link to it somewhere.
+   For an **admin** or **members-only** page, import it with
+   `const MyPage = lazy(() => import('./components/MyPage/MyPage'))`
+   (next to the others at the top of `App.jsx`) instead of a normal
+   `import` - then visitors don't download it. Admin pages also need a
+   line in `NAV_ITEMS` in `Dashboard/Sidebar.jsx`.
