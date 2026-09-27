@@ -3,17 +3,44 @@ import { DIGEST_OPTIONS } from './settingsOptions'
 
 
 // ---------------------------------------------------------------
-// "Notifications" - a switch and a group of radio buttons.
-// Both save as soon as you click them (no Save button).
+// "Notifications" - switches for the bell, then the emails.
+// Everything saves as soon as you click it (no Save button).
 //
-// NOTE: this only SAVES your choice. Actually sending the emails is
-// a separate job for later (Django would need an email server and
-// a task that runs every day/week).
+//   The bell: which kinds you want (Django's notify() checks these,
+//             see accounts/notifications.py). Co-author invites and
+//             support answers are always on - they need a reply.
+//   Emails:   the weekly digest and the comment digest.
 // ---------------------------------------------------------------
+
+// One line per switch, so adding a kind later = one more line here
+// (and the field in Django's Profile model).
+const BELL_SWITCHES = [
+    { field: 'notify_likes', title: 'Likes', text: 'When someone likes one of your stories.' },
+    { field: 'notify_comments', title: 'Comments & replies', text: 'New comments on your stories, and replies to your comments.' },
+    { field: 'notify_follows', title: 'New followers', text: 'When someone starts following you.' },
+]
+
+
 function NotificationSettings({ settings, onSave }) {
     return (
         <SettingsSection id='notifications' title='Notifications' description='Choose which emails and alerts you receive.'>
             <div className='space-y-4'>
+
+                {/* ---------- THE BELL ---------- */}
+                <p className='text-xs font-semibold uppercase tracking-wider text-gray-500'>The bell 🔔</p>
+                {BELL_SWITCHES.map(item => (
+                    <SettingRow key={item.field} title={item.title} text={item.text}>
+                        <Toggle
+                            label={item.title}
+                            on={settings[item.field]}
+                            // [item.field] in { } = use the field NAME as the key:
+                            // { notify_likes: false }
+                            onChange={newValue => onSave({ [item.field]: newValue }, `${item.title}: ${newValue ? 'on' : 'off'}.`)}
+                        />
+                    </SettingRow>
+                ))}
+
+                <p className='pt-2 text-xs font-semibold uppercase tracking-wider text-gray-500'>Emails</p>
 
                 {/* ---------- WEEKLY DIGEST: on/off ---------- */}
                 <SettingRow title='Weekly Horror Digest' text='Top stories of the week, delivered every Monday.'>

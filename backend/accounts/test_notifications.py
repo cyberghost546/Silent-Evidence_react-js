@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from django.test import TestCase
 
-from accounts.models import Block, Notification
+from accounts.models import Block, Notification, get_profile
 from stories.models import Story
 
 
@@ -55,6 +55,17 @@ class NotificationTests(TestCase):
         self.assertEqual(answer['unread'], 0)
         theirs.refresh_from_db()
         self.assertFalse(theirs.is_read)      # not yours -> untouched
+
+    def test_switched_off_kinds_are_not_sent(self):
+        profile = get_profile(self.writer)
+        profile.notify_likes = False
+        profile.save()
+
+        self.client.force_login(self.fan)
+        self.client.post(f'/api/stories/{self.story.id}/like/')                 # switched off
+        self.client.post('/api/accounts/authors/writer/follow/')              # still on
+        kinds = list(Notification.objects.filter(recipient=self.writer).values_list('kind', flat=True))
+        self.assertEqual(kinds, ['follow'])
 
     def test_logged_out_gets_403(self):
         self.assertEqual(self.client.get('/api/accounts/notifications/').status_code, 403)

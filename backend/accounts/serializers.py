@@ -59,6 +59,7 @@ class ProfileSettingsSerializer(serializers.ModelSerializer):
             'avatar', 'bio', 'website',
             'content_access', 'fear_moods', 'reading_speed',
             'weekly_digest', 'comment_digest',
+            'notify_likes', 'notify_comments', 'notify_follows',
             'profile_theme', 'avatar_border',
             'is_private',
         ]

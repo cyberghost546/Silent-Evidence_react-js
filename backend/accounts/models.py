@@ -92,6 +92,13 @@ class Profile(models.Model):
     email_verified = models.BooleanField(default=False)
 
     # --- Notifications ---
+    # The bell: which kinds they want (Settings -> Notifications).
+    # Co-author invites and support answers can't be switched off -
+    # they need an answer from you.
+    notify_likes = models.BooleanField(default=True)
+    notify_comments = models.BooleanField(default=True)   # comments AND replies
+    notify_follows = models.BooleanField(default=True)
+
     weekly_digest = models.BooleanField(default=True)
     comment_digest = models.CharField(max_length=10, choices=DIGEST_CHOICES, default='weekly')
 
