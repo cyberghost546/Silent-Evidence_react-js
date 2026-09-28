@@ -108,6 +108,9 @@ class Profile(models.Model):
     notify_follows = models.BooleanField(default=True)
 
     weekly_digest = models.BooleanField(default=True)
+    # "New stories from writers you follow" - one email a day at most
+    # (mailings/follow_digest.py).
+    follow_digest = models.BooleanField(default=True)
     comment_digest = models.CharField(max_length=10, choices=DIGEST_CHOICES, default='weekly')
 
     # --- Appearance ---

@@ -93,6 +93,20 @@ TEMPLATES = {
         'body': '---\nYou get this because "Weekly Horror Digest" is on. Switch it off: {settings_link}',
         'sample': {'settings_link': 'http://localhost:5173/settings'},
     },
+    'follow_digest': {
+        'name': 'New from writers you follow',
+        'description': 'Daily (python manage.py send_follow_digest) - the new stories by writers a member follows.',
+        'subject': 'New stories from writers you follow',
+        'body': (
+            'Hi {username},\n\nNew since yesterday from the writers you follow:\n{story_list}\n\n'
+            '---\nDon\'t want these? Settings -> Notifications: {settings_link}'
+        ),
+        'sample': {
+            'username': 'night_owl',
+            'story_list': '\n"The House on Wren Street" by the_keeper\n  http://localhost:5173/stories/12',
+            'settings_link': 'http://localhost:5173/settings',
+        },
+    },
     'weekly_top': {
         'name': 'Top of the week',
         'description': 'Sent every Monday (python manage.py send_weekly_top) to members with "Weekly Horror Digest" on.',

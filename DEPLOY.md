@@ -169,6 +169,7 @@ Two more Render **Cron Jobs**, set up the same way as the nightly backup
 | --- | --- | --- |
 | Top of the week | `0 8 * * 1` (08:00 every Monday) | `python manage.py send_weekly_top` |
 | Comment digest | `0 9 * * 1` (09:00 every Monday) | `python manage.py send_comment_digests weekly` |
+| Writers you follow | `0 7 * * *` (07:00 every day) | `python manage.py send_follow_digest` |
 
 Both only email members who switched the digest on in Settings, and
 "Top of the week" skips quiet weeks. You can preview it any time in

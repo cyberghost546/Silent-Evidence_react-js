@@ -55,6 +55,15 @@ function NotificationSettings({ settings, onSave }) {
                     />
                 </SettingRow>
 
+                {/* ---------- WRITERS YOU FOLLOW: on/off ---------- */}
+                <SettingRow title='New from writers you follow' text='One email a day when writers you follow publish something new.'>
+                    <Toggle
+                        label='New from writers you follow'
+                        on={settings.follow_digest}
+                        onChange={newValue => onSave({ follow_digest: newValue }, newValue ? 'Emails about writers you follow: on.' : 'Emails about writers you follow: off.')}
+                    />
+                </SettingRow>
+
                 {/* ---------- COMMENT DIGEST: pick one ---------- */}
                 {/* <fieldset> + <legend> is the proper HTML for "a group
                     of radio buttons with a title" - screen readers read

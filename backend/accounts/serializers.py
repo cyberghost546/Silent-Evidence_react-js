@@ -71,7 +71,7 @@ class ProfileSettingsSerializer(serializers.ModelSerializer):
         fields = [
             'avatar', 'bio', 'website', 'tip_url',
             'content_access', 'fear_moods', 'reading_speed',
-            'weekly_digest', 'comment_digest',
+            'weekly_digest', 'comment_digest', 'follow_digest',
             'notify_likes', 'notify_comments', 'notify_follows',
             'profile_theme', 'avatar_border',
             'is_private',
