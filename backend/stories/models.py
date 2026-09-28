@@ -470,3 +470,39 @@ class Reaction(models.Model):
 
     class Meta:
         unique_together = ['user', 'story', 'kind']
+
+
+# ---------------------------------------------------------------
+# STORY CHAIN - a story the community writes together.
+#
+# One member starts it (the first ChainPart), then others add the
+# next part, one after another. Rules (see stories/chain_views.py):
+#   - you can't add two parts in a row (someone else goes between)
+#   - max 1500 characters per part
+#   - after max_parts parts the chain closes by itself: "The End"
+# ---------------------------------------------------------------
+class Chain(models.Model):
+    title = models.CharField(max_length=120)
+    started_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='chains_started')
+    is_open = models.BooleanField(default=True)
+    max_parts = models.PositiveSmallIntegerField(default=20)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return self.title
+
+
+class ChainPart(models.Model):
+    chain = models.ForeignKey(Chain, on_delete=models.CASCADE, related_name='parts')
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='chain_parts')
+    body = models.TextField(max_length=1500)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['created_at']   # the story reads from the start
+
+    def __str__(self):
+        return f'{self.chain}: {self.body[:30]}'

@@ -1300,3 +1300,27 @@ export function rateFear(storyId, score) {
 export function toggleReaction(storyId, kind) {
     return authRequest(`/api/stories/${storyId}/react/`, 'POST', { kind })
 }
+
+
+// --- Story chains ---
+
+export function getChains() {
+    return getJSON('/api/chains/')
+}
+
+export function startChain(title, opening) {
+    return authRequest('/api/chains/', 'POST', { title, opening })
+}
+
+export function getChain(id) {
+    return getJSON(`/api/chains/${id}/`)
+}
+
+export function addChainPart(id, body) {
+    return authRequest(`/api/chains/${id}/`, 'POST', { body })
+}
+
+// Admins: close (or re-open) a chain.
+export function setChainOpen(id, isOpen) {
+    return authRequest(`/api/dashboard/chains/${id}/`, 'PATCH', { is_open: isOpen })
+}

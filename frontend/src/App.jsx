@@ -10,6 +10,8 @@ import VerifyEmail from './components/VerifyEmail/VerifyEmail'
 import SeriesPage from './components/SeriesPage/SeriesPage'
 import ForumsPage from './components/Forums/ForumsPage'
 import VideosPage from './components/VideosPage/VideosPage'
+import ChainsPage from './components/Chains/ChainsPage'
+import ChainPage from './components/Chains/ChainPage'
 import BoardPage from './components/Forums/BoardPage'
 import ThreadPage from './components/Forums/ThreadPage'
 import CategoryPage from './components/CategoryPage/CategoryPage'
@@ -241,6 +243,10 @@ function App() {
 
         {/* Anyone can send a message - no ProtectedRoute. */}
         <Route path='/contact' element={<ContactPage />} />
+
+        {/* Story chains: written together, one part at a time. */}
+        <Route path='/chains' element={<ChainsPage />} />
+        <Route path='/chains/:id' element={<ChainPage />} />
 
         {/* Story readings from YouTube. */}
         <Route path='/videos' element={<VideosPage />} />

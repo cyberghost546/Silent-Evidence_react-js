@@ -24,6 +24,7 @@ const FORUM_ITEMS = [
     { label: 'General Discussion', href: '/forums/general' },
     { label: 'Cold Cases', href: '/forums/cold-cases' },
     { label: 'Theories', href: '/forums/theories' },
+    { label: 'All boards', href: '/forums' },
 ]
 
 const EXPLORE_ITEMS = [
@@ -31,6 +32,7 @@ const EXPLORE_ITEMS = [
     { label: 'Most Viewed', href: '/explore/popular' },
     { label: 'Timeline', href: '/explore/timeline' },
     { label: 'Writing Challenges', href: '/challenges' },
+    { label: 'Story Chains', href: '/chains' },
     { label: 'Bundles', href: '/bundles' },
 ]
 

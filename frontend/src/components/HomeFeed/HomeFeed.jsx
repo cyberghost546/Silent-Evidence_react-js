@@ -5,6 +5,7 @@ import HorrorCalendar from './HorrorCalendar'
 import VillainOfTheWeek from './VillainOfTheWeek'
 import QuoteOfTheDay from './QuoteOfTheDay'
 import PollBox from './PollBox'
+import ChainBox from './ChainBox'
 
 
 // ---------------------------------------------------------------
@@ -41,6 +42,7 @@ function HomeFeed() {
                 <aside className='space-y-6 self-start'>
                     {/* Only shows when an admin opened a poll. */}
                     <PollBox />
+                    <ChainBox />
                     <TrendingList />
                     <HorrorCalendar />
                     <VillainOfTheWeek />
