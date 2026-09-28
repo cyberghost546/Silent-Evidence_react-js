@@ -7,6 +7,7 @@ import { useRequireLogin } from '../../hooks/useRequireLogin'
 import { Flag, Reply } from 'lucide-react'
 import ReportDialog from '../ReportDialog/ReportDialog'
 import { INPUT_STYLE, BUTTON_STYLE } from '../../styles/formStyles'
+import SpoilerText from '../SpoilerText/SpoilerText'
 
 
 // ---------------------------------------------------------------
@@ -101,7 +102,7 @@ function Comments({ storyId }) {
                         id='comment'
                         value={text}
                         onChange={event => setText(event.target.value)}
-                        placeholder='Write a comment...'
+                        placeholder='Write a comment... (put ||spoilers|| between two bars)'
                         rows={3}
                         maxLength={2000}
                         className={INPUT_STYLE}
@@ -216,7 +217,7 @@ function CommentItem({ comment, replies = [], canReply, onReport, onReply, isRep
                 </p>
                 {/* break-words: a very long word/link wraps
                     instead of stretching the page sideways. */}
-                <p className='mt-1 whitespace-pre-line break-words text-gray-300'>{comment.body}</p>
+                <p className='mt-1 whitespace-pre-line break-words text-gray-300'><SpoilerText text={comment.body} /></p>
 
                 {/* "Reply" - only on top comments, only when logged in. */}
                 {!isReply && canReply && !replying && (

@@ -9,6 +9,7 @@ import { formatLongDate } from '../../utils/format'
 import Avatar from '../Avatar/Avatar'
 import PageLayout, { PageMessage } from '../PageLayout/PageLayout'
 import { INPUT_STYLE, BUTTON_STYLE } from '../../styles/formStyles'
+import SpoilerText from '../SpoilerText/SpoilerText'
 
 
 // ---------------------------------------------------------------
@@ -33,7 +34,7 @@ function Message({ author, avatar, createdAt, body, hidden = false, children }) 
                 <div className='ml-auto flex gap-2'>{children}</div>
             </div>
             {/* whitespace-pre-line keeps the line breaks people typed. */}
-            <p className='mt-3 whitespace-pre-line break-words text-gray-200'>{body}</p>
+            <p className='mt-3 whitespace-pre-line break-words text-gray-200'><SpoilerText text={body} /></p>
         </article>
     )
 }
@@ -129,7 +130,7 @@ function ThreadPage() {
                 ) : user ? (
                     <form onSubmit={handleReply}>
                         <label htmlFor='reply' className='sr-only'>Your reply</label>
-                        <textarea id='reply' rows={4} value={text} onChange={event => setText(event.target.value)} maxLength={5000} placeholder='Write a reply...' className={INPUT_STYLE} />
+                        <textarea id='reply' rows={4} value={text} onChange={event => setText(event.target.value)} maxLength={5000} placeholder='Write a reply... (put ||spoilers|| between two bars)' className={INPUT_STYLE} />
                         {replyError && <p className='mt-2 text-sm text-red-400'>{replyError}</p>}
                         <div className='mt-3 flex justify-end'>
                             <button type='submit' disabled={sending || !text.trim()} className={BUTTON_STYLE}>{sending ? 'Posting...' : 'Post reply'}</button>
