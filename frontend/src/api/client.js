@@ -1408,6 +1408,11 @@ export function saveSprint(words, minutes) {
 
 // Author Dashboard, "Over time": 12 weeks of views / likes / read-through,
 // and read-through per story. -> { weeks: [...], stories: [...], views_tracked_since }
+// The Haunted Map: every story with a place -> [{ id, title, author, location, lat, lng, is_true }]
+export function getStoryMap() {
+    return getJSON('/api/stories/map/')
+}
+
 // --- Phone notifications (web push, accounts/push_views.py) ---
 
 // -> { public_key ('' = not set up on this site), subscribed (this device) }

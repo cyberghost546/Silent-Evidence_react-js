@@ -1,3 +1,5 @@
+from decimal import Decimal, InvalidOperation
+
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
@@ -26,6 +28,19 @@ from .models import (
 #   POST /api/dashboard/true-stories/<id>/reject/  { note }
 # ---------------------------------------------------------------
 RATING_KEYS = [key for key, _label in CONTENT_RATINGS]
+
+
+# A place on the map, made less exact: 2 decimals = about 1 km.
+# Anonymous stories must not show a street, let alone a house.
+# Missing or nonsense -> (None, None).
+def blur_place(latitude, longitude):
+    try:
+        lat, lng = Decimal(str(latitude)), Decimal(str(longitude))
+    except (InvalidOperation, TypeError, ValueError):
+        return None, None
+    if not (-90 <= lat <= 90 and -180 <= lng <= 180):
+        return None, None
+    return round(lat, 2), round(lng, 2)
 
 
 def my_submission_data(item):
@@ -76,8 +91,10 @@ class TrueStoryListView(APIView):
 
         category_id = request.data.get('category_id')
         category = Category.objects.filter(pk=category_id).first() if category_id else None
+        latitude, longitude = blur_place(request.data.get('latitude'), request.data.get('longitude'))
         item = TrueStorySubmission.objects.create(
             submitted_by=request.user, title=title[:200], body=body[:20000], where_when=where_when[:200], category=category,
+            latitude=latitude, longitude=longitude,
         )
         return Response(my_submission_data(item), status=201)
 
@@ -120,6 +137,8 @@ class AdminTrueStoryActionView(APIView):
                 author=anonymous_author(),       # never the real sender
                 category=Category.objects.filter(pk=category_id).first() if category_id else None,
                 location=item.where_when,
+                latitude=item.latitude,      # already blurred (blur_place)
+                longitude=item.longitude,
                 content_rating=rating,
                 is_published=True,
             )

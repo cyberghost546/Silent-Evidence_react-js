@@ -51,7 +51,7 @@ describe('TrueStorySubmitPage', () => {
 
         await userEvent.click(screen.getByRole('checkbox'))
         await userEvent.click(send)
-        expect(submitTrueStory).toHaveBeenCalledWith({ title: 'The Hallway', where_when: '', category_id: null, body: FIFTY_WORDS, confirm_true: true })
+        expect(submitTrueStory).toHaveBeenCalledWith({ title: 'The Hallway', where_when: '', category_id: null, body: FIFTY_WORDS, confirm_true: true, latitude: null, longitude: null })
         expect(await screen.findByText(/your story was sent/)).toBeInTheDocument()
     })
 })

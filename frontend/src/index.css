@@ -128,3 +128,18 @@
 .easy-read:has(> .is-focus) > *:not(.is-focus) {
     opacity: 0.55;
 }
+
+
+/* ---------------------------------------------------------------
+   THE MAPS (components/Map/). OpenStreetMap's pictures are light;
+   this turns them dark to match the site - invert the colours, then
+   turn the hues back round so water stays blue-ish. Only the map
+   pictures, not our pins or the pop-ups.
+   --------------------------------------------------------------- */
+.haunted-map .leaflet-tile-pane {
+    filter: invert(1) hue-rotate(180deg) brightness(0.85) contrast(0.9);
+}
+
+.haunted-map {
+    background: #0b1120;
+}

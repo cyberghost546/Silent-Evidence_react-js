@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, lazy, Suspense } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { Sparkles, ChevronDown, ImagePlus, Crown } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
@@ -11,6 +11,9 @@ import { LANGUAGES, MOODS, CONTENT_RATINGS, CONTENT_WARNINGS, TEMPLATES } from '
 import { LABEL_STYLE, INPUT_STYLE, BUTTON_STYLE, FIELD_ERROR_STYLE } from '../../styles/formStyles'
 import { countWords } from '../../utils/storyFormat'
 import SeriesPicker from './SeriesPicker'
+
+// The map picker, loaded only when the Write page needs it (Leaflet is big).
+const PlacePicker = lazy(() => import('../Map/PlacePicker'))
 
 
 // ---------------------------------------------------------------
@@ -689,9 +692,18 @@ function WriteStory() {
                     {/* target='_blank' opens a new tab. rel='noreferrer'
                         stops that site from controlling our tab. */}
                     <p className='mt-1 text-xs text-gray-500'>
-                        Find coordinates at{' '}
-                        <a href='https://www.latlong.net' target='_blank' rel='noreferrer' className='text-gray-300 hover:text-white'>latlong.net</a>
+                        Or click the map - the story then shows up on the <Link to='/map' className='text-gray-300 hover:text-white'>Haunted Map</Link>.
                     </p>
+                    {/* lazy: the map library only downloads when this shows. */}
+                    <Suspense fallback={<p className='mt-2 text-xs text-gray-500'>Loading map...</p>}>
+                        <div className='mt-2'>
+                            <PlacePicker
+                                latitude={form.latitude}
+                                longitude={form.longitude}
+                                onPick={(lat, lng) => setForm(current => ({ ...current, latitude: lat, longitude: lng }))}
+                            />
+                        </div>
+                    </Suspense>
                 </div>
 
                 {/* ---------- MOOD ---------- */}

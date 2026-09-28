@@ -631,6 +631,11 @@ class TrueStorySubmission(models.Model):
     title = models.CharField(max_length=200)
     body = models.TextField(max_length=20000)
     where_when = models.CharField(max_length=200, blank=True)   # "Ohio, summer 2009"
+    # A pin for the Haunted Map - BLURRED to about 1 km when it's saved
+    # (blur_place in true_story_views.py), so an anonymous story can't
+    # point at someone's house.
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
     status = models.CharField(max_length=10, choices=STATUSES, default='pending')
     admin_note = models.CharField(max_length=300, blank=True)   # why it was rejected

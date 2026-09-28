@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, lazy, Suspense } from 'react'
 import { Link } from 'react-router-dom'
 import { EyeOff } from 'lucide-react'
 import { getMyTrueStories, submitTrueStory, withdrawTrueStory, getCategories } from '../../api/client'
@@ -17,8 +17,11 @@ import { INPUT_STYLE, LABEL_STYLE, BUTTON_STYLE, FIELD_ERROR_STYLE } from '../..
 // An admin reads every story before it goes up, and it's published
 // under the name "Anonymous" - never yours (Django: stories/true_story_views.py).
 // ---------------------------------------------------------------
+// The map, loaded only when this page opens (Leaflet is big).
+const PlacePicker = lazy(() => import('../Map/PlacePicker'))
+
 const MIN_WORDS = 50
-const EMPTY_FORM = { title: '', where_when: '', category_id: '', body: '', confirm_true: false }
+const EMPTY_FORM = { title: '', where_when: '', category_id: '', body: '', confirm_true: false, latitude: '', longitude: '' }
 
 // The coloured label for each status. Written out in full so
 // Tailwind can see the class names.
@@ -47,7 +50,8 @@ function TrueStorySubmitPage() {
         event.preventDefault()
         setError('')
         try {
-            await submitTrueStory({ ...form, category_id: form.category_id || null })
+            // '' -> null: no place picked. Django blurs a picked place to ~1 km.
+            await submitTrueStory({ ...form, category_id: form.category_id || null, latitude: form.latitude || null, longitude: form.longitude || null })
             setForm(EMPTY_FORM)
             setSent(true)
             reload()
@@ -97,6 +101,18 @@ function TrueStorySubmitPage() {
                             {categories?.map(category => <option key={category.id} value={category.id}>{category.name}</option>)}
                         </select>
                     </div>
+                </div>
+                <div>
+                    <p className={LABEL_STYLE}>Where on the map? <span className='font-normal text-gray-500'>(optional - click the place)</span></p>
+                    <p className='mb-2 text-xs text-gray-400'>For your privacy the pin is blurred to about 1 km - it never points at a house.</p>
+                    <Suspense fallback={<p className='text-xs text-gray-500'>Loading map...</p>}>
+                        <PlacePicker latitude={form.latitude} longitude={form.longitude} onPick={(lat, lng) => setForm(current => ({ ...current, latitude: lat, longitude: lng }))} />
+                    </Suspense>
+                    {form.latitude && (
+                        <button type='button' onClick={() => setForm(current => ({ ...current, latitude: '', longitude: '' }))} className='mt-1 text-xs text-gray-400 hover:text-white'>
+                            Remove the pin
+                        </button>
+                    )}
                 </div>
                 <div>
                     <label htmlFor='true-body' className={LABEL_STYLE}>What happened?</label>

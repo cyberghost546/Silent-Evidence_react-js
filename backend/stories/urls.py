@@ -7,6 +7,7 @@ from .sprint_views import SprintView
 from .trend_views import AuthorTrendsView
 from .edit_views import StoryEditView, StoryVersionsView, RestoreVersionView
 from .recommend_views import RecommendedStoriesView
+from .map_views import StoryMapView
 from .reading_list_views import ReadingListsView, ReadingListDetailView, ReadingListStoryView
 from .true_story_views import TrueStoryListView, TrueStoryDetailView, AdminTrueStoryListView, AdminTrueStoryActionView
 from .views import (
@@ -32,6 +33,7 @@ urlpatterns = [
     path('stories/', StoryListView.as_view()),
     path('stories/new/', StoryCreateView.as_view()),
     path('stories/featured/', FeaturedStoriesView.as_view()),
+    path('stories/map/', StoryMapView.as_view()),                    # the Haunted Map
     path('stories/recommended/', RecommendedStoriesView.as_view()),   # "Because you read..."
     path('stories/random/', RandomStoryView.as_view()),
 
