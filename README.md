@@ -86,6 +86,30 @@ next to `LogIn.jsx`). Start from `utils/format.test.js` (plain
 functions) and `StoryPage/Comments.test.jsx` (a component, with
 Django faked by `vi.mock`) - both explain every step.
 
+**Which code do the tests actually run?** (coverage)
+
+```bash
+cd frontend
+npm run test:coverage                    # table in the terminal, report in coverage/
+
+cd backend
+pip install -r requirements-dev.txt      # once
+coverage run manage.py test
+coverage report --sort=miss              # least-tested files at the bottom
+```
+
+Some tests guard the whole site rather than one feature:
+`dashboard/test_permissions.py` (every admin address is admin-only; no
+public address accepts data by accident) and `forums/test_speed.py`
+(no database query per forum reply).
+
+## Learning material
+
+In [`docs/`](docs/): walkthroughs of a [Villain vote](docs/walkthrough-villain-vote.md)
+and of [logging in](docs/walkthrough-login.md) from click to database and back,
+and [refactor exercises](docs/refactor-exercises.md) based on real repetition
+in this code.
+
 
 ## How it fits together
 
@@ -106,7 +130,7 @@ sends it along (plus the CSRF token), and `AuthContext.jsx` keeps
 | App | What's in it |
 | --- | --- |
 | `accounts` | Sign up / log in, profiles, settings, follows, blocks, leaderboard |
-| `stories` | Stories, likes, saves, comments (with replies), reading history + progress, co-author invites, search, feed, series, fear meter, reactions, story chains, beta readers, writing sprints, views per day, anonymous true stories |
+| `stories` | Stories, likes, saves, comments (with replies), reading history + progress, co-author invites, search, feed, series, fear meter, reactions, story chains, beta readers, writing sprints, views per day, anonymous true stories, reading lists, narration uploads |
 | `messaging` | Private messages |
 | `moderation` | Reports, appeals, login logs + lock-out, content filter, verification, warnings & bans, AI toxicity checks |
 | `sitecontent` | Announcement banner, writing prompts, challenges, bundles, featured authors, spotlight, polls, villain of the week |
@@ -174,6 +198,7 @@ rules are in `backend/accounts/age.py`; the lock screen is
 | `/villains`, `/villains/nominate` | `VillainsPage/` - nominate and vote, one of each per week | reading: no, voting: yes |
 | `/sprints` | `SprintsPage/` - timed writing, weekly leaderboard, carries on to `/write` | sprinting: no, saving results: yes |
 | `/true-stories`, `/true-stories/submit` | `TrueStories/` - anonymous true stories; admins review at `/dashboard/true-stories` | reading: no, sending: yes |
+| `/reading-lists/:id` | `ReadingLists/` - a shareable list; add stories from a story's Actions menu | reading: no (public lists) |
 | `/series/:id` | `SeriesPage/` | |
 
 All routes live in `frontend/src/App.jsx`.
