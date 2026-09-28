@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Eye, Heart, MessageSquare, PenLine, Trash2, UserPlus } from 'lucide-react'
+import { Eye, Heart, MessageSquare, PenLine, Trash2, UserPlus, FlaskConical } from 'lucide-react'
 import { getMyStories, setStoryPublished, deleteMyStory, sendInvite, getMyAppeals, sendAppeal } from '../../api/client'
 import PageLayout, { PageMessage } from '../PageLayout/PageLayout'
 import { BUTTON_STYLE, INPUT_STYLE, FIELD_ERROR_STYLE } from '../../styles/formStyles'
 import { formatShortDate } from '../../utils/format'
+import BetaPanel from './BetaPanel'
 
 
 // ---------------------------------------------------------------
@@ -165,6 +166,7 @@ function AppealBox({ storyId, appeal, onSent }) {
 // ---------------------------------------------------------------
 function MyStoryRow({ story, onChanged, onDeleted, appeal, onAppealSent }) {
     const [inviting, setInviting] = useState(false)
+    const [showBeta, setShowBeta] = useState(false)
     const [note, setNote] = useState('')
     const [busy, setBusy] = useState(false)
 
@@ -226,6 +228,18 @@ function MyStoryRow({ story, onChanged, onDeleted, appeal, onAppealSent }) {
                         </Link>
                     )}
 
+                    {/* A draft: see it as readers will, and invite beta readers. */}
+                    {story.status === 'draft' && (
+                        <>
+                            <Link to={`/stories/${story.id}`} className={SMALL_BUTTON}>
+                                <Eye className='h-3.5 w-3.5' /> Preview
+                            </Link>
+                            <button type='button' onClick={() => setShowBeta(!showBeta)} aria-expanded={showBeta} className={SMALL_BUTTON}>
+                                <FlaskConical className='h-3.5 w-3.5' /> Beta readers
+                            </button>
+                        </>
+                    )}
+
                     {/* An archived story can only be brought back by an
                         admin, so no Publish button for it. */}
                     {story.status !== 'archived' && (
@@ -259,6 +273,8 @@ function MyStoryRow({ story, onChanged, onDeleted, appeal, onAppealSent }) {
                     }}
                 />
             )}
+
+            {showBeta && <BetaPanel storyId={story.id} />}
 
             {story.status === 'archived' && (
                 <AppealBox storyId={story.id} appeal={appeal} onSent={onAppealSent} />

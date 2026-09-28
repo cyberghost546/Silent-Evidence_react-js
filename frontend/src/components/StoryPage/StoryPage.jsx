@@ -23,6 +23,7 @@ import FearMeter from './FearMeter'
 import ReactionBar from './ReactionBar'
 import { useAuth } from '../../hooks/useAuth'
 import CampfireMode from './CampfireMode'
+import { BetaBanner, BetaFeedbackBox } from './BetaBox'
 
 
 // The name the reader's text size is saved under in the browser.
@@ -140,6 +141,9 @@ function StoryPage() {
         return <p className='bg-gray-900 py-24 text-center text-gray-400'>Loading...</p>
     }
 
+    // Is the logged-in reader the writer of this story?
+    const isAuthor = user?.username === story.author
+
     // Home / Haunted Houses / The Census Taker
     // (the category crumb only if the story has a category)
     const crumbs = [{ label: 'Home', to: '/' }]
@@ -193,6 +197,9 @@ function StoryPage() {
                         {story.category}
                     </Link>
                 )}
+
+                {/* A draft: "preview" or "you're beta-reading" (BetaBox.jsx). */}
+                {story.is_draft && <BetaBanner story={story} isAuthor={isAuthor} />}
 
                 {/* "Part 2 of 5 · The Lighthouse Diaries" (only for series). */}
                 <SeriesLabel series={story.series} />
@@ -310,27 +317,41 @@ function StoryPage() {
 
                 {/* ================= 7. LIKE + COMMENTS ================= */}
                 <div className='mt-12 border-t border-gray-800 pt-10'>
-                    {/* key = "start fresh for a new story". The two keys
-                        must differ: siblings may never share a key. */}
-                    {/* The fear meter - once you could read the story.
-                        You can't rate your own (Django refuses too). */}
-                    {!story.lock && (
-                        <div className='mb-6'>
-                            <FearMeter key={`fear-${story.id}`} storyId={story.id} initial={story.fear} canRate={user?.username !== story.author} />
-                        </div>
-                    )}
+                    {story.is_draft ? (
+                        // A DRAFT (preview or beta read): no likes or public
+                        // comments yet - beta readers get the private box.
+                        isAuthor ? (
+                            <p className='text-sm text-gray-400'>
+                                Beta readers' feedback appears on <Link to='/my-stories' className='text-purple-300 hover:text-purple-200'>My Stories</Link>.
+                            </p>
+                        ) : (
+                            <BetaFeedbackBox key={`beta-${story.id}`} story={story} />
+                        )
+                    ) : (
+                        <>
+                            {/* The fear meter - once you could read the story.
+                                You can't rate your own (Django refuses too). */}
+                            {!story.lock && (
+                                <div className='mb-6'>
+                                    <FearMeter key={`fear-${story.id}`} storyId={story.id} initial={story.fear} canRate={!isAuthor} />
+                                </div>
+                            )}
 
-                    {/* Like + the scary reactions, side by side. */}
-                    <div className='flex flex-wrap items-center gap-3'>
-                        <LikeButton
-                            key={`like-${story.id}`}
-                            storyId={story.id}
-                            initialLiked={story.liked}
-                            initialCount={story.like_count}
-                        />
-                        <ReactionBar key={`reactions-${story.id}`} storyId={story.id} initial={story.reactions} />
-                    </div>
-                    <Comments key={`comments-${story.id}`} storyId={story.id} />
+                            {/* Like + the scary reactions, side by side.
+                                key = "start fresh for a new story". The keys
+                                must differ: siblings may never share a key. */}
+                            <div className='flex flex-wrap items-center gap-3'>
+                                <LikeButton
+                                    key={`like-${story.id}`}
+                                    storyId={story.id}
+                                    initialLiked={story.liked}
+                                    initialCount={story.like_count}
+                                />
+                                <ReactionBar key={`reactions-${story.id}`} storyId={story.id} initial={story.reactions} />
+                            </div>
+                            <Comments key={`comments-${story.id}`} storyId={story.id} />
+                        </>
+                    )}
                 </div>
             </div>
 

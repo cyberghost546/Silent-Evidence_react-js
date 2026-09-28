@@ -519,3 +519,26 @@ class ReadingDay(models.Model):
 
     class Meta:
         unique_together = ['user', 'date']
+
+
+# ---------------------------------------------------------------
+# BETA READERS - members a writer invited to read a DRAFT, and the
+# private feedback they send back (stories/beta_views.py).
+# ---------------------------------------------------------------
+class BetaReader(models.Model):
+    story = models.ForeignKey(Story, on_delete=models.CASCADE, related_name='beta_readers')
+    reader = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='beta_reads')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ['story', 'reader']
+
+
+class BetaFeedback(models.Model):
+    story = models.ForeignKey(Story, on_delete=models.CASCADE, related_name='beta_feedback')
+    reader = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='beta_feedback')
+    body = models.TextField(max_length=5000)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']

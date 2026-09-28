@@ -1,5 +1,6 @@
 from django.urls import path
 
+from .beta_views import BetaReadersView, RemoveBetaReaderView, BetaFeedbackView
 from .chain_views import ChainListView, ChainDetailView, AdminChainView
 from .series_views import MySeriesView, SeriesDetailView
 from .views import (
@@ -12,6 +13,9 @@ from .views import (
 
 # Included under "api/" in config/urls.py -> /api/stories/...
 urlpatterns = [
+    path('stories/<int:pk>/beta/', BetaReadersView.as_view()),
+    path('stories/<int:pk>/beta/feedback/', BetaFeedbackView.as_view()),
+    path('stories/<int:pk>/beta/<str:username>/', RemoveBetaReaderView.as_view()),
     path('chains/', ChainListView.as_view()),
     path('chains/<int:pk>/', ChainDetailView.as_view()),
     path('dashboard/chains/<int:pk>/', AdminChainView.as_view()),

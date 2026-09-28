@@ -161,13 +161,26 @@ class StoryDetailView(generics.RetrieveAPIView):
     # mature for your setting, private) answers 404 - as if it
     # doesn't exist.
     def get_queryset(self):
-        return stories_for(self.request.user).select_related('author', 'category')
+        stories = stories_for(self.request.user)
+        user = self.request.user
+        if user.is_authenticated:
+            # Also: your OWN unpublished stories (a preview), and drafts
+            # you were invited to beta-read (stories/beta_views.py).
+            # | = "or": stories from either list. distinct(): the join
+            # with beta_readers could list a story twice.
+            drafts = Story.objects.filter(Q(author=user) | Q(beta_readers__reader=user))
+            stories = (stories | drafts).distinct()
+        return stories.select_related('author', 'category')
 
     # retrieve() is the method RetrieveAPIView runs for a GET. We take
     # over so we can count the view before answering.
     def retrieve(self, request, *args, **kwargs):
         # Finds the story from the <int:pk> in the URL, or answers 404.
         story = self.get_object()
+
+        # A draft (preview / beta read) doesn't count as a view or a read.
+        if not story.is_published:
+            return Response(self.get_serializer(story).data)
 
         # +1 view. Two things worth knowing here:
         #

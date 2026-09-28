@@ -1324,3 +1324,24 @@ export function addChainPart(id, body) {
 export function setChainOpen(id, isOpen) {
     return authRequest(`/api/dashboard/chains/${id}/`, 'PATCH', { is_open: isOpen })
 }
+
+
+// --- Beta readers ---
+
+// Writer: -> { readers: ['moth'], feedback: [{ id, reader, body, created_at }] }
+export function getBetaReaders(storyId) {
+    return authRequest(`/api/stories/${storyId}/beta/`)
+}
+
+export function inviteBetaReader(storyId, username) {
+    return authRequest(`/api/stories/${storyId}/beta/`, 'POST', { username })
+}
+
+export function removeBetaReader(storyId, username) {
+    return authRequest(`/api/stories/${storyId}/beta/${encodeURIComponent(username)}/`, 'DELETE')
+}
+
+// Beta reader: private feedback to the writer.
+export function sendBetaFeedback(storyId, body) {
+    return authRequest(`/api/stories/${storyId}/beta/feedback/`, 'POST', { body })
+}

@@ -104,6 +104,10 @@ class StoryDetailSerializer(StoryCardSerializer):
     # Why the reader can't see this 18+ story yet, or None (accounts/age.py).
     lock = serializers.SerializerMethodField()
     fear = serializers.SerializerMethodField()
+    # A draft being previewed or beta-read (not public yet).
+    is_draft = serializers.SerializerMethodField()
+    # Your own beta feedback on this draft (only for beta readers).
+    my_beta_feedback = serializers.SerializerMethodField()
     reactions = serializers.SerializerMethodField()
 
     # Meta inherits too: same model, and the card's field list with
@@ -111,7 +115,7 @@ class StoryDetailSerializer(StoryCardSerializer):
     class Meta(StoryCardSerializer.Meta):
         fields = StoryCardSerializer.Meta.fields + [
             'body', 'category_slug', 'word_count', 'like_count', 'comment_count', 'liked', 'saved',
-            'coauthors', 'tags', 'series', 'lock', 'fear', 'reactions',
+            'coauthors', 'tags', 'series', 'lock', 'fear', 'reactions', 'is_draft', 'my_beta_feedback',
             # From the Write a Story page. The story page doesn't show
             # these yet, but they're here for when it does.
             'language', 'video_url', 'audio_url', 'location', 'latitude', 'longitude',
@@ -125,6 +129,18 @@ class StoryDetailSerializer(StoryCardSerializer):
     # { counts: { got_me: 3, cant_sleep: 1, creepy: 0 }, mine: ['got_me'] }
     def get_reactions(self, story):
         return reaction_data(story, self.context['request'].user)
+
+    def get_is_draft(self, story):
+        return not story.is_published
+
+    def get_my_beta_feedback(self, story):
+        user = self.context['request'].user
+        if story.is_published or not user.is_authenticated:
+            return []
+        return [
+            {'id': item.id, 'body': item.body, 'created_at': item.created_at}
+            for item in story.beta_feedback.filter(reader=user)
+        ]
 
     def get_lock(self, story):
         return story_lock(self.context['request'].user, story)
