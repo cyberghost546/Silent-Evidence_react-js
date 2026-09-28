@@ -366,6 +366,7 @@ class ProfileView(APIView):
             'avatar': avatar,
             'bio': profile.bio,
             'website': profile.website,
+            'tip_url': profile.tip_url,
             'is_private': profile.is_private,
             'is_locked': False,
             'date_joined': person.date_joined,

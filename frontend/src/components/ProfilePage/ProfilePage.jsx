@@ -11,6 +11,7 @@ import PublicationMap from './PublicationMap'
 import { usePageTitle } from '../../hooks/usePageTitle'
 import ProfileBadges from './ProfileBadges'
 import ReadingListsSection from '../ReadingLists/ReadingListsSection'
+import SupportWriterButton from '../SupportWriterButton/SupportWriterButton'
 
 
 // ---------------------------------------------------------------
@@ -196,6 +197,11 @@ function ProfilePage() {
                                     {/* "https://mysite.com/" -> "mysite.com" */}
                                     {profile.website.replace(/^https?:\/\//, '').replace(/\/$/, '')}
                                 </a>
+                            )}
+                            {profile.tip_url && (
+                                <div className='mt-3'>
+                                    <SupportWriterButton url={profile.tip_url} name={profile.username} />
+                                </div>
                             )}
                         </div>
 

@@ -2,7 +2,9 @@ from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 
-from .models import Profile
+from urllib.parse import urlparse
+
+from .models import Profile, TIP_SITES
 
 
 # Usernames nobody may take. "Anonymous" is the shared author of the
@@ -67,7 +69,7 @@ class ProfileSettingsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields = [
-            'avatar', 'bio', 'website',
+            'avatar', 'bio', 'website', 'tip_url',
             'content_access', 'fear_moods', 'reading_speed',
             'weekly_digest', 'comment_digest',
             'notify_likes', 'notify_comments', 'notify_follows',
@@ -89,6 +91,19 @@ class ProfileSettingsSerializer(serializers.ModelSerializer):
         if len(moods) > 3:
             raise serializers.ValidationError('Pick up to 3 moods.')
         return ','.join(moods)
+
+    # Only https links to the known tipping sites (TIP_SITES in models.py).
+    # github.com only for /sponsors/... pages.
+    def validate_tip_url(self, value):
+        if not value:
+            return value
+        address = urlparse(value)
+        host = address.hostname or ''
+        if address.scheme != 'https' or host not in TIP_SITES:
+            raise serializers.ValidationError('Use your page on Ko-fi, Buy Me a Coffee, PayPal.me, Patreon, Liberapay or GitHub Sponsors (https://...).')
+        if host == 'github.com' and not address.path.startswith('/sponsors/'):
+            raise serializers.ValidationError('For GitHub, use your Sponsors page: https://github.com/sponsors/yourname')
+        return value
 
     # Same limit as the text under the upload button: 5 MB.
     def validate_avatar(self, value):

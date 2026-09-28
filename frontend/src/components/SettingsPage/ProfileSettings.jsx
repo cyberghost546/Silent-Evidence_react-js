@@ -18,6 +18,7 @@ function ProfileSettings({ settings, onSave }) {
         username: settings.username,
         bio: settings.bio,
         website: settings.website,
+        tip_url: settings.tip_url || '',
     })
 
     // The picked image FILE (to upload) and a preview address for it.
@@ -165,6 +166,25 @@ function ProfileSettings({ settings, onSave }) {
                         className={INPUT_STYLE}
                     />
                     {errors.website && <p className={FIELD_ERROR_STYLE}>{errors.website.join(' ')}</p>}
+                </div>
+
+                {/* ---------- SUPPORT LINK ("tip jar") ---------- */}
+                {/* Shows a "Support the writer" button on your stories and
+                    profile. Readers pay you on THAT site - no money goes
+                    through Silent Evidence. */}
+                <div>
+                    <label htmlFor='tip_url' className={LABEL_STYLE}>Support link <span className='font-normal text-gray-500'>(optional)</span></label>
+                    <input
+                        id='tip_url'
+                        name='tip_url'
+                        type='url'
+                        value={form.tip_url}
+                        onChange={handleChange}
+                        placeholder='https://ko-fi.com/yourname'
+                        className={INPUT_STYLE}
+                    />
+                    <p className='mt-1 text-xs text-gray-500'>Ko-fi, Buy Me a Coffee, PayPal.me, Patreon, Liberapay or GitHub Sponsors. Readers who love your stories can tip you there.</p>
+                    {errors.tip_url && <p className={FIELD_ERROR_STYLE}>{errors.tip_url.join(' ')}</p>}
                 </div>
 
                 {errors.detail && <p className={FIELD_ERROR_STYLE}>{errors.detail}</p>}

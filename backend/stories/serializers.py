@@ -93,6 +93,8 @@ class StoryCardSerializer(serializers.ModelSerializer):
 # reading_time don't have to be written again.
 class StoryDetailSerializer(StoryCardSerializer):
     category_slug = serializers.SerializerMethodField()
+    # The writer's "Support the writer" link ('' = none). See Profile.tip_url.
+    author_tip_url = serializers.SerializerMethodField()
     word_count = serializers.ReadOnlyField()
     like_count = serializers.SerializerMethodField()
     comment_count = serializers.SerializerMethodField()
@@ -116,7 +118,7 @@ class StoryDetailSerializer(StoryCardSerializer):
     # more added on the end.
     class Meta(StoryCardSerializer.Meta):
         fields = StoryCardSerializer.Meta.fields + [
-            'body', 'category_slug', 'word_count', 'like_count', 'comment_count', 'liked', 'saved',
+            'body', 'category_slug', 'author_tip_url', 'word_count', 'like_count', 'comment_count', 'liked', 'saved',
             'coauthors', 'tags', 'series', 'lock', 'fear', 'reactions', 'is_draft', 'my_beta_feedback', 'my_progress',
             # From the Write a Story page. The story page doesn't show
             # these yet, but they're here for when it does.
@@ -189,6 +191,10 @@ class StoryDetailSerializer(StoryCardSerializer):
             'previous': parts[where - 1] if where > 0 else None,
             'next': parts[where + 1] if where + 1 < len(parts) else None,
         }
+
+    def get_author_tip_url(self, story):
+        from accounts.models import get_profile
+        return get_profile(story.author).tip_url
 
     def get_category_slug(self, story):
         if story.category:

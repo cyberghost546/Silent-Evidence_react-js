@@ -14,6 +14,7 @@ import ReadingToolbar from './ReadingToolbar'
 import StoryBody from './StoryBody'
 import FocusView from './FocusView'
 import LikeButton from './LikeButton'
+import SupportWriterButton from '../SupportWriterButton/SupportWriterButton'
 import Comments from './Comments'
 import { SeriesLabel, SeriesNav } from './SeriesNav'
 import styles from './StoryPage.module.css'
@@ -384,6 +385,8 @@ function StoryPage() {
                                     initialCount={story.like_count}
                                 />
                                 <ReactionBar key={`reactions-${story.id}`} storyId={story.id} initial={story.reactions} />
+                                {/* Only if the writer set a Support link (Settings). */}
+                                <SupportWriterButton url={story.author_tip_url} name={story.author} />
                             </div>
                             <Comments key={`comments-${story.id}`} storyId={story.id} />
                         </>

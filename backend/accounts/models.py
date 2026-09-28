@@ -78,6 +78,10 @@ class Profile(models.Model):
     avatar = models.ImageField(upload_to='avatars/', blank=True)
     bio = models.TextField(max_length=500, blank=True)
     website = models.URLField(blank=True)
+    # "Support the writer" button: the writer's OWN page on a tipping
+    # site (Ko-fi, PayPal.me...). No money goes through our site -
+    # readers pay the writer there. Only TIP_SITES are allowed.
+    tip_url = models.URLField(blank=True)
 
     # --- Reading preferences ---
     content_access = models.CharField(max_length=10, choices=CONTENT_ACCESS, default='mature')
@@ -131,6 +135,15 @@ class Profile(models.Model):
 
     def __str__(self):
         return f'Profile of {self.user}'
+
+
+# The tipping sites a "Support the writer" link may point to. A fixed
+# list on purpose: any other address could be a fake payment page
+# made to steal card details, shown under OUR name.
+TIP_SITES = [
+    'ko-fi.com', 'buymeacoffee.com', 'paypal.me', 'www.paypal.me', 'www.paypal.com',
+    'patreon.com', 'www.patreon.com', 'liberapay.com', 'github.com',
+]
 
 
 def get_profile(user):
