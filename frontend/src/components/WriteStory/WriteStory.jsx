@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, lazy, Suspense } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { Sparkles, ChevronDown, ImagePlus, Crown } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
-import { getCategories, createStory } from '../../api/client'
+import { getCategories, createStory, importDocx } from '../../api/client'
 import SegmentedControl from '../SegmentedControl/SegmentedControl'
 import StoryEditor from './StoryEditor'
 import PromptBox from './PromptBox'
@@ -219,6 +219,26 @@ function WriteStory() {
     // updateField('body', 'new text')
     function updateField(name, value) {
         setForm(current => ({ ...current, [name]: value }))
+    }
+
+    // "Import from Word": Django turns the .docx into our marks
+    // (stories/docx_import.py). Already wrote something? Ask first.
+    const [importing, setImporting] = useState(false)
+    async function handleImport(event) {
+        const file = event.target.files[0]
+        event.target.value = ''   // so picking the same file again still works
+        if (!file) return
+        if (form.body.trim() && !window.confirm('Replace the text you have now with the Word document?')) return
+        setImporting(true)
+        try {
+            const imported = await importDocx(file)
+            setForm(current => ({ ...current, body: imported.body, title: current.title || imported.title }))
+            setErrors(current => ({ ...current, body: undefined }))
+        } catch (err) {
+            setErrors(current => ({ ...current, body: [err.data?.detail || 'Could not import that file.'] }))
+        } finally {
+            setImporting(false)
+        }
     }
 
     // Ticking a warning chip on or off.
@@ -613,7 +633,15 @@ function WriteStory() {
                 <div>
                     <div className='mb-2 flex items-center justify-between'>
                         <label htmlFor='body' className='text-sm font-semibold text-gray-200'>Your Story<Required /></label>
-                        <span className='text-xs text-gray-500'>{countWords(form.body)} words</span>
+                        <div className='flex items-center gap-4'>
+                            {/* A <label> around a hidden file input = a button
+                                that opens the file picker. */}
+                            <label className='cursor-pointer text-xs font-semibold text-red-400 hover:text-red-300'>
+                                {importing ? 'Importing...' : 'Import from Word'}
+                                <input type='file' accept='.docx' onChange={handleImport} disabled={importing} className='sr-only' />
+                            </label>
+                            <span className='text-xs text-gray-500'>{countWords(form.body)} words</span>
+                        </div>
                     </div>
 
                     <StoryEditor id='body' value={form.body} onChange={text => updateField('body', text)} />

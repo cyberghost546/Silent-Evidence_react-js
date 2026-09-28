@@ -272,6 +272,14 @@ export function postComment(storyId, body, parentId) {
 
 // formData, not a plain object, because it can carry a cover image
 // file. Answers with the new story, including its id.
+// "Import from Word": a .docx -> { title, body } (not saved - the
+// Write page fills its form with it).
+export function importDocx(file) {
+    const data = new FormData()
+    data.append('file', file)
+    return authRequest('/api/stories/import-docx/', 'POST', data)
+}
+
 export function createStory(formData) {
     return authRequest('/api/stories/new/', 'POST', formData)
 }

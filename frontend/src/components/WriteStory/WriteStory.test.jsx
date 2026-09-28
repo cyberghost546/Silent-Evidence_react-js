@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import WriteStory from './WriteStory'
-import { getCategories, createStory } from '../../api/client'
+import { getCategories, createStory, importDocx } from '../../api/client'
 
 
 // ---------------------------------------------------------------
@@ -19,6 +19,7 @@ vi.mock('../../hooks/useAuth', () => ({
 vi.mock('../../api/client', () => ({
     getCategories: vi.fn(),
     createStory: vi.fn(),
+    importDocx: vi.fn(),
     getRandomPrompt: vi.fn(() => Promise.resolve(null)),
     getTagSuggestions: vi.fn(() => Promise.resolve([])),
     getMySeries: vi.fn(() => Promise.resolve([])),
@@ -57,6 +58,16 @@ describe('Write a Story', () => {
         renderWritePage('/write?text=More%20ideas')
         expect(screen.getByLabelText(/^Title/)).toHaveValue('Mine')
         expect(document.getElementById('body').value).toBe('My draft.\n\nMore ideas')
+    })
+
+    it('imports a Word document into the story', async () => {
+        importDocx.mockResolvedValue({ title: 'The Lighthouse', body: 'The lamp was **still turning**.' })
+        renderWritePage()
+        const file = new File(['fake'], 'story.docx', { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' })
+        await userEvent.upload(screen.getByLabelText('Import from Word'), file)
+        expect(importDocx).toHaveBeenCalledWith(file)
+        expect(await screen.findByDisplayValue('The Lighthouse')).toBeInTheDocument()
+        expect(document.getElementById('body').value).toBe('The lamp was **still turning**.')
     })
 
     it('lists what is missing instead of sending an empty story', async () => {

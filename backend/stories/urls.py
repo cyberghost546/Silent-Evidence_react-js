@@ -9,6 +9,7 @@ from .edit_views import StoryEditView, StoryVersionsView, RestoreVersionView
 from .feedback_views import StoryFeedbackView
 from .recommend_views import RecommendedStoriesView
 from .map_views import StoryMapView
+from .docx_import import ImportDocxView
 from .readalong_views import ReadAlongListView, ReadAlongDetailView, JoinReadAlongView, ReadAlongMessageView
 from .reading_list_views import ReadingListsView, ReadingListDetailView, ReadingListStoryView
 from .true_story_views import TrueStoryListView, TrueStoryDetailView, AdminTrueStoryListView, AdminTrueStoryActionView
@@ -34,6 +35,7 @@ urlpatterns = [
     path('series/<int:pk>/', SeriesDetailView.as_view()),
     path('stories/', StoryListView.as_view()),
     path('stories/new/', StoryCreateView.as_view()),
+    path('stories/import-docx/', ImportDocxView.as_view()),   # Import from Word
     path('stories/featured/', FeaturedStoriesView.as_view()),
     path('read-alongs/', ReadAlongListView.as_view()),                          # read together
     path('read-alongs/<int:pk>/', ReadAlongDetailView.as_view()),
