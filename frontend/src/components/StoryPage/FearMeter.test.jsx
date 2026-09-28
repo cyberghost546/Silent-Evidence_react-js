@@ -19,7 +19,10 @@ function renderMeter(props = {}) {
 }
 
 describe('FearMeter', () => {
-    beforeEach(() => rateFear.mockReset() || undefined)
+    // Braces on purpose - see the note in ResetPassword.test.jsx.
+    beforeEach(() => {
+        rateFear.mockReset()
+    })
 
     it('shows the average', () => {
         renderMeter()
