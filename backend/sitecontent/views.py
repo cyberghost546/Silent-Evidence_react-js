@@ -7,6 +7,7 @@ from django.utils import timezone
 from rest_framework import generics, serializers
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
+from rest_framework.throttling import AnonRateThrottle
 from rest_framework.views import APIView
 
 from categories.models import Category
@@ -243,9 +244,19 @@ class CookieBannerView(APIView):
         return Response({'is_enabled': banner.is_enabled, 'message': banner.message})
 
 
+# A visitor clicks the cookie banner once - 20 an hour from one
+# address is already generous. Without a limit, a script could fill
+# the table with millions of fake rows.
+class CookieConsentThrottle(AnonRateThrottle):
+    scope = 'cookie_consent'
+    rate = '20/hour'
+
+
 # POST /api/cookie-consent/  { choice: 'all' | 'essential' }  (anyone)
 # Only counts the choice - nothing about WHO chose it is stored.
 class CookieConsentView(APIView):
+    throttle_classes = [CookieConsentThrottle]
+
     def post(self, request):
         choice = request.data.get('choice')
         if choice not in ('all', 'essential'):
