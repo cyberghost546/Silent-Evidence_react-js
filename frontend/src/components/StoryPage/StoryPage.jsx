@@ -22,6 +22,7 @@ import StoryLock from './StoryLock'
 import FearMeter from './FearMeter'
 import ReactionBar from './ReactionBar'
 import { useAuth } from '../../hooks/useAuth'
+import CampfireMode from './CampfireMode'
 
 
 // The name the reader's text size is saved under in the browser.
@@ -258,6 +259,10 @@ function StoryPage() {
                             textSize={textSize}
                             onTextSizeChange={setTextSize}
                         />
+                        {/* Background sound while reading (CampfireMode.jsx). */}
+                        <div className='mt-3'>
+                            <CampfireMode />
+                        </div>
                     </div>
                 )}
 
