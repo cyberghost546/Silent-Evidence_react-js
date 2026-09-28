@@ -24,6 +24,7 @@ from .models import (
     FearRating, Reaction, REACTION_KINDS, ReadingDay, StoryViewDay,
     published_stories, stories_for,
 )
+from .search import search_stories
 from .serializers import (
     StoryCardSerializer, StoryDetailSerializer, StoryWriteSerializer, CommentSerializer, LastWordSerializer,
     MyStorySerializer, CoAuthorInviteSerializer, fear_data, reaction_data,
@@ -717,24 +718,9 @@ class SearchView(APIView):
         if len(query) < 2:
             return Response({'stories': [], 'authors': []})
 
-        # icontains = "contains, ignoring upper/lower case".
-        # The | between the Q()s means OR: a match in the title OR
-        # the excerpt OR the body OR the author's name.
-        stories = (
-            stories_for(request.user)
-            .filter(
-                Q(title__icontains=query)
-                | Q(excerpt__icontains=query)
-                | Q(body__icontains=query)
-                | Q(author__username__icontains=query)
-                | Q(tags__name__icontains=query)
-            )
-            # A story matching in several ways (title AND a tag) would
-            # otherwise be listed twice.
-            .distinct()
-            .select_related('author', 'category')
-            .order_by('-views')[:30]
-        )
+        # Every word must match somewhere; best matches first
+        # (stories/search.py - it also uses Postgres's own search online).
+        stories = search_stories(stories_for(request.user), query).select_related('author', 'category')[:30]
 
         # Writers whose name matches, with how many stories they have.
         authors = (
