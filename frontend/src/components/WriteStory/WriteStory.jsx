@@ -62,6 +62,8 @@ const EXCERPT_MAX = 300
 
 // Bigger than this and we say no before even uploading.
 const MAX_IMAGE_MB = 5
+// Same limit Django checks (StoryCreateSerializer.validate_audio_file).
+const MAX_AUDIO_MB = 25
 
 // "Required" red star, written once.
 function Required() {
@@ -142,6 +144,8 @@ function WriteStory() {
     // The cover image FILE lives outside `form`, because a file can't
     // be saved in localStorage.
     const [coverFile, setCoverFile] = useState(null)
+    // Your own narration (a sound file), if you picked one.
+    const [audioFile, setAudioFile] = useState(null)
 
     // A picked file gets a temporary "blob:" URL so <img> can show it
     // before it's uploaded. useMemo = only make a new URL when the
@@ -213,6 +217,18 @@ function WriteStory() {
             : [...form.warnings, warning]
 
         updateField('warnings', newList)
+    }
+
+    function handleAudioChange(event) {
+        const file = event.target.files[0]
+        if (!file) return
+        if (file.size > MAX_AUDIO_MB * 1024 * 1024) {
+            setErrors({ ...errors, audio_file: [`The recording must be smaller than ${MAX_AUDIO_MB} MB.`] })
+            event.target.value = ''   // empty the picker again
+            return
+        }
+        setErrors({ ...errors, audio_file: undefined })
+        setAudioFile(file)
     }
 
     function handleFileChange(event) {
@@ -290,6 +306,7 @@ function WriteStory() {
         addIfFilled('excerpt', form.excerpt)
         addIfFilled('video_url', form.videoUrl)
         addIfFilled('audio_url', form.audioUrl)
+        if (audioFile) data.append('audio_file', audioFile)
         addIfFilled('location', form.location)
         addIfFilled('latitude', form.latitude)
         addIfFilled('longitude', form.longitude)
@@ -769,6 +786,21 @@ function WriteStory() {
                         className={INPUT_STYLE}
                     />
                     <FieldError messages={errors.audio_url} />
+
+                    {/* ...or upload your own recording. accept= only shows
+                        sound files in the picker (Django checks again). */}
+                    <label htmlFor='audioFile' className='mt-3 block text-xs text-gray-400'>
+                        Or upload your own recording (MP3, M4A, OGG or WAV, up to {MAX_AUDIO_MB} MB)
+                    </label>
+                    <input
+                        id='audioFile'
+                        type='file'
+                        accept='audio/mpeg,audio/mp4,audio/ogg,audio/wav,.mp3,.m4a,.ogg,.wav'
+                        onChange={handleAudioChange}
+                        className='mt-1 block w-full text-sm text-gray-300 file:mr-3 file:rounded-md file:border-0 file:bg-slate-700 file:px-3 file:py-1.5 file:text-sm file:text-white hover:file:bg-slate-600'
+                    />
+                    {audioFile && <p className='mt-1 text-xs text-gray-400'>🎙️ {audioFile.name} - it plays on your story page.</p>}
+                    <FieldError messages={errors.audio_file} />
                 </div>
 
                 {/* ---------- PREMIUM (not built yet) ---------- */}

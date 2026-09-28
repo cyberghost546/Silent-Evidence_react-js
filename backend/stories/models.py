@@ -110,6 +110,9 @@ class Story(models.Model):
 
     video_url = models.URLField(blank=True)
     audio_url = models.URLField(blank=True)
+    # The writer's OWN recording, uploaded on the Write page (max 25 MB,
+    # mp3 / m4a / ogg / wav - checked in StoryCreateSerializer).
+    audio_file = models.FileField(upload_to='audio/', blank=True)
 
     # Where it happened. DecimalField keeps exact numbers - 6 decimal
     # places is about 10 cm, more than enough for a map pin.

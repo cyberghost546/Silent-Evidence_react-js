@@ -314,6 +314,16 @@ function StoryPage() {
                                 📖 Continue where you left off ({story.my_progress}%)
                             </button>
                         )}
+                        {/* The writer's own narration, if there is one. */}
+                        {story.audio && (
+                            <div className='mt-8 rounded-xl border border-slate-800 bg-slate-900/60 p-4'>
+                                <p className='mb-2 text-sm font-semibold text-gray-200'>🎙️ Narrated by {story.author}</p>
+                                {/* The browser's own player - play, pause, seek, volume. */}
+                                <audio controls preload='none' src={mediaUrl(story.audio)} className='w-full'>
+                                    Your browser can't play this recording.
+                                </audio>
+                            </div>
+                        )}
                         {/* ref = the box useReadingProgress measures. */}
                         <div ref={bodyRef} className='mt-8'>
                             <StoryBody body={story.body} size={textSize} showScares={scareWarnings} />

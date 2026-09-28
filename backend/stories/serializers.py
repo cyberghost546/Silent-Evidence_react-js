@@ -95,6 +95,7 @@ class StoryDetailSerializer(StoryCardSerializer):
     category_slug = serializers.SerializerMethodField()
     # The writer's "Support the writer" link ('' = none). See Profile.tip_url.
     author_tip_url = serializers.SerializerMethodField()
+    audio = serializers.SerializerMethodField()
     word_count = serializers.ReadOnlyField()
     like_count = serializers.SerializerMethodField()
     comment_count = serializers.SerializerMethodField()
@@ -118,7 +119,7 @@ class StoryDetailSerializer(StoryCardSerializer):
     # more added on the end.
     class Meta(StoryCardSerializer.Meta):
         fields = StoryCardSerializer.Meta.fields + [
-            'body', 'category_slug', 'author_tip_url', 'word_count', 'like_count', 'comment_count', 'liked', 'saved',
+            'body', 'category_slug', 'author_tip_url', 'audio', 'word_count', 'like_count', 'comment_count', 'liked', 'saved',
             'coauthors', 'tags', 'series', 'lock', 'fear', 'reactions', 'is_draft', 'my_beta_feedback', 'my_progress',
             # From the Write a Story page. The story page doesn't show
             # these yet, but they're here for when it does.
@@ -152,6 +153,11 @@ class StoryDetailSerializer(StoryCardSerializer):
             for item in story.beta_feedback.filter(reader=user)
         ]
 
+    # The narration to play: the uploaded file (a /media/... path) or,
+    # if there's none, the link. '' = no narration.
+    def get_audio(self, story):
+        return story.audio_file.url if story.audio_file else story.audio_url
+
     def get_lock(self, story):
         return story_lock(self.context['request'].user, story)
 
@@ -164,6 +170,7 @@ class StoryDetailSerializer(StoryCardSerializer):
         if data['lock']:
             data['body'] = ''
             data['audio_url'] = ''
+            data['audio'] = ''
             data['video_url'] = ''
         return data
 
@@ -262,7 +269,7 @@ class StoryWriteSerializer(serializers.ModelSerializer):
         model = Story
         fields = [
             'id', 'title', 'excerpt', 'body', 'category', 'cover_image', 'cover_image_url',
-            'language', 'video_url', 'audio_url', 'location', 'latitude', 'longitude',
+            'language', 'video_url', 'audio_url', 'audio_file', 'location', 'latitude', 'longitude',
             'mood', 'content_rating', 'content_warnings', 'publish_at', 'is_published',
             'tag_names', 'series',
         ]
@@ -289,6 +296,20 @@ class StoryWriteSerializer(serializers.ModelSerializer):
     def validate_cover_image(self, value):
         if value and value.size > 5 * 1024 * 1024:
             raise serializers.ValidationError('The image must be smaller than 5 MB.')
+        return value
+
+    # The writer's own narration. FileField accepts ANY file, so we
+    # check the end of the name AND what the browser says it is.
+    # (25 MB is about 25 minutes of good-quality MP3.)
+    def validate_audio_file(self, value):
+        if not value:
+            return value
+        if value.size > 25 * 1024 * 1024:
+            raise serializers.ValidationError('The recording must be smaller than 25 MB.')
+        name = value.name.lower()
+        content_type = getattr(value, 'content_type', '') or ''
+        if not name.endswith(('.mp3', '.m4a', '.ogg', '.wav')) or not content_type.startswith('audio/'):
+            raise serializers.ValidationError('Upload an MP3, M4A, OGG or WAV sound file.')
         return value
 
     # validate() runs after every field was checked on its own, so

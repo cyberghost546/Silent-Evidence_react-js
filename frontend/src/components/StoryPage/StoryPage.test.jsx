@@ -71,6 +71,13 @@ describe('StoryPage', () => {
         expect(screen.queryByRole('button', { name: 'Listen' })).not.toBeInTheDocument()
     })
 
+    it("plays the writer's own narration when there is one", async () => {
+        getStory.mockResolvedValue({ ...STORY, audio: '/media/audio/reading.mp3' })
+        renderStory()
+        expect(await screen.findByText('🎙️ Narrated by shape_writer')).toBeInTheDocument()
+        expect(document.querySelector('audio').getAttribute('src')).toMatch(/\/media\/audio\/reading\.mp3$/)
+    })
+
     it('a missing story shows "Story not found"', async () => {
         getStory.mockRejectedValue({ status: 404 })
         renderStory()
