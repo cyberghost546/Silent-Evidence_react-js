@@ -45,15 +45,22 @@ class StoryCardSerializer(serializers.ModelSerializer):
     # on the Settings page), so we work it out in get_reading_time().
     reading_time = serializers.SerializerMethodField()
 
+    # A choose-your-path story? (the "Choose your path" badge on cards;
+    # the marks are explained in React's utils/storyPaths.js)
+    is_interactive = serializers.SerializerMethodField()
+
     class Meta:
         model = Story
         # content_rating: for the 18+ badge on cards (MatureBadge.jsx).
         # fear_average: the skulls on cards (None = nobody rated it yet).
-        fields = ['id', 'title', 'excerpt', 'cover_image', 'category', 'author', 'reading_time', 'views', 'created_at', 'content_rating', 'fear_average']
+        fields = ['id', 'title', 'excerpt', 'cover_image', 'category', 'author', 'reading_time', 'views', 'created_at', 'content_rating', 'fear_average', 'is_interactive']
 
     # self.context['request'] is there because the view passes it
     # (generic views do it by themselves). .get() + the check keep it
     # from crashing if someone ever forgets.
+    def get_is_interactive(self, story):
+        return '[[section:' in story.body
+
     def get_reading_time(self, story):
         request = self.context.get('request')
         if request is None:

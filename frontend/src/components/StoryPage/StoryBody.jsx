@@ -1,5 +1,7 @@
 import { TriangleAlert } from 'lucide-react'
 import { parseStory, parseInline } from '../../utils/storyFormat'
+import { isInteractive } from '../../utils/storyPaths'
+import InteractiveStory from './InteractiveStory'
 
 
 // The text sizes the reader can pick (ReadingToolbar), as Tailwind
@@ -40,7 +42,7 @@ function InlineText({ text }) {
 // (StoryPage), or it's the writer's own Preview. Otherwise the
 // !!scare marks are simply not drawn.
 // ---------------------------------------------------------------
-function StoryBody({ body, size = 'normal', showScares = false, easyRead = false }) {
+function StoryText({ body, size = 'normal', showScares = false, easyRead = false }) {
     // Text -> blocks (paragraphs, headings, lists...). See
     // utils/storyFormat.js for the rules.
     const blocks = parseStory(body)
@@ -111,6 +113,27 @@ function StoryBody({ body, size = 'normal', showScares = false, easyRead = false
             })}
         </div>
     )
+}
+
+
+// ---------------------------------------------------------------
+// The one everybody uses. A normal story -> StoryText (above).
+// A choose-your-path story ([[section: ...]] marks, utils/storyPaths.js)
+// -> InteractiveStory, which shows one section at a time and uses
+// StoryText to draw each section's text.
+// showProblems: the Write page's Preview lists choices that go nowhere.
+// ---------------------------------------------------------------
+function StoryBody({ showProblems = false, ...props }) {
+    if (isInteractive(props.body)) {
+        return (
+            <InteractiveStory
+                body={props.body}
+                showProblems={showProblems}
+                renderText={text => <StoryText {...props} body={text} />}
+            />
+        )
+    }
+    return <StoryText {...props} />
 }
 
 export default StoryBody

@@ -1,3 +1,5 @@
+import re
+
 from django.conf import settings
 from django.db import models
 from django.db.models import Q
@@ -184,7 +186,10 @@ class Story(models.Model):
         # .split() cuts the text at spaces -> a list of words.
         # "!!scare" (a jump-scare mark, see utils/storyFormat.js in
         # React) isn't a word the reader sees, so it doesn't count.
-        return len([word for word in self.body.split() if word.lower() != '!!scare'])
+        # Choose-your-path marks ([[section: x]], [[choice: ... -> x]])
+        # aren't read either - take those lines out first.
+        text = re.sub(r'^\s*\[\[(section|choice):[^\]]*\]\]\s*$', '', self.body, flags=re.MULTILINE | re.IGNORECASE)
+        return len([word for word in text.split() if word.lower() != '!!scare'])
 
     # wpm = "words per minute". The average reader does about 238.
     # The serializer passes a different number for people who picked

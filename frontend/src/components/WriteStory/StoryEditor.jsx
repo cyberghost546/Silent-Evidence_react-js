@@ -140,6 +140,13 @@ function StoryEditor({ value, onChange, id }) {
                 <ToolbarButton label='⚠ Scare' title='Jump scare' onClick={() => insertText('\n\n!!scare\n\n')} disabled={preview} />
 
                 <Divider />
+                {/* Choose-your-path stories (utils/storyPaths.js): a new
+                    section, and a choice that jumps to one. Type over
+                    "name" / "What they do" - the Preview shows mistakes. */}
+                <ToolbarButton label='§ Section' title='New section (choose-your-path)' onClick={() => insertText('\n\n[[section: name]]\n')} disabled={preview} />
+                <ToolbarButton label='↳ Choice' title='Choice (choose-your-path)' onClick={() => insertText('\n[[choice: What they do -> name]]\n')} disabled={preview} />
+
+                <Divider />
                 <ToolbarButton label={<Undo2 className='h-4 w-4' />} title='Undo' onClick={undo} disabled={preview} />
                 <ToolbarButton label={<Redo2 className='h-4 w-4' />} title='Redo' onClick={redo} disabled={preview} />
 
@@ -164,7 +171,7 @@ function StoryEditor({ value, onChange, id }) {
                     {value.trim() === '' ? (
                         <p className='text-gray-500'>Nothing to preview yet.</p>
                     ) : (
-                        <StoryBody body={value} size='normal' showScares />
+                        <StoryBody body={value} size='normal' showScares showProblems />
                     )}
                 </div>
             ) : (

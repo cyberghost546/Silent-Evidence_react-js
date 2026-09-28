@@ -174,6 +174,7 @@ export function stripFormatting(text) {
         .replace(/^- /gm, '')           // bullet lists
         .replace(/^---$/gm, '')         // divider lines
         .replace(/^\s*!!scare\s*$/gim, '') // jump-scare marks
+        .replace(/^\s*\[\[(section|choice):[^\]]*\]\]\s*$/gim, '') // choose-your-path marks
         .replace(/\*\*|__|\*/g, '')     // bold, underline, italic
 }
 
@@ -182,8 +183,12 @@ export function stripFormatting(text) {
 // splits on any run of spaces, tabs or new lines. An empty box
 // would give [''] (1 "word"), so that case returns 0 by hand.
 export function countWords(text) {
-    // Jump-scare marks aren't words the reader sees - leave them out.
-    const trimmed = text.replace(/^\s*!!scare\s*$/gim, '').trim()
+    // Jump-scare and choose-your-path marks aren't words the reader
+    // sees - leave them out.
+    const trimmed = text
+        .replace(/^\s*!!scare\s*$/gim, '')
+        .replace(/^\s*\[\[(section|choice):[^\]]*\]\]\s*$/gim, '')
+        .trim()
     if (trimmed === '') return 0
     return trimmed.split(/\s+/).length
 }
