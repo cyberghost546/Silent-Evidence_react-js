@@ -22,7 +22,7 @@ from .badges import badge_report
 from stories.models import Like, Bookmark, Comment, published_stories
 from .models import Follow, Block, get_profile
 from .premium import refresh_premium
-from .serializers import SignUpSerializer, ProfileSettingsSerializer
+from .serializers import SignUpSerializer, ProfileSettingsSerializer, RESERVED_USERNAMES
 
 
 # ---------------------------------------------------------------
@@ -429,6 +429,8 @@ class SettingsView(APIView):
             User = get_user_model()
             if not new_username:
                 errors['username'] = ['Username is required.']
+            elif new_username.lower() in RESERVED_USERNAMES and new_username != user.username:
+                errors['username'] = ['That username is reserved.']
             elif User.objects.filter(username__iexact=new_username).exclude(id=user.id).exists():
                 # exclude(id=user.id): keeping your OWN name is fine.
                 errors['username'] = ['That username is already taken.']

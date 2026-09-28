@@ -1402,3 +1402,31 @@ export function saveSprint(words, minutes) {
 export function getAuthorTrends() {
     return authRequest('/api/author/trends/')
 }
+
+
+// --- True stories (shared anonymously) ---
+// Members: their own submissions. The public list is getStories({ tag: 'true-story' }).
+
+export function getMyTrueStories() {
+    return authRequest('/api/true-stories/')
+}
+
+// { title, body, where_when, category_id, confirm_true }
+export function submitTrueStory(data) {
+    return authRequest('/api/true-stories/', 'POST', data)
+}
+
+// Take back one that's still waiting for review.
+export function withdrawTrueStory(id) {
+    return authRequest(`/api/true-stories/${id}/`, 'DELETE')
+}
+
+// Admins. status: 'pending' | 'approved' | 'rejected' | 'all'
+export function getAdminTrueStories(status) {
+    return authRequest(`/api/dashboard/true-stories/?status=${status}`)
+}
+
+// action 'approve' ({ content_rating, category_id }) or 'reject' ({ note })
+export function reviewTrueStory(id, action, data = {}) {
+    return authRequest(`/api/dashboard/true-stories/${id}/${action}/`, 'POST', data)
+}

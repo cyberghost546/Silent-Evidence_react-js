@@ -12,6 +12,8 @@ import ForumsPage from './components/Forums/ForumsPage'
 import VideosPage from './components/VideosPage/VideosPage'
 import VillainsPage from './components/VillainsPage/VillainsPage'
 import SprintsPage from './components/SprintsPage/SprintsPage'
+import TrueStoriesPage from './components/TrueStories/TrueStoriesPage'
+import TrueStorySubmitPage from './components/TrueStories/TrueStorySubmitPage'
 import ChainsPage from './components/Chains/ChainsPage'
 import ExplorePage from './components/ExplorePage/ExplorePage'
 import ChainPage from './components/Chains/ChainPage'
@@ -107,6 +109,7 @@ const LoginMapDashboard = lazy(() => import('./components/LoginMapDashboard/Logi
 const AnalyticsDashboard = lazy(() => import('./components/AnalyticsDashboard/AnalyticsDashboard'))
 const ErrorLogDashboard = lazy(() => import('./components/ErrorLogDashboard/ErrorLogDashboard'))
 const VideosDashboard = lazy(() => import('./components/VideosDashboard/VideosDashboard'))
+const TrueStoriesDashboard = lazy(() => import('./components/TrueStoriesDashboard/TrueStoriesDashboard'))
 const FeaturedAuthorsDashboard = lazy(() => import('./components/FeaturedAuthorsDashboard/FeaturedAuthorsDashboard'))
 const SpotlightDashboard = lazy(() => import('./components/SpotlightDashboard/SpotlightDashboard'))
 const PollsDashboard = lazy(() => import('./components/PollsDashboard/PollsDashboard'))
@@ -264,6 +267,10 @@ function App() {
         {/* Writing Sprints: timed writing + weekly leaderboard. */}
         <Route path='/sprints' element={<SprintsPage />} />
 
+        {/* True stories, shared anonymously (an admin reviews each one). */}
+        <Route path='/true-stories' element={<TrueStoriesPage />} />
+        <Route path='/true-stories/submit' element={<ProtectedRoute><TrueStorySubmitPage /></ProtectedRoute>} />
+
         {/* Forums: boards -> threads -> replies. Anyone can read. */}
         <Route path='/forums' element={<ForumsPage />} />
         <Route path='/forums/:slug' element={<BoardPage />} />
@@ -361,6 +368,7 @@ function App() {
         <Route path='analytics' element={<AnalyticsDashboard />} />
         <Route path='errors' element={<ErrorLogDashboard />} />
         <Route path='videos' element={<VideosDashboard />} />
+        <Route path='true-stories' element={<TrueStoriesDashboard />} />
       </Route>
     </Routes>
     </ErrorBoundary>

@@ -6,7 +6,7 @@ import {
     Megaphone, Trophy, Mail, LifeBuoy, Newspaper, MessageSquare, Package, PenLine,
     Cookie, CircleCheck, DollarSign, Crown, Ban, ShieldX, Search, Tag, Clock, Send, HeartPulse, Moon,
     Star, Flashlight, ChartColumn, ScrollText, CalendarDays, FileText, Globe, Grid3x3, Gauge, Settings,
-    GitMerge, BotMessageSquare, ShieldBan, Bug, Clapperboard,
+    GitMerge, BotMessageSquare, ShieldBan, Bug, Clapperboard, Eye,
 } from 'lucide-react'
 import styles from './Dashboard.module.css'
 
@@ -43,6 +43,7 @@ const NAV_ITEMS = [
     { label: 'Challenges', to: '/dashboard/challenges', icon: <Swords className={ICON} /> },
     { label: 'Slideshow', to: '/dashboard/slides', icon: <PhotoIcon /> },
     { label: 'Videos', to: '/dashboard/videos', icon: <Clapperboard className={ICON} /> },
+    { label: 'True Stories', to: '/dashboard/true-stories', icon: <Eye className={ICON} /> },
     { label: 'Categories', to: '/dashboard/categories', icon: <TagIcon /> },
     { label: 'Announcement', to: '/dashboard/announcements', icon: <Megaphone className={ICON} /> },
     { label: 'Story of Week', to: '/dashboard/story-of-week', icon: <Trophy className={ICON} /> },

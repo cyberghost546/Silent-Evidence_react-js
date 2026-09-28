@@ -219,6 +219,7 @@ class Notification(models.Model):
         ('forum', 'Forum reply'),
         ('chain', 'Story chain'),
         ('beta', 'Beta reading'),
+        ('truestory', 'True story review'),
     ]
 
     recipient = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='notifications')

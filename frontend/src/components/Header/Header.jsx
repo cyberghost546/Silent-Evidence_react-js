@@ -34,6 +34,7 @@ const EXPLORE_ITEMS = [
     { label: 'Writing Challenges', href: '/challenges' },
     { label: 'Story Chains', href: '/chains' },
     { label: 'Bundles', href: '/bundles' },
+    { label: 'True Stories', href: '/true-stories' },
 ]
 
 // Shared styling for the plain nav links, kept in one constant so

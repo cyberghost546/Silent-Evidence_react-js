@@ -5,6 +5,12 @@ from rest_framework import serializers
 from .models import Profile
 
 
+# Usernames nobody may take. "Anonymous" is the shared author of the
+# anonymous true stories (stories/models.py) - if a member could be
+# called that, they could pretend to have written them.
+RESERVED_USERNAMES = {'anonymous'}
+
+
 # Checks the sign-up form and creates the user.
 # We don't need our own User model - Django ships one (auth_user
 # table) with username, email, password and is_staff already.
@@ -27,6 +33,11 @@ class SignUpSerializer(serializers.ModelSerializer):
         # iexact = case-insensitive, so Bob@x.com and bob@x.com clash.
         if User.objects.filter(email__iexact=value).exists():
             raise serializers.ValidationError('An account with this email already exists.')
+        return value
+
+    def validate_username(self, value):
+        if value.strip().lower() in RESERVED_USERNAMES:
+            raise serializers.ValidationError('That username is reserved.')
         return value
 
     # Runs the rules from AUTH_PASSWORD_VALIDATORS in settings.py:

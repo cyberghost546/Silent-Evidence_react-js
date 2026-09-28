@@ -106,7 +106,7 @@ sends it along (plus the CSRF token), and `AuthContext.jsx` keeps
 | App | What's in it |
 | --- | --- |
 | `accounts` | Sign up / log in, profiles, settings, follows, blocks, leaderboard |
-| `stories` | Stories, likes, saves, comments (with replies), reading history + progress, co-author invites, search, feed, series, fear meter, reactions, story chains, beta readers, writing sprints |
+| `stories` | Stories, likes, saves, comments (with replies), reading history + progress, co-author invites, search, feed, series, fear meter, reactions, story chains, beta readers, writing sprints, views per day, anonymous true stories |
 | `messaging` | Private messages |
 | `moderation` | Reports, appeals, login logs + lock-out, content filter, verification, warnings & bans, AI toxicity checks |
 | `sitecontent` | Announcement banner, writing prompts, challenges, bundles, featured authors, spotlight, polls, villain of the week |
@@ -173,6 +173,7 @@ rules are in `backend/accounts/age.py`; the lock screen is
 | `/explore/latest`, `/popular`, `/timeline` | `ExplorePage/` | |
 | `/villains`, `/villains/nominate` | `VillainsPage/` - nominate and vote, one of each per week | reading: no, voting: yes |
 | `/sprints` | `SprintsPage/` - timed writing, weekly leaderboard, carries on to `/write` | sprinting: no, saving results: yes |
+| `/true-stories`, `/true-stories/submit` | `TrueStories/` - anonymous true stories; admins review at `/dashboard/true-stories` | reading: no, sending: yes |
 | `/series/:id` | `SeriesPage/` | |
 
 All routes live in `frontend/src/App.jsx`.
