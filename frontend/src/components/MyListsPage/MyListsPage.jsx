@@ -50,6 +50,10 @@ function MyListsPage() {
         <PageLayout title='My Lists' subtitle={subtitle}>
             <ReadingListsSection mine />
 
+            <Link to='/offline-library' className='mb-8 inline-flex items-center gap-2 text-sm text-red-300 hover:text-red-200'>
+                Downloaded stories (read without internet) →
+            </Link>
+
             <h2 className='mb-4 text-lg font-bold text-white'>Saved for later</h2>
             {error && <p className='mb-6 rounded-lg border border-red-800 bg-red-950/40 px-4 py-3 text-sm text-red-300'>{error}</p>}
 

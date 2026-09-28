@@ -42,6 +42,7 @@ const VideosPage = lazy(() => import('./components/VideosPage/VideosPage'))
 const VillainsPage = lazy(() => import('./components/VillainsPage/VillainsPage'))
 const SprintsPage = lazy(() => import('./components/SprintsPage/SprintsPage'))
 const TrueStoriesPage = lazy(() => import('./components/TrueStories/TrueStoriesPage'))
+const OfflineLibraryPage = lazy(() => import('./components/OfflineLibrary/OfflineLibraryPage'))
 const ReadingListPage = lazy(() => import('./components/ReadingLists/ReadingListPage'))
 const TrueStorySubmitPage = lazy(() => import('./components/TrueStories/TrueStorySubmitPage'))
 const ChainsPage = lazy(() => import('./components/Chains/ChainsPage'))
@@ -274,6 +275,9 @@ function App() {
 
         {/* Writing Sprints: timed writing + weekly leaderboard. */}
         <Route path='/sprints' element={<SprintsPage />} />
+
+        {/* Stories downloaded for offline reading (works without internet). */}
+        <Route path='/offline-library' element={<OfflineLibraryPage />} />
 
         {/* A reading list - the page people share. */}
         <Route path='/reading-lists/:id' element={<ReadingListPage />} />

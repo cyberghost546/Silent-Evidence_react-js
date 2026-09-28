@@ -1,11 +1,12 @@
 import { useState } from 'react'
-import { Bookmark, BookmarkCheck, Link as LinkIcon, Check, MessageCircle, ChevronDown, Flag, ListPlus } from 'lucide-react'
+import { Bookmark, BookmarkCheck, Link as LinkIcon, Check, MessageCircle, ChevronDown, Flag, ListPlus, Download, WifiOff } from 'lucide-react'
 import { useDropdown } from '../../hooks/useDropdown'
 import { useRequireLogin } from '../../hooks/useRequireLogin'
 import { saveStory } from '../../api/client'
 import { XIcon, RedditIcon } from '../BrandIcons/BrandIcons'
 import ReportDialog from '../ReportDialog/ReportDialog'
 import AddToListDialog from '../ReadingLists/AddToListDialog'
+import { offlineSupported, isSavedOffline, saveOffline, removeOffline } from '../../utils/offlineStories'
 
 
 const ITEM_BASE = 'flex w-full items-center gap-3 px-4 py-2 text-sm transition-colors hover:bg-gray-800'
@@ -34,6 +35,26 @@ function StoryActions({ story }) {
 
     // Is the Report pop-up open?
     const [reporting, setReporting] = useState(false)
+    // Downloaded for offline reading? (utils/offlineStories.js)
+    const [offline, setOffline] = useState(() => offlineSupported() && isSavedOffline(story.id))
+    const [offlineBusy, setOfflineBusy] = useState(false)
+
+    async function handleOffline() {
+        setOfflineBusy(true)
+        try {
+            if (offline) {
+                await removeOffline(story.id)
+            } else {
+                await saveOffline(story)
+            }
+            setOffline(!offline)
+        } catch (err) {
+            console.error('Could not save for offline:', err)
+        } finally {
+            setOfflineBusy(false)
+        }
+    }
+
     // Is the "Add to reading list" pop-up open?
     const [addingToList, setAddingToList] = useState(false)
 
@@ -114,6 +135,13 @@ function StoryActions({ story }) {
                         <ListPlus className='h-4 w-4' />
                         Add to reading list
                     </button>
+                    {/* A locked 18+ story has no text to download yet. */}
+                    {offlineSupported() && !story.lock && (
+                        <button type='button' role='menuitem' onClick={handleOffline} disabled={offlineBusy} className={ITEM_STYLE}>
+                            {offline ? <WifiOff className='h-4 w-4 text-green-400' /> : <Download className='h-4 w-4' />}
+                            {offline ? 'Saved offline (remove)' : 'Save for offline'}
+                        </button>
+                    )}
 
                     <div className='my-2 border-t border-gray-800' />
 

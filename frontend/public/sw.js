@@ -7,12 +7,14 @@
 // It's what makes Silent Evidence an installable app:
 //   - the app's files (JS, CSS, icons) are kept in a cache, so it
 //     opens fast - even on a bad connection
-//   - no internet at all -> the offline page instead of the
-//     browser's dinosaur
+//   - no internet: the app still opens, and stories you DOWNLOADED
+//     ("Save for offline", utils/offlineStories.js) can be read.
+//     Any other page -> the offline page instead of the browser's error.
 //
-// What it NEVER caches: anything from Django (/api/, /admin/, /media/...).
-// Stories, logins and comments always come fresh from the server -
-// an old copy of "who is logged in" would be a real bug.
+// What it never caches by itself: Django's answers (/api/, /admin/,
+// /media/...). Stories, logins and comments always come fresh from
+// the server. The ONLY exception: a story you downloaded on purpose
+// is read from the 'offline stories' cache when there's no internet.
 //
 // Registered in src/main.jsx - only in the built site (npm run
 // build), never while developing, so `npm run dev` always shows
@@ -21,14 +23,24 @@
 // CHANGED THIS FILE? Bump VERSION. The browser then installs the new
 // worker, and 'activate' below throws the old caches away.
 // ---------------------------------------------------------------
-const VERSION = 'v1'
+const VERSION = 'v2'
 const CACHE = `silent-evidence-${VERSION}`
+// Downloaded stories live in their own cache, which is NOT thrown
+// away when VERSION changes (the same name as in utils/offlineStories.js).
+const STORIES_CACHE = 'silent-evidence-offline-stories'
 
 // Saved as soon as the worker is installed.
 const START_FILES = ['/offline.html', '/icons/icon-192.png', '/manifest.webmanifest']
 
 // Requests we always leave to the network (Django's addresses).
 const NEVER_CACHE = ['/api/', '/admin/', '/media/', '/static/', '/sitemap.xml', '/robots.txt']
+
+// "/api/stories/12/" - one story (the only Django answer we may
+// serve from the downloaded-stories cache).
+const ONE_STORY = /\/api\/stories\/\d+\/$/
+
+// Pages that still work offline (the app itself + downloaded stories).
+const WORKS_OFFLINE = [/^\/stories\/\d+$/, /^\/offline-library$/]
 
 
 self.addEventListener('install', event => {
@@ -40,10 +52,10 @@ self.addEventListener('install', event => {
 
 
 self.addEventListener('activate', event => {
-    // Delete caches from older versions of this file.
+    // Delete caches from older versions of this file (never the stories).
     event.waitUntil(
         caches.keys().then(names => Promise.all(
-            names.filter(name => name !== CACHE).map(name => caches.delete(name))
+            names.filter(name => name !== CACHE && name !== STORIES_CACHE).map(name => caches.delete(name))
         ))
     )
     self.clients.claim()
@@ -53,16 +65,45 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
     const request = event.request
     const url = new URL(request.url)
+    if (request.method !== 'GET') return
 
-    // Only GETs from our own site. POSTs (logging in, commenting...)
-    // and other sites (YouTube, fonts) go straight through, untouched.
-    if (request.method !== 'GET' || url.origin !== self.location.origin) return
+    // A downloaded story: the internet first (so it's fresh), the saved
+    // copy when there's no connection. (Django can be on another
+    // address while developing - that's why this comes before the
+    // "our own site only" check below.)
+    if (ONE_STORY.test(url.pathname)) {
+        event.respondWith(
+            fetch(request).catch(() => caches.open(STORIES_CACHE)
+                .then(cache => cache.match(request.url))
+                .then(saved => saved || Response.error()))
+        )
+        return
+    }
+
+    // Only GETs from our own site. Other sites (YouTube, fonts) go
+    // straight through, untouched.
+    if (url.origin !== self.location.origin) return
     if (NEVER_CACHE.some(path => url.pathname.startsWith(path))) return
 
     // 1. PAGES (you opened /stories/12): always try the internet first,
-    //    so you get the newest version. Offline -> the offline page.
+    //    so you get the newest version - and keep a copy of the app's
+    //    page (index.html) for when there's no internet.
     if (request.mode === 'navigate') {
-        event.respondWith(fetch(request).catch(() => caches.match('/offline.html')))
+        event.respondWith(
+            fetch(request)
+                .then(response => {
+                    const copy = response.clone()
+                    caches.open(CACHE).then(cache => cache.put('/index.html', copy))
+                    return response
+                })
+                .catch(async () => {
+                    // Offline. A page that works offline -> the app itself;
+                    // anything else -> the offline page.
+                    const works = WORKS_OFFLINE.some(pattern => pattern.test(url.pathname))
+                    const app = works && await caches.match('/index.html')
+                    return app || caches.match('/offline.html')
+                })
+        )
         return
     }
 
