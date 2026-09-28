@@ -1395,3 +1395,10 @@ export function getSprints() {
 export function saveSprint(words, minutes) {
     return authRequest('/api/sprints/', 'POST', { words, minutes })
 }
+
+
+// Author Dashboard, "Over time": 12 weeks of views / likes / read-through,
+// and read-through per story. -> { weeks: [...], stories: [...], views_tracked_since }
+export function getAuthorTrends() {
+    return authRequest('/api/author/trends/')
+}

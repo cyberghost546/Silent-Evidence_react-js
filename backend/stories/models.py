@@ -563,3 +563,18 @@ class SprintResult(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+
+
+# ---------------------------------------------------------------
+# VIEWS PER DAY - Story.views is only a running total, so the Author
+# Dashboard couldn't draw "views over time". One row per story per
+# day, counted when the story page is opened (StoryDetailView).
+# Only days from when this was added have numbers.
+# ---------------------------------------------------------------
+class StoryViewDay(models.Model):
+    story = models.ForeignKey(Story, on_delete=models.CASCADE, related_name='view_days')
+    date = models.DateField()
+    count = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        unique_together = ['story', 'date']

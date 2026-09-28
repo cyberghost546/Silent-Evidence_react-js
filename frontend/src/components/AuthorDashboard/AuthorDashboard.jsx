@@ -9,6 +9,7 @@ import SegmentedControl from '../SegmentedControl/SegmentedControl'
 import Panel from '../Dashboard/Panel'
 import BarChart from '../Dashboard/BarChart'
 import TopStoriesTable from './TopStoriesTable'
+import AuthorTrends from './AuthorTrends'
 import { formatShortDate } from '../../utils/format'
 
 
@@ -231,6 +232,11 @@ function AuthorDashboard() {
                 <Panel title='New Comments' subtitle={`Last ${days} days`}>
                     <BarChart data={toChartData(stats.daily, 'comments')} color='bg-green-500' />
                 </Panel>
+
+                {/* ========== OVER TIME (12 weeks) ==========
+                    Its own request, so the 7/30-day switch above
+                    doesn't reload it. */}
+                <AuthorTrends />
 
                 {/* ========== TOP STORIES + RECENT COMMENTS ========== */}
                 <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>

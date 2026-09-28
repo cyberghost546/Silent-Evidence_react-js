@@ -4,6 +4,7 @@ from .beta_views import BetaReadersView, RemoveBetaReaderView, BetaFeedbackView
 from .chain_views import ChainListView, ChainDetailView, AdminChainView
 from .series_views import MySeriesView, SeriesDetailView
 from .sprint_views import SprintView
+from .trend_views import AuthorTrendsView
 from .views import (
     StoryListView, StoryCreateView, StoryDetailView, FeaturedStoriesView, RandomStoryView,
     ToggleLikeView, ToggleSaveView, CommentListView, LastWordListView, AuthorStatsView,
@@ -63,4 +64,5 @@ urlpatterns = [
 
     # The Author Dashboard (logged in) -> /api/author/stats/?days=30
     path('author/stats/', AuthorStatsView.as_view()),
+    path('author/trends/', AuthorTrendsView.as_view()),    # views / read-through per week
 ]

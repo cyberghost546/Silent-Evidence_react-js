@@ -21,7 +21,7 @@ from moderation.content_filter import check_text
 from moderation.models import Report
 from .models import (
     Story, Like, Bookmark, Comment, LastWord, ReadingHistory, CoAuthorInvite,
-    FearRating, Reaction, REACTION_KINDS, ReadingDay,
+    FearRating, Reaction, REACTION_KINDS, ReadingDay, StoryViewDay,
     published_stories, stories_for,
 )
 from .serializers import (
@@ -199,6 +199,11 @@ class StoryDetailView(generics.RetrieveAPIView):
         # change - and the Story of the Day pick depends on updated_at,
         # so a busy story can't "steal" the pick just by being read.
         Story.objects.filter(pk=story.pk).update(views=F('views') + 1)
+
+        # ...and +1 on today's row, for the "views over time" chart
+        # (Author Dashboard). Same F() trick for the adding.
+        day, _ = StoryViewDay.objects.get_or_create(story=story, date=timezone.localdate())
+        StoryViewDay.objects.filter(pk=day.pk).update(count=F('count') + 1)
 
         # Re-read the new number so the page shows it.
         story.refresh_from_db(fields=['views'])
