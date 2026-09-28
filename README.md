@@ -145,7 +145,7 @@ sends it along (plus the CSRF token), and `AuthContext.jsx` keeps
 | App | What's in it |
 | --- | --- |
 | `accounts` | Sign up / log in, profiles, settings, follows, blocks, leaderboard |
-| `stories` | Stories, likes, saves, comments (with replies), reading history + progress, co-author invites, search, feed, series, fear meter, reactions, story chains, beta readers, writing sprints, views per day, anonymous true stories, reading lists, narration uploads |
+| `stories` | Stories, likes, saves, comments (with replies), reading history + progress, co-author invites, search, feed, series, fear meter, reactions, story chains, beta readers, writing sprints, views per day, anonymous true stories, reading lists, narration uploads, version history, recommendations, read-alongs, Claude feedback |
 | `messaging` | Private messages |
 | `moderation` | Reports, appeals, login logs + lock-out, content filter, verification, warnings & bans, AI toxicity checks |
 | `sitecontent` | Announcement banner, writing prompts, challenges, bundles, featured authors, spotlight, polls, villain of the week |
@@ -214,6 +214,11 @@ rules are in `backend/accounts/age.py`; the lock screen is
 | `/sprints` | `SprintsPage/` - timed writing, weekly leaderboard, carries on to `/write` | sprinting: no, saving results: yes |
 | `/true-stories`, `/true-stories/submit` | `TrueStories/` - anonymous true stories; admins review at `/dashboard/true-stories` | reading: no, sending: yes |
 | `/reading-lists/:id` | `ReadingLists/` - a shareable list; add stories from a story's Actions menu | reading: no (public lists) |
+| `/map` | `Map/` - the Haunted Map (Leaflet + OpenStreetMap); true-story pins blurred to ~1 km | |
+| `/read-alongs`, `/read-alongs/:id` | `ReadAlongs/` - read together at a set time, live chat, fear-rating reveal | reading: no, joining: yes |
+| `/offline-library` | `OfflineLibrary/` - stories downloaded for offline reading (works without internet) | |
+| `/my-stories/:id/edit` | `EditStoryPage/` - edit your story, version history, private feedback from Claude | yes |
+| `/challenges/:id/judge` | `ChallengesPage/JudgePage.jsx` - judges score entries | yes (judges) |
 | `/series/:id` | `SeriesPage/` | |
 
 All routes live in `frontend/src/App.jsx`.
