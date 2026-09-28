@@ -1,6 +1,20 @@
 @import "tailwindcss";
 
 /* ---------------------------------------------------------------
+   Colour contrast: the site is dark, and Tailwind's standard
+   gray-500 on it only reaches about 3.7 : 1. The accessibility rule
+   (WCAG AA) wants at least 4.5 : 1 for normal text, or people with
+   weaker eyesight - and everyone on a phone in the sun - can't read
+   it. So gray-500 is made a little lighter here, ONCE, and all 300+
+   "text-gray-500" places on the site get fixed together.
+   Checked on the darkest (slate-950) and lightest (slate-800)
+   backgrounds we use: 4.6 : 1 or better everywhere.
+   --------------------------------------------------------------- */
+@theme {
+    --color-gray-500: #8b93a3;
+}
+
+/* ---------------------------------------------------------------
    Why there's no Bootstrap here any more:
 
    Bootstrap and Tailwind both have classes called border, px-4,

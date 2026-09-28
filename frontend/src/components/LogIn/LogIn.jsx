@@ -139,7 +139,7 @@ function LogIn() {
                 </p>
             </form>
 
-            <p className='mt-8 text-center text-sm text-slate-500'>
+            <p className='mt-8 text-center text-sm text-slate-400'>
                 By signing in you agree to our Terms &amp; Privacy Policy
             </p>
         </AuthLayout>

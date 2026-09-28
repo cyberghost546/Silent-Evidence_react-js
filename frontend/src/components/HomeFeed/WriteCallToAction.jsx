@@ -56,7 +56,7 @@ function WriteCallToAction() {
                 </Link>
             </div>
 
-            <p className='mt-10 text-sm text-slate-500'>Free to join · No ads · Your stories, your rights</p>
+            <p className='mt-10 text-sm text-slate-400'>Free to join · No ads · Your stories, your rights</p>
         </section>
     )
 }

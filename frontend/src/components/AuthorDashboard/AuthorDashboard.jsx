@@ -140,7 +140,7 @@ function AuthorDashboard() {
 
                 {/* ========== HEADER ========== */}
                 <div className='border-b border-slate-800 pb-6'>
-                    <p className='text-xs font-bold uppercase tracking-widest text-red-600'>Author Dashboard</p>
+                    <p className='text-xs font-bold uppercase tracking-widest text-red-400'>Author Dashboard</p>
                     <h1 className='mt-2 text-3xl font-bold text-white'>
                         Welcome back, <span className='text-red-500'>{user.username}</span>
                     </h1>

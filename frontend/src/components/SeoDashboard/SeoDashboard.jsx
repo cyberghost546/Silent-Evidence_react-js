@@ -106,7 +106,7 @@ function SeoDashboard() {
                     <div>
                         <p className='mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500'>Search result preview</p>
                         <div className='rounded-xl bg-white p-4 font-sans'>
-                            <p className='text-xs text-gray-600'>{window.location.origin}</p>
+                            <p className='text-xs text-gray-500'>{window.location.origin}</p>
                             <p className='mt-1 truncate text-lg text-[#1a0dab]'>{title || 'Untitled'}</p>
                             {/* line-clamp-2 = max 2 lines, then "..." like Google. */}
                             <p className='mt-1 line-clamp-2 text-sm text-gray-700'>{description || 'No description.'}</p>

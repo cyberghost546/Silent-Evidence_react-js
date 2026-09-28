@@ -240,7 +240,7 @@ function StoriesDashboard() {
             <p className='mt-1 text-gray-400'>
                 {data.counts.total} total {data.counts.total === 1 ? 'story' : 'stories'}
                 {/* A small breakdown after the total. */}
-                <span className='text-gray-600'>
+                <span className='text-gray-500'>
                     {' '}· {data.counts.published} published · {data.counts.draft} {data.counts.draft === 1 ? 'draft' : 'drafts'} · {data.counts.archived} archived
                 </span>
             </p>

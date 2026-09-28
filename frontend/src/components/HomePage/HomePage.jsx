@@ -24,6 +24,11 @@ function HomePage() {
     return (
         // <>...</> (a fragment) groups them without an extra <div>.
         <>
+            {/* Every page should have ONE <h1> - screen readers use it to
+                say "you are here", and search engines read it too. The
+                homepage's big titles are in the slideshow, so this one is
+                hidden: sr-only = "only for screen readers". */}
+            <h1 className='sr-only'>Silent Evidence - horror stories, fiction and true</h1>
             <SlideShow />
 
             {/* One dark band behind all the sections.

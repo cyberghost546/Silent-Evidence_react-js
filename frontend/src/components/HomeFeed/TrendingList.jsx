@@ -57,7 +57,7 @@ function TrendingList({ limit = 5 }) {
                                 {/* min-w-0 lets truncate work inside a flex row. */}
                                 <div className='min-w-0'>
                                     {story.category && (
-                                        <p className='truncate text-[10px] font-bold uppercase tracking-wider text-red-500'>{story.category}</p>
+                                        <p className='truncate text-[10px] font-bold uppercase tracking-wider text-red-400'>{story.category}</p>
                                     )}
                                     <p className='truncate text-sm font-semibold text-white'>{story.title}</p>
                                     <p className='truncate text-xs text-gray-500'>{story.author}</p>

@@ -207,7 +207,7 @@ function CommentItem({ comment, replies = [], canReply, onReport, onReply, isRep
                     <button
                         type='button'
                         onClick={() => onReport(comment.id)}
-                        className='ml-auto flex items-center gap-1 text-xs text-gray-600 hover:text-red-400'
+                        className='ml-auto flex items-center gap-1 text-xs text-gray-500 hover:text-red-400'
                         aria-label={`Report comment by ${comment.author}`}
                     >
                         <Flag className='h-3 w-3' />

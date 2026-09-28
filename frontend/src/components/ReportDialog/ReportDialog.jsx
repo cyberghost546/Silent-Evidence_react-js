@@ -123,7 +123,7 @@ function ReportDialog({ target, what, onClose }) {
                         </fieldset>
 
                         <label htmlFor='report-details' className='mt-4 block text-sm text-gray-400'>
-                            More details <span className='text-gray-600'>(optional)</span>
+                            More details <span className='text-gray-500'>(optional)</span>
                         </label>
                         <textarea
                             id='report-details'

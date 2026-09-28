@@ -149,7 +149,7 @@ function ContactPage() {
 
                 {/* ---------- LEFT: text + info cards ---------- */}
                 <div>
-                    <p className='text-sm font-bold uppercase tracking-widest text-red-600'>Get in touch</p>
+                    <p className='text-sm font-bold uppercase tracking-widest text-red-400'>Get in touch</p>
                     <h1 className='mt-3 text-5xl font-bold text-white'>Contact Us</h1>
                     <p className='mt-6 max-w-md text-lg leading-8 text-gray-400'>
                         Have a question, a report, or just want to say hello? Fill in the form

@@ -57,7 +57,7 @@ function StoryGridCard({ story }) {
                 always sits at the very bottom of the card. */}
             <div className='flex flex-1 flex-col p-5'>
                 {story.category && (
-                    <p className='text-xs font-bold uppercase tracking-wider text-red-500'>{story.category}</p>
+                    <p className='text-xs font-bold uppercase tracking-wider text-red-400'>{story.category}</p>
                 )}
 
                 <h3 className='mt-2 text-lg font-bold text-white'>{story.title}</h3>

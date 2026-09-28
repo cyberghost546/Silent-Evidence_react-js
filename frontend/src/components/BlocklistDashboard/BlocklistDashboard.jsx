@@ -85,7 +85,7 @@ function BlocklistDashboard() {
                         {data?.blocked.map(item => (
                             <tr key={item.id} className='border-t border-slate-800'>
                                 <td className='px-4 py-3 font-mono text-gray-100'>{item.ip_address}</td>
-                                <td className='px-4 py-3 text-gray-300'>{item.reason || <span className='text-gray-600'>—</span>}</td>
+                                <td className='px-4 py-3 text-gray-300'>{item.reason || <span className='text-gray-500'>—</span>}</td>
                                 <td className='px-4 py-3 text-gray-400'>{item.blocked_by ?? '—'}</td>
                                 <td className='whitespace-nowrap px-4 py-3 text-gray-400'>{new Date(item.created_at).toLocaleDateString()}</td>
                                 <td className='px-4 py-3 text-right'>

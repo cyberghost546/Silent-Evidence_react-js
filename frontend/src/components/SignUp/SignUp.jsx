@@ -168,7 +168,7 @@ function SignUp() {
                 </div>
 
                 {/* The lines on both sides come from the CSS Module. */}
-                <div className={`${styles.divider} my-6 text-xs text-slate-500`}>
+                <div className={`${styles.divider} my-6 text-xs text-slate-400`}>
                     or register with email
                 </div>
 
@@ -278,7 +278,7 @@ function SignUp() {
                 )}
             </div>
 
-            <p className='mt-8 text-center text-sm text-slate-500'>
+            <p className='mt-8 text-center text-sm text-slate-400'>
                 By creating an account you agree to our Terms &amp; Privacy Policy
             </p>
         </AuthLayout>
