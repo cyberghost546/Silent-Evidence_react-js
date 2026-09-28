@@ -136,6 +136,17 @@ class Story(models.Model):
     series = models.ForeignKey('Series', on_delete=models.SET_NULL, null=True, blank=True, related_name='parts')
     series_part = models.PositiveSmallIntegerField(null=True, blank=True)   # 1, 2, 3...
 
+    # FEAR METER: readers rate 1-5 skulls (FearRating). We keep the
+    # running total here, so cards and "sort by scariest" don't have
+    # to count every rating again for every story.
+    fear_total = models.PositiveIntegerField(default=0)   # all the skulls added up
+    fear_votes = models.PositiveIntegerField(default=0)   # how many ratings
+
+    @property
+    def fear_average(self):
+        # 3 ratings of 5, 4 and 3 skulls -> 12 / 3 = 4.0
+        return round(self.fear_total / self.fear_votes, 1) if self.fear_votes else None
+
     # Empty = show it straight away. A date = stay hidden until then
     # (see published_stories() below).
     publish_at = models.DateTimeField(null=True, blank=True)
@@ -423,3 +434,39 @@ class Series(models.Model):
 
     def __str__(self):
         return self.title
+
+
+# ---------------------------------------------------------------
+# FEAR METER - "how scary was it?" 1 to 5 skulls, once per reader
+# per story (they can change it). Story.fear_total / fear_votes keep
+# the sum up to date (see FearRatingView).
+# ---------------------------------------------------------------
+class FearRating(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='fear_ratings')
+    story = models.ForeignKey(Story, on_delete=models.CASCADE, related_name='fear_ratings')
+    score = models.PositiveSmallIntegerField()   # 1-5
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ['user', 'story']
+
+
+# ---------------------------------------------------------------
+# REACTIONS - besides Like: how did the story land?
+# One of each kind per reader per story, switched on/off by clicking.
+# ---------------------------------------------------------------
+REACTION_KINDS = [
+    ('got_me', 'Got me'),        # 😱
+    ('cant_sleep', "Can't sleep"),   # 🌙
+    ('creepy', 'Creepy'),        # 🕯️
+]
+
+
+class Reaction(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='reactions')
+    story = models.ForeignKey(Story, on_delete=models.CASCADE, related_name='reactions')
+    kind = models.CharField(max_length=12, choices=REACTION_KINDS)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ['user', 'story', 'kind']

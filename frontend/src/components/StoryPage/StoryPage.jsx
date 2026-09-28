@@ -19,6 +19,9 @@ import { SeriesLabel, SeriesNav } from './SeriesNav'
 import styles from './StoryPage.module.css'
 import { usePageTitle } from '../../hooks/usePageTitle'
 import StoryLock from './StoryLock'
+import FearMeter from './FearMeter'
+import ReactionBar from './ReactionBar'
+import { useAuth } from '../../hooks/useAuth'
 
 
 // The name the reader's text size is saved under in the browser.
@@ -44,6 +47,7 @@ const TEXT_SIZE_KEY = 'storyTextSize'
 function StoryPage() {
     // useParams() always gives STRINGS: { id: '5' }, not 5.
     const { id } = useParams()
+    const { user } = useAuth()
 
     const [story, setStory] = useState(null)
     const [reloadKey, setReloadKey] = useState(0)
@@ -303,12 +307,24 @@ function StoryPage() {
                 <div className='mt-12 border-t border-gray-800 pt-10'>
                     {/* key = "start fresh for a new story". The two keys
                         must differ: siblings may never share a key. */}
-                    <LikeButton
-                        key={`like-${story.id}`}
-                        storyId={story.id}
-                        initialLiked={story.liked}
-                        initialCount={story.like_count}
-                    />
+                    {/* The fear meter - once you could read the story.
+                        You can't rate your own (Django refuses too). */}
+                    {!story.lock && (
+                        <div className='mb-6'>
+                            <FearMeter key={`fear-${story.id}`} storyId={story.id} initial={story.fear} canRate={user?.username !== story.author} />
+                        </div>
+                    )}
+
+                    {/* Like + the scary reactions, side by side. */}
+                    <div className='flex flex-wrap items-center gap-3'>
+                        <LikeButton
+                            key={`like-${story.id}`}
+                            storyId={story.id}
+                            initialLiked={story.liked}
+                            initialCount={story.like_count}
+                        />
+                        <ReactionBar key={`reactions-${story.id}`} storyId={story.id} initial={story.reactions} />
+                    </div>
                     <Comments key={`comments-${story.id}`} storyId={story.id} />
                 </div>
             </div>

@@ -80,6 +80,13 @@ function StoryCard({ story, accent = 'red' }) {
                     <span>{story.reading_time} min read</span>
                     <span className='text-gray-600'>&middot;</span>
                     <span>{pluralize(story.views, 'view', 'views')}</span>
+                    {/* The fear meter, once someone rated it. */}
+                    {story.fear_average && (
+                        <>
+                            <span className='text-gray-600'>&middot;</span>
+                            <span className='text-red-400' title='Fear meter (out of 5)'>💀 {story.fear_average}</span>
+                        </>
+                    )}
                 </div>
 
                 {/* <Link> goes to the story page (StoryPage.jsx) without

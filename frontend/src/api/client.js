@@ -1287,3 +1287,16 @@ export function setPostHidden(id, isHidden) {
 export function getVideos() {
     return getJSON('/api/videos/')
 }
+
+
+// --- Fear meter + reactions ---
+
+// score 1-5 -> { average, votes, mine }
+export function rateFear(storyId, score) {
+    return authRequest(`/api/stories/${storyId}/fear/`, 'POST', { score })
+}
+
+// kind = 'got_me' | 'cant_sleep' | 'creepy' -> { counts, mine }
+export function toggleReaction(storyId, kind) {
+    return authRequest(`/api/stories/${storyId}/react/`, 'POST', { kind })
+}

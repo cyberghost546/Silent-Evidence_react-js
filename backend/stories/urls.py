@@ -5,7 +5,7 @@ from .views import (
     StoryListView, StoryCreateView, StoryDetailView, FeaturedStoriesView, RandomStoryView,
     ToggleLikeView, ToggleSaveView, CommentListView, LastWordListView, AuthorStatsView,
     FeedView, SavedStoriesView, ReadingHistoryView, MyStoriesView, ManageStoryView, SearchView,
-    InviteListView, InviteActionView,
+    InviteListView, InviteActionView, FearRatingView, ToggleReactionView,
 )
 
 
@@ -31,6 +31,8 @@ urlpatterns = [
     # story's id.
     path('stories/<int:pk>/', StoryDetailView.as_view()),
     path('stories/<int:pk>/like/', ToggleLikeView.as_view()),
+    path('stories/<int:pk>/fear/', FearRatingView.as_view()),
+    path('stories/<int:pk>/react/', ToggleReactionView.as_view()),
     path('stories/<int:pk>/save/', ToggleSaveView.as_view()),
     path('stories/<int:pk>/comments/', CommentListView.as_view()),
     path('stories/<int:pk>/manage/', ManageStoryView.as_view()),   # publish / delete YOUR story

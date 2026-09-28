@@ -5,11 +5,29 @@ from rest_framework import serializers
 
 from accounts.age import story_lock
 from moderation.content_filter import check_text, BLOCKED_MESSAGE
-from .models import Story, Comment, LastWord, CoAuthorInvite, Tag, Series, wpm_for, stories_for
+from .models import Story, Comment, LastWord, CoAuthorInvite, Tag, Series, wpm_for, stories_for, REACTION_KINDS
 
 
 # Everything a story CARD needs - not the full body, which could be
 # thousands of words the homepage never shows.
+# The fear meter and reactions of a story, as the story page needs
+# them. Also used by the views that change them (FearRatingView,
+# ToggleReactionView), so the answer looks the same everywhere.
+def fear_data(story, user):
+    mine = None
+    if user.is_authenticated:
+        mine = story.fear_ratings.filter(user=user).values_list('score', flat=True).first()
+    return {'average': story.fear_average, 'votes': story.fear_votes, 'mine': mine}
+
+
+def reaction_data(story, user):
+    counts = {kind: 0 for kind, _ in REACTION_KINDS}
+    for kind in story.reactions.values_list('kind', flat=True):
+        counts[kind] += 1
+    mine = list(story.reactions.filter(user=user).values_list('kind', flat=True)) if user.is_authenticated else []
+    return {'counts': counts, 'mine': mine}
+
+
 class StoryCardSerializer(serializers.ModelSerializer):
     # author and category are ForeignKeys, so by default DRF would
     # send their id numbers (author: 3). React wants the names.
@@ -30,7 +48,8 @@ class StoryCardSerializer(serializers.ModelSerializer):
     class Meta:
         model = Story
         # content_rating: for the 18+ badge on cards (MatureBadge.jsx).
-        fields = ['id', 'title', 'excerpt', 'cover_image', 'category', 'author', 'reading_time', 'views', 'created_at', 'content_rating']
+        # fear_average: the skulls on cards (None = nobody rated it yet).
+        fields = ['id', 'title', 'excerpt', 'cover_image', 'category', 'author', 'reading_time', 'views', 'created_at', 'content_rating', 'fear_average']
 
     # self.context['request'] is there because the view passes it
     # (generic views do it by themselves). .get() + the check keep it
@@ -84,18 +103,28 @@ class StoryDetailSerializer(StoryCardSerializer):
     series = serializers.SerializerMethodField()
     # Why the reader can't see this 18+ story yet, or None (accounts/age.py).
     lock = serializers.SerializerMethodField()
+    fear = serializers.SerializerMethodField()
+    reactions = serializers.SerializerMethodField()
 
     # Meta inherits too: same model, and the card's field list with
     # more added on the end.
     class Meta(StoryCardSerializer.Meta):
         fields = StoryCardSerializer.Meta.fields + [
             'body', 'category_slug', 'word_count', 'like_count', 'comment_count', 'liked', 'saved',
-            'coauthors', 'tags', 'series', 'lock',
+            'coauthors', 'tags', 'series', 'lock', 'fear', 'reactions',
             # From the Write a Story page. The story page doesn't show
             # these yet, but they're here for when it does.
             'language', 'video_url', 'audio_url', 'location', 'latitude', 'longitude',
             'mood', 'content_rating', 'content_warnings',
         ]
+
+    # { average: 3.7, votes: 12, mine: 4 or None }
+    def get_fear(self, story):
+        return fear_data(story, self.context['request'].user)
+
+    # { counts: { got_me: 3, cant_sleep: 1, creepy: 0 }, mine: ['got_me'] }
+    def get_reactions(self, story):
+        return reaction_data(story, self.context['request'].user)
 
     def get_lock(self, story):
         return story_lock(self.context['request'].user, story)

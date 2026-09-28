@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Eye } from 'lucide-react'
+import { Eye, Skull } from 'lucide-react'
 import { mediaUrl } from '../../api/client'
 import { formatShortDate } from '../../utils/format'
 import MatureBadge from './MatureBadge'
@@ -72,8 +72,14 @@ function StoryGridCard({ story }) {
                     </span>
                     <span className='text-gray-300'>{story.author}</span>
 
-                    {/* ml-auto pushes the views + date to the right. */}
-                    <span className='ml-auto inline-flex items-center gap-1 text-gray-500' title='Views'>
+                    {/* ml-auto pushes the fear, views + date to the right.
+                        Fear only once someone rated it (null = not yet). */}
+                    {story.fear_average !== null && story.fear_average !== undefined && (
+                        <span className='ml-auto inline-flex items-center gap-1 text-red-400' title='Fear meter (out of 5)'>
+                            <Skull className='h-3.5 w-3.5' /> {story.fear_average}
+                        </span>
+                    )}
+                    <span className={`${story.fear_average ? '' : 'ml-auto '}inline-flex items-center gap-1 text-gray-500`} title='Views'>
                         <Eye className='h-3.5 w-3.5' /> {story.views}
                     </span>
                     <span className='text-gray-500'>{formatShortDate(story.created_at)}</span>

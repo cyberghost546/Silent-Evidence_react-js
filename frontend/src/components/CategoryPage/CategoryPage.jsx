@@ -21,6 +21,8 @@ const SORT_OPTIONS = [
     { value: 'newest', label: 'Newest' },
     { value: 'popular', label: 'Popular' },
     { value: 'oldest', label: 'Oldest' },
+    // Highest fear meter first (only stories someone rated).
+    { value: 'scariest', label: 'Scariest' },
 ]
 
 // The name the grid/list choice is saved under in the browser.

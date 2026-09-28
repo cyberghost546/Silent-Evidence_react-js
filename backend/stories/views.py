@@ -1,7 +1,7 @@
 from datetime import datetime, time, timedelta
 
 from django.contrib.auth import get_user_model
-from django.db.models import F, Count, Sum, Q
+from django.db.models import F, Count, Sum, Q, ExpressionWrapper, FloatField
 from django.db.models.functions import TruncDate
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
@@ -21,11 +21,12 @@ from moderation.content_filter import check_text
 from moderation.models import Report
 from .models import (
     Story, Like, Bookmark, Comment, LastWord, ReadingHistory, CoAuthorInvite,
+    FearRating, Reaction, REACTION_KINDS,
     published_stories, stories_for,
 )
 from .serializers import (
     StoryCardSerializer, StoryDetailSerializer, StoryWriteSerializer, CommentSerializer, LastWordSerializer,
-    MyStorySerializer, CoAuthorInviteSerializer,
+    MyStorySerializer, CoAuthorInviteSerializer, fear_data, reaction_data,
 )
 
 
@@ -85,6 +86,13 @@ class StoryListView(generics.ListAPIView):
             # Most views first. Two stories with the same views ->
             # the newer one goes first (the second sort key).
             stories = stories.order_by('-views', '-created_at')
+        elif sort == 'scariest':
+            # Highest fear meter first. Only rated stories: the average
+            # is total / votes, so 0 votes would divide by zero.
+            # ExpressionWrapper + FloatField = do it as a decimal
+            # number (4 / 3 = 1.33, not 1).
+            average = ExpressionWrapper(F('fear_total') * 1.0 / F('fear_votes'), output_field=FloatField())
+            stories = stories.filter(fear_votes__gt=0).annotate(fear_avg=average).order_by('-fear_avg', '-fear_votes')
         else:
             stories = stories.order_by('-created_at')
 
@@ -790,3 +798,56 @@ class InviteActionView(APIView):
         invite = get_object_or_404(CoAuthorInvite, pk=pk, from_user=request.user)
         invite.delete()
         return Response(status=204)
+
+
+# ---------------------------------------------------------------
+# FEAR METER   POST /api/stories/5/fear/  { score: 1-5 }
+# Rate (or change your rating). Not your own story, and not an 18+
+# story you can't read yet.
+# ---------------------------------------------------------------
+class FearRatingView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        story = get_object_or_404(stories_for(request.user), pk=pk)
+        if story.author == request.user:
+            return Response({'detail': "You can't rate your own story."}, status=400)
+        if story_lock(request.user, story):
+            return Response({'detail': 'Read the story first.'}, status=400)
+        try:
+            score = int(request.data.get('score'))
+        except (TypeError, ValueError):
+            score = 0
+        if not 1 <= score <= 5:
+            return Response({'detail': 'Pick 1 to 5 skulls.'}, status=400)
+
+        rating, created = FearRating.objects.get_or_create(user=request.user, story=story, defaults={'score': score})
+        # Keep the running total right: a new rating adds a vote;
+        # a changed one only swaps the old score for the new one.
+        # F() = let the database do the maths (safe for two at once).
+        if created:
+            Story.objects.filter(pk=story.pk).update(fear_total=F('fear_total') + score, fear_votes=F('fear_votes') + 1)
+        else:
+            Story.objects.filter(pk=story.pk).update(fear_total=F('fear_total') - rating.score + score)
+            rating.score = score
+            rating.save(update_fields=['score'])
+        story.refresh_from_db(fields=['fear_total', 'fear_votes'])
+        return Response(fear_data(story, request.user))
+
+
+# ---------------------------------------------------------------
+# REACTIONS   POST /api/stories/5/react/  { kind: 'got_me' }
+# Click once = on, click again = off (like the Like button).
+# ---------------------------------------------------------------
+class ToggleReactionView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        story = get_object_or_404(stories_for(request.user), pk=pk)
+        kind = request.data.get('kind')
+        if kind not in dict(REACTION_KINDS):
+            return Response({'detail': 'Unknown reaction.'}, status=400)
+        reaction, created = Reaction.objects.get_or_create(user=request.user, story=story, kind=kind)
+        if not created:
+            reaction.delete()
+        return Response(reaction_data(story, request.user))
