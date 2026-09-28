@@ -1279,3 +1279,11 @@ export function deleteThread(id) {
 export function setPostHidden(id, isHidden) {
     return authRequest(`/api/dashboard/forums/posts/${id}/`, 'PATCH', { is_hidden: isHidden })
 }
+
+
+// --- Videos ---
+// Admins use the shared helpers: getAdminList('videos'), createAdminItem('videos', ...)
+
+export function getVideos() {
+    return getJSON('/api/videos/')
+}

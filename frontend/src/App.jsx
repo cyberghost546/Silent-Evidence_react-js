@@ -9,6 +9,7 @@ import ResetPassword from './components/ResetPassword/ResetPassword'
 import VerifyEmail from './components/VerifyEmail/VerifyEmail'
 import SeriesPage from './components/SeriesPage/SeriesPage'
 import ForumsPage from './components/Forums/ForumsPage'
+import VideosPage from './components/VideosPage/VideosPage'
 import BoardPage from './components/Forums/BoardPage'
 import ThreadPage from './components/Forums/ThreadPage'
 import CategoryPage from './components/CategoryPage/CategoryPage'
@@ -100,6 +101,7 @@ const ToxicityDashboard = lazy(() => import('./components/ToxicityDashboard/Toxi
 const LoginMapDashboard = lazy(() => import('./components/LoginMapDashboard/LoginMapDashboard'))
 const AnalyticsDashboard = lazy(() => import('./components/AnalyticsDashboard/AnalyticsDashboard'))
 const ErrorLogDashboard = lazy(() => import('./components/ErrorLogDashboard/ErrorLogDashboard'))
+const VideosDashboard = lazy(() => import('./components/VideosDashboard/VideosDashboard'))
 const FeaturedAuthorsDashboard = lazy(() => import('./components/FeaturedAuthorsDashboard/FeaturedAuthorsDashboard'))
 const SpotlightDashboard = lazy(() => import('./components/SpotlightDashboard/SpotlightDashboard'))
 const PollsDashboard = lazy(() => import('./components/PollsDashboard/PollsDashboard'))
@@ -240,6 +242,9 @@ function App() {
         {/* Anyone can send a message - no ProtectedRoute. */}
         <Route path='/contact' element={<ContactPage />} />
 
+        {/* Story readings from YouTube. */}
+        <Route path='/videos' element={<VideosPage />} />
+
         {/* Forums: boards -> threads -> replies. Anyone can read. */}
         <Route path='/forums' element={<ForumsPage />} />
         <Route path='/forums/:slug' element={<BoardPage />} />
@@ -336,6 +341,7 @@ function App() {
         <Route path='login-map' element={<LoginMapDashboard />} />
         <Route path='analytics' element={<AnalyticsDashboard />} />
         <Route path='errors' element={<ErrorLogDashboard />} />
+        <Route path='videos' element={<VideosDashboard />} />
       </Route>
     </Routes>
     </ErrorBoundary>

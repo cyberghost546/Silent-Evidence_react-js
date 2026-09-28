@@ -248,3 +248,23 @@ class PollVote(models.Model):
     class Meta:
         # One vote per member per poll - the DATABASE refuses a second.
         unique_together = ['poll', 'user']
+
+
+# ---------------------------------------------------------------
+# VIDEOS - horror story readings from YouTube, on the /videos page.
+# Admins add them (Dashboard -> Videos) by pasting a YouTube link;
+# we only store the video's id ("dQw4w9WgXcQ"), not the whole link.
+# story: the site's story being read, if there is one.
+# ---------------------------------------------------------------
+class Video(models.Model):
+    title = models.CharField(max_length=150)
+    youtube_id = models.CharField(max_length=20)
+    description = models.CharField(max_length=300, blank=True)
+    story = models.ForeignKey('stories.Story', on_delete=models.SET_NULL, null=True, blank=True, related_name='videos')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return self.title

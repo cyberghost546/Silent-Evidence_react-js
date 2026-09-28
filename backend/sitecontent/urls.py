@@ -18,8 +18,14 @@ from .views import (
 )
 
 
+from .video_views import VideoListView, AdminVideoListView, AdminVideoDetailView
+
+
 # Included under "api/" in config/urls.py.
 urlpatterns = [
+    path('videos/', VideoListView.as_view()),
+    path('dashboard/videos/', AdminVideoListView.as_view()),
+    path('dashboard/videos/<int:pk>/', AdminVideoDetailView.as_view()),
     # Public
     path('announcement/', CurrentAnnouncementView.as_view()),
     path('prompts/random/', RandomPromptView.as_view()),
