@@ -24,6 +24,7 @@ import FearMeter from './FearMeter'
 import ReactionBar from './ReactionBar'
 import { useAuth } from '../../hooks/useAuth'
 import CampfireMode from './CampfireMode'
+import AmbientMode from './AmbientMode'
 import JumpScareNotice from './JumpScareNotice'
 import { useScareWarnings } from '../../hooks/useScareWarnings'
 import { BetaBanner, BetaFeedbackBox } from './BetaBox'
@@ -285,6 +286,10 @@ function StoryPage() {
                         {/* Background sound while reading (CampfireMode.jsx). */}
                         <div className='mt-3'>
                             <CampfireMode />
+                        </div>
+                        {/* Opt-in: the screen darkens as you read, flicker at scares. */}
+                        <div className='mt-3'>
+                            <AmbientMode bodyRef={bodyRef} />
                         </div>
                     </div>
                 )}

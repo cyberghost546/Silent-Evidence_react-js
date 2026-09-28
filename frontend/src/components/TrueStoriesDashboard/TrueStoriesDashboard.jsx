@@ -91,7 +91,7 @@ function SubmissionCard({ item, categories, onDone }) {
                     <div className='ml-auto flex items-end gap-2'>
                         <label className='text-xs text-gray-400'>
                             Note for the sender (optional)
-                            <input value={note} onChange={event => setNote(event.target.value)} maxLength={300} className={`${INPUT_STYLE} mt-1 !py-1.5 text-sm`} />
+                            <input value={note} onChange={event => setNote(event.target.value)} maxLength={300} className={`${INPUT_STYLE} mt-1 py-1.5! text-sm`} />
                         </label>
                         <button type='button' disabled={busy} onClick={() => review('reject')} className='rounded-md border border-slate-600 px-3 py-1.5 text-sm text-gray-200 hover:border-red-500 hover:text-red-300 disabled:opacity-50'>
                             Reject

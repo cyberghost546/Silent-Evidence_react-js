@@ -62,9 +62,13 @@ function StoryBody({ body, size = 'normal', showScares = false }) {
                 }
 
                 if (block.type === 'scare') {
-                    if (!showScares) return null
+                    // data-scare-mark: Ambient mode (AmbientMode.jsx) looks for
+                    // these to make the text flicker when one scrolls into view.
+                    // Warnings off -> an invisible, zero-height marker (m-0! so
+                    // it doesn't add an extra gap between paragraphs).
+                    if (!showScares) return <span key={index} data-scare-mark aria-hidden='true' className='m-0! block h-0' />
                     return (
-                        <p key={index} role='note' className='flex items-center gap-2 text-sm font-semibold text-amber-300'>
+                        <p key={index} role='note' data-scare-mark className='flex items-center gap-2 text-sm font-semibold text-amber-300'>
                             <TriangleAlert className='h-4 w-4' />
                             Jump scare ahead
                         </p>

@@ -99,7 +99,7 @@ function AddToListDialog({ storyId, onClose }) {
                         maxLength={100}
                         placeholder='New list, e.g. "Winter reads"'
                         aria-label='New list name'
-                        className={`${INPUT_STYLE} !py-2 text-sm`}
+                        className={`${INPUT_STYLE} py-2! text-sm`}
                     />
                     <button type='submit' disabled={!newTitle.trim()} aria-label='Make list' className='rounded-lg bg-red-600 px-3 text-white hover:bg-red-700 disabled:opacity-50'>
                         <Plus className='h-4 w-4' />

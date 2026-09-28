@@ -54,7 +54,7 @@ function ReadingListsSection({ mine = false, username }) {
 
                 {mine && (
                     <form onSubmit={handleCreate} className='flex gap-2 rounded-xl border border-dashed border-slate-700 p-3'>
-                        <input value={title} onChange={event => setTitle(event.target.value)} maxLength={100} placeholder='New reading list...' aria-label='New list name' className={`${INPUT_STYLE} !py-2 text-sm`} />
+                        <input value={title} onChange={event => setTitle(event.target.value)} maxLength={100} placeholder='New reading list...' aria-label='New list name' className={`${INPUT_STYLE} py-2! text-sm`} />
                         <button type='submit' disabled={!title.trim()} className='shrink-0 rounded-lg bg-red-600 px-3 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50'>Make</button>
                     </form>
                 )}
