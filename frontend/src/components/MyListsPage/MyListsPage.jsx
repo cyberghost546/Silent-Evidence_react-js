@@ -4,13 +4,15 @@ import { BookmarkX } from 'lucide-react'
 import { getSavedStories, saveStory } from '../../api/client'
 import PageLayout, { PageMessage } from '../PageLayout/PageLayout'
 import StoryGridCard from '../StorySections/StoryGridCard'
+import ReadingListsSection from '../ReadingLists/ReadingListsSection'
 import { BUTTON_STYLE } from '../../styles/formStyles'
 
 
 // ---------------------------------------------------------------
 // MY LISTS (/lists) - logged-in users only (App.jsx).
 //
-// The stories you saved with the "Save" button on a story page.
+// Your reading lists (named, shareable - components/ReadingLists/),
+// then the stories you saved with the "Save" button on a story page.
 // Django: SavedStoriesView in backend/stories/views.py.
 // ---------------------------------------------------------------
 function MyListsPage() {
@@ -46,6 +48,9 @@ function MyListsPage() {
 
     return (
         <PageLayout title='My Lists' subtitle={subtitle}>
+            <ReadingListsSection mine />
+
+            <h2 className='mb-4 text-lg font-bold text-white'>Saved for later</h2>
             {error && <p className='mb-6 rounded-lg border border-red-800 bg-red-950/40 px-4 py-3 text-sm text-red-300'>{error}</p>}
 
             {stories === null && !error && <p className='py-20 text-center text-gray-400'>Loading your list...</p>}

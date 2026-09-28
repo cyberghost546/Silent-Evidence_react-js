@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import { Bookmark, BookmarkCheck, Link as LinkIcon, Check, MessageCircle, ChevronDown, Flag } from 'lucide-react'
+import { Bookmark, BookmarkCheck, Link as LinkIcon, Check, MessageCircle, ChevronDown, Flag, ListPlus } from 'lucide-react'
 import { useDropdown } from '../../hooks/useDropdown'
 import { useRequireLogin } from '../../hooks/useRequireLogin'
 import { saveStory } from '../../api/client'
 import { XIcon, RedditIcon } from '../BrandIcons/BrandIcons'
 import ReportDialog from '../ReportDialog/ReportDialog'
+import AddToListDialog from '../ReadingLists/AddToListDialog'
 
 
 const ITEM_BASE = 'flex w-full items-center gap-3 px-4 py-2 text-sm transition-colors hover:bg-gray-800'
@@ -33,6 +34,14 @@ function StoryActions({ story }) {
 
     // Is the Report pop-up open?
     const [reporting, setReporting] = useState(false)
+    // Is the "Add to reading list" pop-up open?
+    const [addingToList, setAddingToList] = useState(false)
+
+    function handleAddToList() {
+        close()
+        if (!requireLogin()) return
+        setAddingToList(true)
+    }
 
     function handleReport() {
         close()
@@ -101,6 +110,10 @@ function StoryActions({ story }) {
                         {saved ? <BookmarkCheck className='h-4 w-4 text-red-500' /> : <Bookmark className='h-4 w-4' />}
                         {saved ? 'Saved' : 'Save'}
                     </button>
+                    <button type='button' role='menuitem' onClick={handleAddToList} className={ITEM_STYLE}>
+                        <ListPlus className='h-4 w-4' />
+                        Add to reading list
+                    </button>
 
                     <div className='my-2 border-t border-gray-800' />
 
@@ -137,6 +150,8 @@ function StoryActions({ story }) {
                     </button>
                 </div>
             )}
+
+            {addingToList && <AddToListDialog storyId={story.id} onClose={() => setAddingToList(false)} />}
 
             {reporting && (
                 <ReportDialog target={{ story_id: story.id }} what='story' onClose={() => setReporting(false)} />

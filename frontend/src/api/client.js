@@ -1430,3 +1430,42 @@ export function getAdminTrueStories(status) {
 export function reviewTrueStory(id, action, data = {}) {
     return authRequest(`/api/dashboard/true-stories/${id}/${action}/`, 'POST', data)
 }
+
+
+// --- Reading lists (named lists of stories, public ones can be shared) ---
+
+// My lists. With storyId, each list also says has_story: is that story in it?
+export function getMyReadingLists(storyId) {
+    return authRequest(`/api/reading-lists/${storyId ? `?story=${storyId}` : ''}`)
+}
+
+// Someone's PUBLIC lists (for their profile).
+export function getUserReadingLists(username) {
+    return getJSON(`/api/reading-lists/?user=${encodeURIComponent(username)}`)
+}
+
+// One list with its stories. authRequest: the owner can see a private one.
+export function getReadingList(id) {
+    return authRequest(`/api/reading-lists/${id}/`)
+}
+
+// { title, description, is_public }
+export function createReadingList(data) {
+    return authRequest('/api/reading-lists/', 'POST', data)
+}
+
+export function updateReadingList(id, data) {
+    return authRequest(`/api/reading-lists/${id}/`, 'PATCH', data)
+}
+
+export function deleteReadingList(id) {
+    return authRequest(`/api/reading-lists/${id}/`, 'DELETE')
+}
+
+export function addToReadingList(listId, storyId) {
+    return authRequest(`/api/reading-lists/${listId}/stories/${storyId}/`, 'POST')
+}
+
+export function removeFromReadingList(listId, storyId) {
+    return authRequest(`/api/reading-lists/${listId}/stories/${storyId}/`, 'DELETE')
+}

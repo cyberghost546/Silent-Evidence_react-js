@@ -636,3 +636,34 @@ class TrueStorySubmission(models.Model):
 
     def __str__(self):
         return f'{self.title} ({self.status})'
+
+
+# ---------------------------------------------------------------
+# READING LISTS - "My 10 scariest winter reads". A member makes a
+# named list of stories; a PUBLIC one has a link anyone can open
+# (/reading-lists/<id>). Different from "Save" (Bookmark), which is
+# one private "read later" pile.
+# ---------------------------------------------------------------
+class ReadingList(models.Model):
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='reading_lists')
+    title = models.CharField(max_length=100)
+    description = models.CharField(max_length=300, blank=True)
+    is_public = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-updated_at']
+
+    def __str__(self):
+        return self.title
+
+
+class ReadingListItem(models.Model):
+    reading_list = models.ForeignKey(ReadingList, on_delete=models.CASCADE, related_name='items')
+    story = models.ForeignKey(Story, on_delete=models.CASCADE, related_name='reading_list_items')
+    added_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['added_at']                          # the order you added them
+        unique_together = ['reading_list', 'story']      # a story once per list

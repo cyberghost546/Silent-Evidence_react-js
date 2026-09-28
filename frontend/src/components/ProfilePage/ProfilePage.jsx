@@ -10,6 +10,7 @@ import EmptyState from '../StorySections/EmptyState'
 import PublicationMap from './PublicationMap'
 import { usePageTitle } from '../../hooks/usePageTitle'
 import ProfileBadges from './ProfileBadges'
+import ReadingListsSection from '../ReadingLists/ReadingListsSection'
 
 
 // ---------------------------------------------------------------
@@ -272,6 +273,9 @@ function ProfilePage() {
                 <ProfileBadges badges={profile.badges} streak={profile.streak} isMe={profile.is_me} />
 
                 <PublicationMap stories={stories} />
+
+                {/* Their PUBLIC reading lists (nothing shows if they have none). */}
+                <ReadingListsSection username={profile.username} />
 
                 <section>
                     <SectionHeading title={`Stories by ${profile.username}`} accent='red' />

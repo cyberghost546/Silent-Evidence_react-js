@@ -5,6 +5,7 @@ from .chain_views import ChainListView, ChainDetailView, AdminChainView
 from .series_views import MySeriesView, SeriesDetailView
 from .sprint_views import SprintView
 from .trend_views import AuthorTrendsView
+from .reading_list_views import ReadingListsView, ReadingListDetailView, ReadingListStoryView
 from .true_story_views import TrueStoryListView, TrueStoryDetailView, AdminTrueStoryListView, AdminTrueStoryActionView
 from .views import (
     StoryListView, StoryCreateView, StoryDetailView, FeaturedStoriesView, RandomStoryView,
@@ -65,6 +66,9 @@ urlpatterns = [
 
     # The Author Dashboard (logged in) -> /api/author/stats/?days=30
     path('author/stats/', AuthorStatsView.as_view()),
+    path('reading-lists/', ReadingListsView.as_view()),                                   # shareable lists
+    path('reading-lists/<int:pk>/', ReadingListDetailView.as_view()),
+    path('reading-lists/<int:pk>/stories/<int:story_id>/', ReadingListStoryView.as_view()),
     path('true-stories/', TrueStoryListView.as_view()),                  # anonymous true stories
     path('true-stories/<int:pk>/', TrueStoryDetailView.as_view()),
     path('dashboard/true-stories/', AdminTrueStoryListView.as_view()),
