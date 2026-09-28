@@ -1408,6 +1408,25 @@ export function saveSprint(words, minutes) {
 
 // Author Dashboard, "Over time": 12 weeks of views / likes / read-through,
 // and read-through per story. -> { weeks: [...], stories: [...], views_tracked_since }
+// --- Editing your story + version history (stories/edit_views.py) ---
+
+export function getStoryForEdit(id) {
+    return authRequest(`/api/stories/${id}/edit/`)
+}
+
+// { title, excerpt, body } - the old text goes into the history first.
+export function saveStoryEdit(id, data) {
+    return authRequest(`/api/stories/${id}/edit/`, 'PATCH', data)
+}
+
+export function getStoryVersions(id) {
+    return authRequest(`/api/stories/${id}/versions/`)
+}
+
+export function restoreStoryVersion(id, versionId) {
+    return authRequest(`/api/stories/${id}/versions/${versionId}/restore/`, 'POST')
+}
+
 // "Picked for you" on the homepage: story cards, each with a `reason`.
 export function getRecommendedStories() {
     return authRequest('/api/stories/recommended/')

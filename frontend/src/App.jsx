@@ -65,6 +65,7 @@ const FeedPage = lazy(() => import('./components/FeedPage/FeedPage'))
 const MyListsPage = lazy(() => import('./components/MyListsPage/MyListsPage'))
 const HistoryPage = lazy(() => import('./components/HistoryPage/HistoryPage'))
 const MyStoriesPage = lazy(() => import('./components/MyStoriesPage/MyStoriesPage'))
+const EditStoryPage = lazy(() => import('./components/EditStoryPage/EditStoryPage'))
 const InvitesPage = lazy(() => import('./components/InvitesPage/InvitesPage'))
 const MessagesPage = lazy(() => import('./components/MessagesPage/MessagesPage'))
 const NotificationsPage = lazy(() => import('./components/NotificationsPage/NotificationsPage'))
@@ -216,6 +217,7 @@ function App() {
         <Route path='/lists' element={<ProtectedRoute><MyListsPage /></ProtectedRoute>} />
         <Route path='/history' element={<ProtectedRoute><HistoryPage /></ProtectedRoute>} />
         <Route path='/my-stories' element={<ProtectedRoute><MyStoriesPage /></ProtectedRoute>} />
+        <Route path='/my-stories/:id/edit' element={<ProtectedRoute><EditStoryPage /></ProtectedRoute>} />
         <Route path='/invites' element={<ProtectedRoute><InvitesPage /></ProtectedRoute>} />
         <Route path='/support' element={<ProtectedRoute><SupportPage /></ProtectedRoute>} />
         <Route path='/support/:id' element={<ProtectedRoute><SupportPage /></ProtectedRoute>} />

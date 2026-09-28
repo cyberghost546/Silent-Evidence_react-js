@@ -670,3 +670,19 @@ class ReadingListItem(models.Model):
     class Meta:
         ordering = ['added_at']                          # the order you added them
         unique_together = ['reading_list', 'story']      # a story once per list
+
+
+# ---------------------------------------------------------------
+# VERSION HISTORY - every time a writer saves an edit, the text as it
+# was BEFORE is kept here, so an edit is never lost for good
+# (stories/edit_views.py). The newest 30 per story are kept.
+# ---------------------------------------------------------------
+class StoryVersion(models.Model):
+    story = models.ForeignKey(Story, on_delete=models.CASCADE, related_name='versions')
+    title = models.CharField(max_length=200)
+    excerpt = models.CharField(max_length=300, blank=True)
+    body = models.TextField()
+    saved_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-saved_at', '-id']

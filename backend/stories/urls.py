@@ -5,6 +5,7 @@ from .chain_views import ChainListView, ChainDetailView, AdminChainView
 from .series_views import MySeriesView, SeriesDetailView
 from .sprint_views import SprintView
 from .trend_views import AuthorTrendsView
+from .edit_views import StoryEditView, StoryVersionsView, RestoreVersionView
 from .recommend_views import RecommendedStoriesView
 from .reading_list_views import ReadingListsView, ReadingListDetailView, ReadingListStoryView
 from .true_story_views import TrueStoryListView, TrueStoryDetailView, AdminTrueStoryListView, AdminTrueStoryActionView
@@ -53,6 +54,9 @@ urlpatterns = [
     path('stories/<int:pk>/react/', ToggleReactionView.as_view()),
     path('stories/<int:pk>/save/', ToggleSaveView.as_view()),
     path('stories/<int:pk>/comments/', CommentListView.as_view()),
+    path('stories/<int:pk>/edit/', StoryEditView.as_view()),                                  # edit YOUR story
+    path('stories/<int:pk>/versions/', StoryVersionsView.as_view()),                          # its history
+    path('stories/<int:pk>/versions/<int:version_id>/restore/', RestoreVersionView.as_view()),
     path('stories/<int:pk>/manage/', ManageStoryView.as_view()),   # publish / delete YOUR story
 
     # Search -> /api/search/?q=house

@@ -270,7 +270,15 @@ function StoryPage() {
 
                     {/* key={story.id}: a new story = a fresh menu, so the
                         "Saved" state of the previous story can't stick. */}
-                    <StoryActions key={story.id} story={story} />
+                    <div className='flex items-center gap-2'>
+                        {/* Your own story: a shortcut to edit it. */}
+                        {isAuthor && (
+                            <Link to={`/my-stories/${story.id}/edit`} className='rounded-md border border-gray-700 px-3 py-1.5 text-sm text-gray-200 hover:border-gray-500 hover:text-white'>
+                                Edit
+                            </Link>
+                        )}
+                        <StoryActions key={story.id} story={story} />
+                    </div>
                 </div>
 
                 {/* ================= 3. INTRO ================= */}

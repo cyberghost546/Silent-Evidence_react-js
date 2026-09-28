@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Eye, Heart, MessageSquare, PenLine, Trash2, UserPlus, FlaskConical } from 'lucide-react'
+import { Eye, Heart, MessageSquare, PenLine, Trash2, UserPlus, FlaskConical, Pencil } from 'lucide-react'
 import { getMyStories, setStoryPublished, deleteMyStory, sendInvite, getMyAppeals, sendAppeal } from '../../api/client'
 import PageLayout, { PageMessage } from '../PageLayout/PageLayout'
 import { BUTTON_STYLE, INPUT_STYLE, FIELD_ERROR_STYLE } from '../../styles/formStyles'
@@ -221,6 +221,11 @@ function MyStoryRow({ story, onChanged, onDeleted, appeal, onAppealSent }) {
                 </div>
 
                 <div className='flex shrink-0 flex-wrap gap-2'>
+                    {/* Edit the text (older versions are kept - EditStoryPage). */}
+                    <Link to={`/my-stories/${story.id}/edit`} className={SMALL_BUTTON}>
+                        <Pencil className='h-3.5 w-3.5' /> Edit
+                    </Link>
+
                     {/* Only published stories have a page anyone can open. */}
                     {story.status === 'published' && (
                         <Link to={`/stories/${story.id}`} className={SMALL_BUTTON}>
