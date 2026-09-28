@@ -40,3 +40,8 @@ backend/staticfiles/
 
 # Made by "python manage.py backup_site" - your users' data, never in git.
 backend/backups/
+
+# Test coverage reports (made by "npm run test:coverage" and "coverage run")
+coverage/
+htmlcov/
+.coverage
