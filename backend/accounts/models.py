@@ -266,3 +266,21 @@ class Notification(models.Model):
 
     def __str__(self):
         return f'{self.recipient}: {self.text}'
+
+
+# ---------------------------------------------------------------
+# PHONE NOTIFICATIONS (web push). One row per device that switched
+# them on (Settings -> Notifications). The browser gives us an
+# "endpoint" (an address at Google/Apple/Mozilla's push service) and
+# two keys; we send the notification there, encrypted, and the push
+# service delivers it to the phone. See accounts/push.py.
+# ---------------------------------------------------------------
+class PushSubscription(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='push_subscriptions')
+    endpoint = models.URLField(max_length=500, unique=True)
+    p256dh = models.CharField(max_length=200)    # the browser's public key
+    auth = models.CharField(max_length=100)      # a shared secret
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'{self.user} - {self.endpoint[:40]}'

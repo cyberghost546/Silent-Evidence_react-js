@@ -23,7 +23,7 @@
 // CHANGED THIS FILE? Bump VERSION. The browser then installs the new
 // worker, and 'activate' below throws the old caches away.
 // ---------------------------------------------------------------
-const VERSION = 'v2'
+const VERSION = 'v3'
 const CACHE = `silent-evidence-${VERSION}`
 // Downloaded stories live in their own cache, which is NOT thrown
 // away when VERSION changes (the same name as in utils/offlineStories.js).
@@ -121,5 +121,43 @@ self.addEventListener('fetch', event => {
             }
             return response
         }))
+    )
+})
+
+
+// ---------------------------------------------------------------
+// PHONE NOTIFICATIONS. Django sends { title, body, link }
+// (accounts/push.py), the phone's push service delivers it here, and
+// we show it - even when no Silent Evidence tab is open.
+// ---------------------------------------------------------------
+self.addEventListener('push', event => {
+    let data = {}
+    try {
+        data = event.data ? event.data.json() : {}
+    } catch {
+        data = { body: event.data ? event.data.text() : '' }
+    }
+    event.waitUntil(self.registration.showNotification(data.title || 'Silent Evidence', {
+        body: data.body || '',
+        icon: '/icons/icon-192.png',
+        badge: '/icons/icon-192.png',
+        data: { link: data.link || '/notifications' },
+    }))
+})
+
+// Tapping the notification: open the page it's about - in a tab we
+// already have if there is one, otherwise a new window.
+self.addEventListener('notificationclick', event => {
+    event.notification.close()
+    const link = event.notification.data?.link || '/notifications'
+    event.waitUntil(
+        self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(tabs => {
+            const tab = tabs.find(client => new URL(client.url).origin === self.location.origin)
+            if (tab) {
+                tab.navigate(link)
+                return tab.focus()
+            }
+            return self.clients.openWindow(link)
+        })
     )
 })

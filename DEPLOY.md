@@ -101,6 +101,21 @@ domain there, and set on Render:
 `EMAIL_HOST_PASSWORD`, `DEFAULT_FROM_EMAIL`.
 Test with Dashboard → Newsletter → "Send test".
 
+## 4b. Phone notifications (optional)
+
+Run this ONCE on your computer (in `backend`, with the venv on):
+
+```bash
+python manage.py make_push_keys
+```
+
+It prints three lines. Add them on Render → Environment
+(`VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_CONTACT`), and put your
+real email in the last one. The private key is a secret: never in git.
+Members can then switch on Settings → Notifications → **Phone
+notifications**. Without the keys the switch says "Coming soon" and
+nothing else changes.
+
 ## 5. Check that everything works
 
 - [ ] The homepage loads, with categories

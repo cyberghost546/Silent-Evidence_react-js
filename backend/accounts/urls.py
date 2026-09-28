@@ -1,5 +1,7 @@
 from django.urls import path
 
+from .push_views import PushView, PushUnsubscribeView
+
 from .age_views import ConfirmAgeView
 from .email_views import VerifyEmailView, ResendVerificationView
 from .password_views import PasswordResetRequestView, PasswordResetConfirmView
@@ -21,6 +23,8 @@ urlpatterns = [
     path('password-reset/confirm/', PasswordResetConfirmView.as_view()),
     path('notifications/', NotificationListView.as_view()),
     path('notifications/read/', MarkNotificationsReadView.as_view()),
+    path('push/', PushView.as_view()),                          # phone notifications
+    path('push/unsubscribe/', PushUnsubscribeView.as_view()),
     path('signup/', SignUpView.as_view()),
     path('login/', LogInView.as_view()),
     path('logout/', LogOutView.as_view()),

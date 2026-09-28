@@ -42,7 +42,11 @@ def notify(recipient, actor, kind, text, link):
         return None
     if Notification.objects.filter(recipient=recipient, actor=actor, kind=kind, link=link, is_read=False).exists():
         return None
-    return Notification.objects.create(recipient=recipient, actor=actor, kind=kind, text=text[:300], link=link[:200])
+    notification = Notification.objects.create(recipient=recipient, actor=actor, kind=kind, text=text[:300], link=link[:200])
+    # The same thing on their phone, if they switched that on (push.py).
+    from .push import send_push   # here, to avoid a circular import
+    send_push(recipient, notification.text, notification.link)
+    return notification
 
 
 # "The House on Wren Street That Nobody Visits Anymore" -> shortened,

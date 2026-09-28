@@ -287,6 +287,13 @@ if not DEBUG:
 
 
 # Uploaded files: avatars, story covers, slides.
+# PHONE NOTIFICATIONS (web push, accounts/push.py). Empty = switched
+# off. Make a pair with:  python manage.py make_push_keys
+VAPID_PUBLIC_KEY = env('VAPID_PUBLIC_KEY', '')
+VAPID_PRIVATE_KEY = env('VAPID_PRIVATE_KEY', '')
+# Push services want a way to contact the site owner if something goes wrong.
+VAPID_CONTACT = env('VAPID_CONTACT', 'mailto:admin@example.com')
+
 MEDIA_URL = '/media/'
 # On the live site, point MEDIA_ROOT at a PERSISTENT disk (Render:
 # "Disks"). The normal disk there is wiped on every deploy - and

@@ -1408,6 +1408,22 @@ export function saveSprint(words, minutes) {
 
 // Author Dashboard, "Over time": 12 weeks of views / likes / read-through,
 // and read-through per story. -> { weeks: [...], stories: [...], views_tracked_since }
+// --- Phone notifications (web push, accounts/push_views.py) ---
+
+// -> { public_key ('' = not set up on this site), subscribed (this device) }
+export function getPushStatus(endpoint) {
+    return authRequest(`/api/accounts/push/${endpoint ? `?endpoint=${encodeURIComponent(endpoint)}` : ''}`)
+}
+
+// subscription = { endpoint, keys: { p256dh, auth } } from the browser
+export function savePushSubscription(subscription) {
+    return authRequest('/api/accounts/push/', 'POST', subscription)
+}
+
+export function removePushSubscription(endpoint) {
+    return authRequest('/api/accounts/push/unsubscribe/', 'POST', { endpoint })
+}
+
 // --- Editing your story + version history (stories/edit_views.py) ---
 
 export function getStoryForEdit(id) {

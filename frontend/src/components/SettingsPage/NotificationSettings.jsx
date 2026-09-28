@@ -1,4 +1,5 @@
 import { SettingsSection, SettingRow, Toggle } from './SettingsParts'
+import PhoneNotificationsRow from './PhoneNotificationsRow'
 import { DIGEST_OPTIONS } from './settingsOptions'
 
 
@@ -39,6 +40,9 @@ function NotificationSettings({ settings, onSave }) {
                         />
                     </SettingRow>
                 ))}
+
+                {/* The same notifications as a pop-up on this device. */}
+                <PhoneNotificationsRow />
 
                 <p className='pt-2 text-xs font-semibold uppercase tracking-wider text-gray-500'>Emails</p>
 
