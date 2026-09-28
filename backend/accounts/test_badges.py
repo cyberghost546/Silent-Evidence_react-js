@@ -50,7 +50,7 @@ class BadgeTests(TestCase):
         # The writer sees everything, with progress.
         self.client.force_login(self.writer)
         badges = {badge['key']: badge for badge in self.profile()['badges']}
-        self.assertEqual(len(badges), 10)
+        self.assertEqual(len(badges), 14)
         self.assertEqual((badges['storyteller']['progress'], badges['storyteller']['target']), (1, 10))
         self.assertFalse(badges['storyteller']['earned'])
 
@@ -69,3 +69,20 @@ class BadgeTests(TestCase):
             ReadingDay.objects.create(user=self.writer, date=today - timedelta(days=n))
         keys = [badge['key'] for badge in self.profile()['badges']]
         self.assertIn('night_owl', keys)
+
+
+class NewBadgeTests(TestCase):
+    def test_path_maker_champion_and_curator(self):
+        from accounts.badges import badge_report
+        from sitecontent.models import Challenge
+        from stories.models import ReadingList
+
+        writer = User.objects.create_user('pathfinder', password='Str0ng-pass-123')
+        story = Story.objects.create(title='Doors', body='Hi.\n[[choice: Go -> a]]\n\n[[section: a]]\nEnd.', author=writer, is_published=True)
+        Challenge.objects.create(title='C', theme='t', deadline=timezone.now() - timedelta(days=1), winner=story)
+        for number in range(3):
+            ReadingList.objects.create(owner=writer, title=f'List {number}')
+
+        earned = {badge['key'] for badge in badge_report(writer)['badges'] if badge['earned']}
+        self.assertTrue({'path_maker', 'champion', 'curator'} <= earned)
+        self.assertNotIn('fellow_reader', earned)

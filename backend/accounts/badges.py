@@ -27,6 +27,10 @@ BADGES = [
     {'key': 'chain_gang', 'emoji': '⛓️', 'name': 'Chain Gang', 'description': 'Wrote 5 parts of story chains', 'count': 'chain_parts', 'target': 5},
     {'key': 'regular', 'emoji': '🕯️', 'name': 'Forum Regular', 'description': 'Posted 25 times in the forums', 'count': 'forum_posts', 'target': 25},
     {'key': 'sprinter', 'emoji': '⏱️', 'name': 'Sprinter', 'description': 'Finished 5 writing sprints', 'count': 'sprints', 'target': 5},
+    {'key': 'path_maker', 'emoji': '🧭', 'name': 'Path Maker', 'description': 'Published a choose-your-path story', 'count': 'path_stories', 'target': 1},
+    {'key': 'fellow_reader', 'emoji': '🕯️', 'name': 'Fellow Reader', 'description': 'Took part in 3 read-alongs', 'count': 'read_alongs', 'target': 3},
+    {'key': 'champion', 'emoji': '🏆', 'name': 'Champion', 'description': 'Won a writing challenge', 'count': 'challenges_won', 'target': 1},
+    {'key': 'curator', 'emoji': '📜', 'name': 'Curator', 'description': 'Made 3 reading lists', 'count': 'reading_lists', 'target': 3},
 ]
 
 
@@ -57,7 +61,9 @@ def streaks(days):
 def counts(user):
     # Imported here: accounts is loaded before stories and forums.
     from forums.models import Post, Thread
-    from stories.models import Story, Like, ReadingHistory, FearRating, ChainPart, ReadingDay, Series, SprintResult
+    from stories.models import Story, Like, ReadingHistory, FearRating, ChainPart, ReadingDay, Series, SprintResult, ReadAlong, ReadingList
+    from sitecontent.models import Challenge
+    from stories.readalong_views import LIVE_FOR
 
     current, longest = streaks(ReadingDay.objects.filter(user=user).values_list('date', flat=True))
     biggest_series = (
@@ -75,6 +81,12 @@ def counts(user):
         'chain_parts': ChainPart.objects.filter(author=user).count(),
         'forum_posts': Post.objects.filter(author=user).count() + Thread.objects.filter(author=user).count(),
         'sprints': SprintResult.objects.filter(user=user).count(),
+        # A story with [[section: ...]] marks = choose-your-path (React: utils/storyPaths.js).
+        'path_stories': Story.objects.filter(author=user, is_published=True, body__contains='[[section:').count(),
+        # Read-alongs you joined that are OVER (so joining isn't enough - you were there).
+        'read_alongs': ReadAlong.objects.filter(joined=user, starts_at__lt=timezone.now() - LIVE_FOR).count(),
+        'challenges_won': Challenge.objects.filter(winner__author=user).count(),
+        'reading_lists': ReadingList.objects.filter(owner=user).count(),
     }
 
 
