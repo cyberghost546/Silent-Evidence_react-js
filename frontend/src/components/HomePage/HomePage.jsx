@@ -8,6 +8,7 @@ import MoodOfTheDay from '../HomeFeed/MoodOfTheDay'
 import SpotlightBanner from '../HomeFeed/SpotlightBanner'
 import SeasonalTakeover from '../HomeFeed/SeasonalTakeover'
 import ContinueReading from '../HomeFeed/ContinueReading'
+import RecommendedStories from '../HomeFeed/RecommendedStories'
 import { usePageTitle } from '../../hooks/usePageTitle'
 
 
@@ -42,6 +43,8 @@ function HomePage() {
                 <SpotlightBanner />
                 {/* Half-read stories (logged-in members only). */}
                 <ContinueReading />
+                {/* "Picked for you" (logged-in members with some reading history). */}
+                <RecommendedStories />
                 <StorySections />
                 {/* Only shows when an admin planned a mood for today. */}
                 <MoodOfTheDay />

@@ -5,6 +5,7 @@ from .chain_views import ChainListView, ChainDetailView, AdminChainView
 from .series_views import MySeriesView, SeriesDetailView
 from .sprint_views import SprintView
 from .trend_views import AuthorTrendsView
+from .recommend_views import RecommendedStoriesView
 from .reading_list_views import ReadingListsView, ReadingListDetailView, ReadingListStoryView
 from .true_story_views import TrueStoryListView, TrueStoryDetailView, AdminTrueStoryListView, AdminTrueStoryActionView
 from .views import (
@@ -30,6 +31,7 @@ urlpatterns = [
     path('stories/', StoryListView.as_view()),
     path('stories/new/', StoryCreateView.as_view()),
     path('stories/featured/', FeaturedStoriesView.as_view()),
+    path('stories/recommended/', RecommendedStoriesView.as_view()),   # "Because you read..."
     path('stories/random/', RandomStoryView.as_view()),
 
     # My Feed - stories by the authors you follow (logged in).
