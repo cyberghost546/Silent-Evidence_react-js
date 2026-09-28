@@ -6,7 +6,7 @@ import SidebarBox from './SidebarBox'
 
 // The top 3 get a coloured number, the rest are grey. Written out in
 // full so Tailwind can see the class names (see styles/accents.js).
-const RANK_COLORS = ['text-red-500', 'text-gray-300', 'text-amber-600']
+const RANK_COLORS = ['text-red-400', 'text-gray-300', 'text-amber-500']
 
 
 // ---------------------------------------------------------------

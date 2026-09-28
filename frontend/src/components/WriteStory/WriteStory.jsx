@@ -739,7 +739,7 @@ function WriteStory() {
                                 >
                                     <Icon className='mx-auto h-4 w-4' />
                                     <p className='mt-1 text-sm font-semibold'>{rating.label}</p>
-                                    <p className={`text-xs ${isSelected ? 'text-red-100' : 'text-gray-500'}`}>{rating.hint}</p>
+                                    <p className={`text-xs ${isSelected ? 'text-white' : 'text-gray-500'}`}>{rating.hint}</p>
                                 </button>
                             )
                         })}

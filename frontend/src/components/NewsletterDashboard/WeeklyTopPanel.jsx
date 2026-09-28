@@ -46,7 +46,7 @@ function WeeklyTopPanel({ onSent }) {
                     <p className='mt-4 text-sm font-semibold text-gray-200'>{preview.subject}</p>
                     {/* whitespace-pre-line: keep the email's line breaks. */}
                     <p className='mt-2 max-h-72 overflow-y-auto whitespace-pre-line rounded-lg bg-slate-950 p-4 font-mono text-xs leading-relaxed text-gray-300'>{preview.body}</p>
-                    <button type='button' onClick={handleSend} disabled={sending} className='mt-4 rounded-lg bg-amber-600 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-500 disabled:opacity-50'>
+                    <button type='button' onClick={handleSend} disabled={sending} className='mt-4 rounded-lg bg-amber-700 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-600 disabled:opacity-50'>
                         {sending ? 'Sending...' : `Send now to ${preview.recipient_count} members`}
                     </button>
                 </>

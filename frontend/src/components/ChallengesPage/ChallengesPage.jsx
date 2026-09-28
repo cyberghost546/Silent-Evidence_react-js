@@ -134,7 +134,7 @@ function ChallengeDetail({ id }) {
                     </p>
                 )}
                 {challenge.i_am_judge && (
-                    <Link to={`/challenges/${challenge.id}/judge`} className='mt-3 inline-block rounded-lg bg-amber-600 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-500'>
+                    <Link to={`/challenges/${challenge.id}/judge`} className='mt-3 inline-block rounded-lg bg-amber-700 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-600'>
                         Judge the entries
                     </Link>
                 )}

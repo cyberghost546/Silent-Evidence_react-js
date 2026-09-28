@@ -82,7 +82,7 @@ function JudgingPanel({ challenge, onChanged }) {
                                         <span className='flex items-center gap-1 text-yellow-400'><Crown className='h-4 w-4' /> Winner</span>
                                     ) : (
                                         !data.winner_id && (
-                                            <button type='button' onClick={() => handleAnnounce(row)} className='rounded-md bg-amber-600 px-2.5 py-1 text-xs font-semibold text-white hover:bg-amber-500'>Announce</button>
+                                            <button type='button' onClick={() => handleAnnounce(row)} className='rounded-md bg-amber-700 px-2.5 py-1 text-xs font-semibold text-white hover:bg-amber-600'>Announce</button>
                                         )
                                     )}
                                 </div>

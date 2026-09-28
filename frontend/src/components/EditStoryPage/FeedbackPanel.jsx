@@ -71,7 +71,7 @@ function FeedbackPanel({ storyId }) {
                     <p className='mt-1 text-sm text-gray-400'>
                         An AI editor reads your SAVED story and suggests improvements. It won't rewrite it - the writing stays yours. Only you see this.
                     </p>
-                    <button type='button' onClick={handleAsk} disabled={asking || data.remaining_today === 0} className='mt-3 rounded-lg bg-amber-600 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-500 disabled:opacity-50'>
+                    <button type='button' onClick={handleAsk} disabled={asking || data.remaining_today === 0} className='mt-3 rounded-lg bg-amber-700 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-600 disabled:opacity-50'>
                         {asking ? 'Claude is reading... (up to a minute)' : 'Ask for feedback'}
                     </button>
                     {data.remaining_today !== null && (
