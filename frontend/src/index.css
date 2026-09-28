@@ -96,3 +96,35 @@
         animation: none;
     }
 }
+
+
+/* ---------------------------------------------------------------
+   EASY READ (the "Easy read" button on a story).
+   What dyslexia charities recommend for screen text: a plain
+   sans-serif font (Verdana was made for screens), more space between
+   letters, words and lines, text lined up on the left, no italics,
+   and lines that aren't too long.
+   Line focus: the paragraph in the middle of the screen stays bright
+   (hooks/useLineFocus.js adds .is-focus), the others fade a little.
+   --------------------------------------------------------------- */
+.easy-read {
+    font-family: Verdana, Tahoma, sans-serif;
+    letter-spacing: 0.04em;
+    word-spacing: 0.16em;
+    line-height: 2;
+    text-align: left;
+    max-width: 65ch;
+}
+
+.easy-read em,
+.easy-read blockquote {
+    font-style: normal;
+}
+
+.easy-read > * {
+    transition: opacity 0.3s;
+}
+
+.easy-read:has(> .is-focus) > *:not(.is-focus) {
+    opacity: 0.55;
+}

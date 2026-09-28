@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import StoryPage from './StoryPage'
 import { getStory } from '../../api/client'
@@ -76,6 +77,16 @@ describe('StoryPage', () => {
         renderStory()
         expect(await screen.findByText('🎙️ Narrated by shape_writer')).toBeInTheDocument()
         expect(document.querySelector('audio').getAttribute('src')).toMatch(/\/media\/audio\/reading\.mp3$/)
+    })
+
+    it('Easy read switches the text to the dyslexia-friendly style', async () => {
+        getStory.mockResolvedValue(STORY)
+        renderStory()
+        const paragraph = await screen.findByText('It was dark.')
+        expect(paragraph.closest('.easy-read')).toBeNull()
+        await userEvent.click(screen.getByRole('button', { name: 'Easy read' }))
+        expect(paragraph.closest('.easy-read')).not.toBeNull()
+        expect(localStorage.getItem('easyRead')).toBe('on')
     })
 
     it('a missing story shows "Story not found"', async () => {

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Volume2, Square, Maximize, SlidersHorizontal } from 'lucide-react'
+import { Volume2, Square, Maximize, SlidersHorizontal, BookOpenText } from 'lucide-react'
 import { useSpeech } from '../../hooks/useSpeech'
 import { NARRATOR_STYLES, loadNarrator, saveNarrator, speechOptions } from './narrator'
 import SegmentedControl from '../SegmentedControl/SegmentedControl'
@@ -32,7 +32,7 @@ const TOOL_BUTTON = 'inline-flex items-center gap-1.5 rounded-md border border-g
 // The toolbar doesn't own the text size - StoryPage does, because
 // the story text AND Focus mode both need to know it.
 // ---------------------------------------------------------------
-function ReadingToolbar({ speechPieces, onFocus, textSize, onTextSizeChange }) {
+function ReadingToolbar({ speechPieces, onFocus, textSize, onTextSizeChange, easyRead = false, onEasyReadChange }) {
     const { supported, speaking, current, voices, speak, stop } = useSpeech()
     const [narrator, setNarrator] = useState(loadNarrator)
     const [showNarrator, setShowNarrator] = useState(false)
@@ -85,6 +85,19 @@ function ReadingToolbar({ speechPieces, onFocus, textSize, onTextSizeChange }) {
                         <Maximize className='h-3.5 w-3.5' />
                         Focus
                     </button>
+
+                    {/* Easy read: dyslexia-friendly font + spacing + line focus. */}
+                    {onEasyReadChange && (
+                        <button
+                            type='button'
+                            onClick={() => onEasyReadChange(!easyRead)}
+                            aria-pressed={easyRead}
+                            className={`${TOOL_BUTTON} ${easyRead ? 'border-sky-500 text-sky-200' : ''}`}
+                        >
+                            <BookOpenText className='h-3.5 w-3.5' />
+                            Easy read
+                        </button>
+                    )}
                 </div>
 
                 <div className='flex items-center gap-2 text-xs text-gray-400'>

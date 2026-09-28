@@ -34,12 +34,13 @@ function InlineText({ text }) {
 // Usage:
 //   <StoryBody body={story.body} size='large' />
 //   <StoryBody body={story.body} showScares />   -> jump-scare warnings on
+//   <StoryBody body={story.body} easyRead />     -> dyslexia-friendly text (index.css, .easy-read)
 //
 // showScares: the reader asked to be warned before jump scares
 // (StoryPage), or it's the writer's own Preview. Otherwise the
 // !!scare marks are simply not drawn.
 // ---------------------------------------------------------------
-function StoryBody({ body, size = 'normal', showScares = false }) {
+function StoryBody({ body, size = 'normal', showScares = false, easyRead = false }) {
     // Text -> blocks (paragraphs, headings, lists...). See
     // utils/storyFormat.js for the rules.
     const blocks = parseStory(body)
@@ -49,7 +50,7 @@ function StoryBody({ body, size = 'normal', showScares = false }) {
         // (dangerouslySetInnerHTML). Anyone can write a story, and HTML
         // would let them sneak a <script> in. As plain text, React
         // shows "<script>" as harmless letters.
-        <div className={`space-y-6 text-gray-200 ${SIZE_CLASSES[size] || SIZE_CLASSES.normal}`}>
+        <div className={`space-y-6 text-gray-200 ${SIZE_CLASSES[size] || SIZE_CLASSES.normal} ${easyRead ? 'easy-read' : ''}`}>
             {/* key={index} is OK here - the blocks never get reordered
                 and don't have ids. One if per block type. */}
             {blocks.map((block, index) => {

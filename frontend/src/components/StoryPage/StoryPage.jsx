@@ -29,10 +29,13 @@ import JumpScareNotice from './JumpScareNotice'
 import { useScareWarnings } from '../../hooks/useScareWarnings'
 import { BetaBanner, BetaFeedbackBox } from './BetaBox'
 import { useReadingProgress } from '../../hooks/useReadingProgress'
+import { useLineFocus } from '../../hooks/useLineFocus'
 
 
 // The name the reader's text size is saved under in the browser.
 const TEXT_SIZE_KEY = 'storyTextSize'
+// "Easy read" on/off, remembered the same way.
+const EASY_READ_KEY = 'easyRead'
 
 
 // ===============================================================
@@ -83,6 +86,14 @@ function StoryPage() {
     useEffect(() => {
         localStorage.setItem(TEXT_SIZE_KEY, textSize)
     }, [textSize])
+
+    // Dyslexia-friendly text + line focus (index.css, useLineFocus.js).
+    const [easyRead, setEasyRead] = useState(() => localStorage.getItem(EASY_READ_KEY) === 'on')
+    useEffect(() => {
+        localStorage.setItem(EASY_READ_KEY, easyRead ? 'on' : 'off')
+    }, [easyRead])
+    // The paragraph in the middle of the screen stays bright (only in Easy read).
+    useLineFocus(bodyRef, easyRead && Boolean(story?.body))
 
     // ---------- Load the story ----------
     // Heads-up: while developing (npm run dev), each visit adds TWO
@@ -280,6 +291,8 @@ function StoryPage() {
                             onFocus={() => setFocus(true)}
                             textSize={textSize}
                             onTextSizeChange={setTextSize}
+                            easyRead={easyRead}
+                            onEasyReadChange={setEasyRead}
                         />
                         {/* Only when the writer marked jump scares. */}
                         <JumpScareNotice count={countScares(story.body)} warn={scareWarnings} onChange={setScareWarnings} />
@@ -331,7 +344,7 @@ function StoryPage() {
                         )}
                         {/* ref = the box useReadingProgress measures. */}
                         <div ref={bodyRef} className='mt-8'>
-                            <StoryBody body={story.body} size={textSize} showScares={scareWarnings} />
+                            <StoryBody body={story.body} size={textSize} showScares={scareWarnings} easyRead={easyRead} />
                         </div>
                     </>
                 )}
@@ -428,6 +441,7 @@ function StoryPage() {
                     body={story.body}
                     textSize={textSize}
                     showScares={scareWarnings}
+                    easyRead={easyRead}
                     onClose={() => setFocus(false)}
                 />
             )}
