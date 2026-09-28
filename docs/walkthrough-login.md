@@ -150,6 +150,7 @@ React's memory (`user`) is gone - but the cookie isn't. Step 1 runs again, and n
 3. **Trigger the lock-out.** Type a wrong password several times (Dashboard → Rate
    Limits shows how many). Then try the *right* one. Unlock yourself in Dashboard →
    Login Logs.
-4. **Read the tests.** `accounts/test_security.py` tests the lock-out;
+4. **Read the tests.** `moderation/tests.py` tests the lock-out
+   (`test_locked_after_too_many_failures_even_with_right_password`);
    `LogIn.test.jsx` and `ProtectedRoute.test.jsx` test the React side. Can you add a
    test for "logging in with your email address works"?
