@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Swords, Trash2, Crown } from 'lucide-react'
 import { getAdminList, getAdminItem, createAdminItem, updateAdminItem, deleteAdminItem } from '../../api/client'
+import JudgingPanel from './JudgingPanel'
 import { PageMessages } from '../Dashboard/AdminParts'
 import { INPUT_STYLE, LABEL_STYLE, BUTTON_STYLE } from '../../styles/formStyles'
 
@@ -63,6 +64,9 @@ function ChallengeCard({ challenge, onChanged, onDelete }) {
                     <Crown className='h-4 w-4' /> Winner: {challenge.winner_title}
                 </p>
             )}
+
+            {/* Judges + their scores + Announce (JudgingPanel.jsx). */}
+            <JudgingPanel challenge={challenge} onChanged={onChanged} />
 
             <button type='button' onClick={openEntries} className='mt-3 text-xs font-semibold text-red-400 hover:text-red-300'>
                 {entries ? 'Hide entries' : 'Show entries / pick a winner'}

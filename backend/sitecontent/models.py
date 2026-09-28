@@ -92,6 +92,32 @@ class ChallengeEntry(models.Model):
         return f'{self.story} in {self.challenge}'
 
 
+# ---------------------------------------------------------------
+# JUDGED CHALLENGES (sitecontent/judging_views.py)
+#
+# An admin picks JUDGES for a challenge. After the deadline each
+# judge scores every entry 1-10 (plus a private note). Only admins see
+# the scores; they announce the winner from the ranked results.
+# ---------------------------------------------------------------
+class ChallengeJudge(models.Model):
+    challenge = models.ForeignKey(Challenge, on_delete=models.CASCADE, related_name='judges')
+    judge = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='judging')
+
+    class Meta:
+        unique_together = ['challenge', 'judge']
+
+
+class JudgeScore(models.Model):
+    entry = models.ForeignKey(ChallengeEntry, on_delete=models.CASCADE, related_name='scores')
+    judge = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='judge_scores')
+    score = models.PositiveSmallIntegerField()          # 1-10
+    note = models.CharField(max_length=500, blank=True)  # private: only admins read it
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ['entry', 'judge']   # one score per judge per entry (changing it = updating)
+
+
 class Bundle(models.Model):
     title = models.CharField(max_length=150)
     slug = models.SlugField(unique=True)    # the URL: /bundles/best-haunted-houses

@@ -68,6 +68,12 @@ class ChallengeDetailView(APIView):
 
         # "Your published stories that could still enter" - for the
         # Enter button. Empty for visitors who are logged out.
+        # Judged challenges (judging_views.py): who judges, is it being
+        # judged right now, and am I a judge (-> the "Judge the entries" link)?
+        data['judges'] = list(challenge.judges.values_list('judge__username', flat=True))
+        data['judging_now'] = bool(data['judges']) and not challenge.is_open() and challenge.winner_id is None
+        data['i_am_judge'] = request.user.is_authenticated and challenge.judges.filter(judge=request.user).exists()
+
         data['my_eligible_stories'] = []
         if request.user.is_authenticated and challenge.is_open():
             mine = visible.filter(author=request.user).exclude(challenge_entries__challenge=challenge)

@@ -1408,6 +1408,34 @@ export function saveSprint(words, minutes) {
 
 // Author Dashboard, "Over time": 12 weeks of views / likes / read-through,
 // and read-through per story. -> { weeks: [...], stories: [...], views_tracked_since }
+// --- Judged challenges (sitecontent/judging_views.py) ---
+
+// Judges: the entries + my scores.
+export function getJudging(challengeId) {
+    return authRequest(`/api/challenges/${challengeId}/judging/`)
+}
+
+export function scoreEntry(challengeId, entryId, score, note) {
+    return authRequest(`/api/challenges/${challengeId}/judging/${entryId}/`, 'POST', { score, note })
+}
+
+// Admins: judges + ranked results.
+export function getChallengeJudging(challengeId) {
+    return authRequest(`/api/dashboard/challenges/${challengeId}/judges/`)
+}
+
+export function addJudge(challengeId, username) {
+    return authRequest(`/api/dashboard/challenges/${challengeId}/judges/`, 'POST', { username })
+}
+
+export function removeJudge(challengeId, username) {
+    return authRequest(`/api/dashboard/challenges/${challengeId}/judges/${encodeURIComponent(username)}/`, 'DELETE')
+}
+
+export function announceWinner(challengeId, storyId) {
+    return authRequest(`/api/dashboard/challenges/${challengeId}/announce/`, 'POST', { story_id: storyId })
+}
+
 // The Haunted Map: every story with a place -> [{ id, title, author, location, lat, lng, is_true }]
 export function getStoryMap() {
     return getJSON('/api/stories/map/')

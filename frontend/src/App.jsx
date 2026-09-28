@@ -42,6 +42,7 @@ const VideosPage = lazy(() => import('./components/VideosPage/VideosPage'))
 const VillainsPage = lazy(() => import('./components/VillainsPage/VillainsPage'))
 const SprintsPage = lazy(() => import('./components/SprintsPage/SprintsPage'))
 const TrueStoriesPage = lazy(() => import('./components/TrueStories/TrueStoriesPage'))
+const JudgePage = lazy(() => import('./components/ChallengesPage/JudgePage'))
 const HauntedMapPage = lazy(() => import('./components/Map/HauntedMapPage'))
 const OfflineLibraryPage = lazy(() => import('./components/OfflineLibrary/OfflineLibraryPage'))
 const ReadingListPage = lazy(() => import('./components/ReadingLists/ReadingListPage'))
@@ -235,6 +236,7 @@ function App() {
             it reads :id / :slug with useParams). */}
         <Route path='/challenges' element={<ChallengesPage />} />
         <Route path='/challenges/:id' element={<ChallengesPage />} />
+        <Route path='/challenges/:id/judge' element={<ProtectedRoute><JudgePage /></ProtectedRoute>} />
         <Route path='/bundles' element={<BundlesPage />} />
         <Route path='/bundles/:slug' element={<BundlesPage />} />
 

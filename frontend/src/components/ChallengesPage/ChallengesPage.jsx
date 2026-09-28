@@ -126,6 +126,19 @@ function ChallengeDetail({ id }) {
                     </p>
                 )}
 
+                {/* Judged challenges: who judges, and a way in for the judges. */}
+                {challenge.judges?.length > 0 && (
+                    <p className='mt-4 text-sm text-gray-300'>
+                        Judged by {challenge.judges.join(', ')}
+                        {challenge.judging_now && <span className='ml-2 rounded-full border border-amber-700 px-2 py-0.5 text-xs text-amber-300'>Judging in progress</span>}
+                    </p>
+                )}
+                {challenge.i_am_judge && (
+                    <Link to={`/challenges/${challenge.id}/judge`} className='mt-3 inline-block rounded-lg bg-amber-600 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-500'>
+                        Judge the entries
+                    </Link>
+                )}
+
                 {/* ---------- ENTER ---------- */}
                 {challenge.is_open && (
                     <div className='mt-6 border-t border-slate-800 pt-5'>

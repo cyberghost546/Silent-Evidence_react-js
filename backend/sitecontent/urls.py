@@ -20,10 +20,16 @@ from .views import (
 
 from .video_views import VideoListView, AdminVideoListView, AdminVideoDetailView
 from .villain_views import VillainListView, VillainVoteView, AdminVillainView
+from .judging_views import JudgingView, ScoreEntryView, AdminJudgesView, AdminRemoveJudgeView, AdminAnnounceView
 
 
 # Included under "api/" in config/urls.py.
 urlpatterns = [
+    path('challenges/<int:pk>/judging/', JudgingView.as_view()),                         # judged challenges
+    path('challenges/<int:pk>/judging/<int:entry_id>/', ScoreEntryView.as_view()),
+    path('dashboard/challenges/<int:pk>/judges/', AdminJudgesView.as_view()),
+    path('dashboard/challenges/<int:pk>/judges/<str:username>/', AdminRemoveJudgeView.as_view()),
+    path('dashboard/challenges/<int:pk>/announce/', AdminAnnounceView.as_view()),
     path('villains/', VillainListView.as_view()),
     path('villains/<int:pk>/vote/', VillainVoteView.as_view()),
     path('dashboard/villains/<int:pk>/', AdminVillainView.as_view()),
