@@ -8,6 +8,9 @@ import ForgotPassword from './components/ForgotPassword/ForgotPassword'
 import ResetPassword from './components/ResetPassword/ResetPassword'
 import VerifyEmail from './components/VerifyEmail/VerifyEmail'
 import SeriesPage from './components/SeriesPage/SeriesPage'
+import ForumsPage from './components/Forums/ForumsPage'
+import BoardPage from './components/Forums/BoardPage'
+import ThreadPage from './components/Forums/ThreadPage'
 import CategoryPage from './components/CategoryPage/CategoryPage'
 import StoryPage from './components/StoryPage/StoryPage'
 import RandomStory from './components/RandomStory/RandomStory'
@@ -236,6 +239,11 @@ function App() {
 
         {/* Anyone can send a message - no ProtectedRoute. */}
         <Route path='/contact' element={<ContactPage />} />
+
+        {/* Forums: boards -> threads -> replies. Anyone can read. */}
+        <Route path='/forums' element={<ForumsPage />} />
+        <Route path='/forums/:slug' element={<BoardPage />} />
+        <Route path='/forums/:slug/:id' element={<ThreadPage />} />
 
         {/* A story series and its parts - anyone can look. */}
         <Route path='/series/:id' element={<SeriesPage />} />

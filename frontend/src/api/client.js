@@ -1241,3 +1241,41 @@ export function clearErrorLog() {
 export function confirmAge(birthDate) {
     return authRequest('/api/accounts/age/', 'POST', { birth_date: birthDate })
 }
+
+
+// --- Forums ---
+
+export function getBoards() {
+    return getJSON('/api/forums/')
+}
+
+// A board + its threads. authRequest (not getJSON) so the login cookie
+// goes along: threads by people you blocked are left out.
+export function getBoard(slug) {
+    return authRequest(`/api/forums/${slug}/`)
+}
+
+export function startThread(slug, title, body) {
+    return authRequest(`/api/forums/${slug}/`, 'POST', { title, body })
+}
+
+export function getThread(id) {
+    return authRequest(`/api/forums/threads/${id}/`)
+}
+
+export function replyToThread(id, body) {
+    return authRequest(`/api/forums/threads/${id}/`, 'POST', { body })
+}
+
+// Admins. changes = { is_pinned: true } / { is_locked: false }
+export function moderateThread(id, changes) {
+    return authRequest(`/api/dashboard/forums/threads/${id}/`, 'PATCH', changes)
+}
+
+export function deleteThread(id) {
+    return authRequest(`/api/dashboard/forums/threads/${id}/`, 'DELETE')
+}
+
+export function setPostHidden(id, isHidden) {
+    return authRequest(`/api/dashboard/forums/posts/${id}/`, 'PATCH', { is_hidden: isHidden })
+}

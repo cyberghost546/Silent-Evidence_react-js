@@ -23,7 +23,9 @@ function VerifyEmailBanner() {
     // Not logged in, or already confirmed: nothing to show.
     // (=== false, not !user.email_verified: if Django didn't send the
     // field at all, better to stay quiet than nag everyone.)
-    if (!user || user.email_verified !== false) return null
+    // No email address at all (e.g. an account an admin made): nothing
+    // to confirm, so no banner either.
+    if (!user || !user.email || user.email_verified !== false) return null
 
     async function handleResend() {
         setSending(true)

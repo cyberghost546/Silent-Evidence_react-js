@@ -38,6 +38,7 @@ urlpatterns = [
     path('api/', include('sitecontent.urls')),
     path('api/', include('support.urls')),
     path('api/', include('mailings.urls')),
+    path('api/', include('forums.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 # static() above only works while DEBUG is on. On the live site the

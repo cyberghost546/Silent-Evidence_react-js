@@ -7,6 +7,8 @@ SWITCH_FOR_KIND = {
     'like': 'notify_likes',
     'comment': 'notify_comments',
     'reply': 'notify_comments',
+    'forum': 'notify_comments',
+    'chain': 'notify_comments',
     'follow': 'notify_follows',
 }
 
