@@ -19,10 +19,14 @@ from .views import (
 
 
 from .video_views import VideoListView, AdminVideoListView, AdminVideoDetailView
+from .villain_views import VillainListView, VillainVoteView, AdminVillainView
 
 
 # Included under "api/" in config/urls.py.
 urlpatterns = [
+    path('villains/', VillainListView.as_view()),
+    path('villains/<int:pk>/vote/', VillainVoteView.as_view()),
+    path('dashboard/villains/<int:pk>/', AdminVillainView.as_view()),
     path('videos/', VideoListView.as_view()),
     path('dashboard/videos/', AdminVideoListView.as_view()),
     path('dashboard/videos/<int:pk>/', AdminVideoDetailView.as_view()),

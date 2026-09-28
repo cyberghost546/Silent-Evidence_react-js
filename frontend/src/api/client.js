@@ -1358,3 +1358,26 @@ export function saveReadingProgress(storyId, percent) {
 export function getContinueReading() {
     return authRequest('/api/stories/continue/')
 }
+
+
+// --- Villain of the Week ---
+
+// -> { week, nominations: [...], has_nominated, past_winners: [...] }
+// authRequest (not getJSON): logged in, it also says which one YOU voted for.
+export function getVillains() {
+    return authRequest('/api/villains/')
+}
+
+export function nominateVillain(name, reason, storyId) {
+    return authRequest('/api/villains/', 'POST', { name, reason, story_id: storyId || null })
+}
+
+// Voting again moves your vote (one per week).
+export function voteVillain(nominationId) {
+    return authRequest(`/api/villains/${nominationId}/vote/`, 'POST')
+}
+
+// Admins.
+export function removeVillain(nominationId) {
+    return authRequest(`/api/dashboard/villains/${nominationId}/`, 'DELETE')
+}

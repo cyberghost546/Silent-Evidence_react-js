@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
@@ -268,3 +270,46 @@ class Video(models.Model):
 
     def __str__(self):
         return self.title
+
+
+# ---------------------------------------------------------------
+# VILLAIN OF THE WEEK - members nominate the scariest villain from
+# the site's stories, and vote. Every week starts fresh on Monday.
+#
+#   VillainNomination  "The Keeper" (from a story), why, by whom
+#   VillainVote        one vote per member per week (can be changed)
+#
+# The winner of a week = its nomination with the most votes
+# (worked out when asked - see sitecontent/villain_views.py).
+# ---------------------------------------------------------------
+def week_start(day=None):
+    # The Monday of the week `day` is in. weekday(): Monday = 0.
+    day = day or timezone.localdate()
+    return day - timedelta(days=day.weekday())
+
+
+class VillainNomination(models.Model):
+    name = models.CharField(max_length=80)                 # "The Keeper"
+    reason = models.CharField(max_length=300, blank=True)  # why they're so scary
+    story = models.ForeignKey(Story, on_delete=models.SET_NULL, null=True, blank=True, related_name='villain_nominations')
+    nominated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='villain_nominations')
+    week = models.DateField(default=week_start)             # the Monday of that week
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['created_at']
+        # One nomination per member per week.
+        unique_together = ['nominated_by', 'week']
+
+    def __str__(self):
+        return f'{self.name} ({self.week})'
+
+
+class VillainVote(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='villain_votes')
+    nomination = models.ForeignKey(VillainNomination, on_delete=models.CASCADE, related_name='votes')
+    week = models.DateField(default=week_start)
+
+    class Meta:
+        # One vote per member per week (changing it = moving this row).
+        unique_together = ['user', 'week']

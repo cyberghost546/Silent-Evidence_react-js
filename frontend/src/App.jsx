@@ -10,6 +10,7 @@ import VerifyEmail from './components/VerifyEmail/VerifyEmail'
 import SeriesPage from './components/SeriesPage/SeriesPage'
 import ForumsPage from './components/Forums/ForumsPage'
 import VideosPage from './components/VideosPage/VideosPage'
+import VillainsPage from './components/VillainsPage/VillainsPage'
 import ChainsPage from './components/Chains/ChainsPage'
 import ExplorePage from './components/ExplorePage/ExplorePage'
 import ChainPage from './components/Chains/ChainPage'
@@ -254,6 +255,10 @@ function App() {
 
         {/* Story readings from YouTube. */}
         <Route path='/videos' element={<VideosPage />} />
+
+        {/* Villain of the Week: nominate + vote (/nominate opens the form). */}
+        <Route path='/villains' element={<VillainsPage />} />
+        <Route path='/villains/nominate' element={<VillainsPage />} />
 
         {/* Forums: boards -> threads -> replies. Anyone can read. */}
         <Route path='/forums' element={<ForumsPage />} />
