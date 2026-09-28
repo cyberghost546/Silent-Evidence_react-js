@@ -1381,3 +1381,17 @@ export function voteVillain(nominationId) {
 export function removeVillain(nominationId) {
     return authRequest(`/api/dashboard/villains/${nominationId}/`, 'DELETE')
 }
+
+
+// --- Writing Sprints ---
+
+// -> { lengths: [10, 20, 30], leaderboard: [{ username, words, sprints }],
+//      me: { sprints, best, week_words } or null for visitors }
+export function getSprints() {
+    return authRequest('/api/sprints/')
+}
+
+// Save a finished sprint (logged-in members). Django caps silly numbers.
+export function saveSprint(words, minutes) {
+    return authRequest('/api/sprints/', 'POST', { words, minutes })
+}

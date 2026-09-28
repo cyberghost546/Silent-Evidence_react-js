@@ -50,7 +50,7 @@ class BadgeTests(TestCase):
         # The writer sees everything, with progress.
         self.client.force_login(self.writer)
         badges = {badge['key']: badge for badge in self.profile()['badges']}
-        self.assertEqual(len(badges), 9)
+        self.assertEqual(len(badges), 10)
         self.assertEqual((badges['storyteller']['progress'], badges['storyteller']['target']), (1, 10))
         self.assertFalse(badges['storyteller']['earned'])
 

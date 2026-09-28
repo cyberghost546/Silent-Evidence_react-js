@@ -26,6 +26,7 @@ BADGES = [
     {'key': 'critic', 'emoji': '💀', 'name': 'Fear Critic', 'description': 'Rated 20 stories on the fear meter', 'count': 'fear_ratings', 'target': 20},
     {'key': 'chain_gang', 'emoji': '⛓️', 'name': 'Chain Gang', 'description': 'Wrote 5 parts of story chains', 'count': 'chain_parts', 'target': 5},
     {'key': 'regular', 'emoji': '🕯️', 'name': 'Forum Regular', 'description': 'Posted 25 times in the forums', 'count': 'forum_posts', 'target': 25},
+    {'key': 'sprinter', 'emoji': '⏱️', 'name': 'Sprinter', 'description': 'Finished 5 writing sprints', 'count': 'sprints', 'target': 5},
 ]
 
 
@@ -56,7 +57,7 @@ def streaks(days):
 def counts(user):
     # Imported here: accounts is loaded before stories and forums.
     from forums.models import Post, Thread
-    from stories.models import Story, Like, ReadingHistory, FearRating, ChainPart, ReadingDay, Series
+    from stories.models import Story, Like, ReadingHistory, FearRating, ChainPart, ReadingDay, Series, SprintResult
 
     current, longest = streaks(ReadingDay.objects.filter(user=user).values_list('date', flat=True))
     biggest_series = (
@@ -73,6 +74,7 @@ def counts(user):
         'fear_ratings': FearRating.objects.filter(user=user).count(),
         'chain_parts': ChainPart.objects.filter(author=user).count(),
         'forum_posts': Post.objects.filter(author=user).count() + Thread.objects.filter(author=user).count(),
+        'sprints': SprintResult.objects.filter(user=user).count(),
     }
 
 

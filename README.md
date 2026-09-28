@@ -106,10 +106,10 @@ sends it along (plus the CSRF token), and `AuthContext.jsx` keeps
 | App | What's in it |
 | --- | --- |
 | `accounts` | Sign up / log in, profiles, settings, follows, blocks, leaderboard |
-| `stories` | Stories, likes, saves, comments (with replies), reading history + progress, co-author invites, search, feed, series, fear meter, reactions, story chains, beta readers |
+| `stories` | Stories, likes, saves, comments (with replies), reading history + progress, co-author invites, search, feed, series, fear meter, reactions, story chains, beta readers, writing sprints |
 | `messaging` | Private messages |
 | `moderation` | Reports, appeals, login logs + lock-out, content filter, verification, warnings & bans, AI toxicity checks |
-| `sitecontent` | Announcement banner, writing prompts, challenges, bundles, featured authors, spotlight, polls |
+| `sitecontent` | Announcement banner, writing prompts, challenges, bundles, featured authors, spotlight, polls, villain of the week |
 | `support` | Help tickets (member <-> admin conversations) |
 | `mailings` | Newsletter, comment digest (`python manage.py send_comment_digests weekly`), the email log and the email templates (`render_email()` in `email_templates.py`) |
 | `forums` | Forum boards, threads and replies |
@@ -171,6 +171,8 @@ rules are in `backend/accounts/age.py`; the lock screen is
 | `/chains`, `/chains/:id` | `Chains/` - stories written together in turns | reading: no, writing: yes |
 | `/videos` | `VideosPage/` (admins add them at `/dashboard/videos`) | |
 | `/explore/latest`, `/popular`, `/timeline` | `ExplorePage/` | |
+| `/villains`, `/villains/nominate` | `VillainsPage/` - nominate and vote, one of each per week | reading: no, voting: yes |
+| `/sprints` | `SprintsPage/` - timed writing, weekly leaderboard, carries on to `/write` | sprinting: no, saving results: yes |
 | `/series/:id` | `SeriesPage/` | |
 
 All routes live in `frontend/src/App.jsx`.

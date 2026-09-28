@@ -11,6 +11,7 @@ import SeriesPage from './components/SeriesPage/SeriesPage'
 import ForumsPage from './components/Forums/ForumsPage'
 import VideosPage from './components/VideosPage/VideosPage'
 import VillainsPage from './components/VillainsPage/VillainsPage'
+import SprintsPage from './components/SprintsPage/SprintsPage'
 import ChainsPage from './components/Chains/ChainsPage'
 import ExplorePage from './components/ExplorePage/ExplorePage'
 import ChainPage from './components/Chains/ChainPage'
@@ -259,6 +260,9 @@ function App() {
         {/* Villain of the Week: nominate + vote (/nominate opens the form). */}
         <Route path='/villains' element={<VillainsPage />} />
         <Route path='/villains/nominate' element={<VillainsPage />} />
+
+        {/* Writing Sprints: timed writing + weekly leaderboard. */}
+        <Route path='/sprints' element={<SprintsPage />} />
 
         {/* Forums: boards -> threads -> replies. Anyone can read. */}
         <Route path='/forums' element={<ForumsPage />} />

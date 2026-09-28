@@ -3,6 +3,7 @@ from django.urls import path
 from .beta_views import BetaReadersView, RemoveBetaReaderView, BetaFeedbackView
 from .chain_views import ChainListView, ChainDetailView, AdminChainView
 from .series_views import MySeriesView, SeriesDetailView
+from .sprint_views import SprintView
 from .views import (
     StoryListView, StoryCreateView, StoryDetailView, FeaturedStoriesView, RandomStoryView,
     ToggleLikeView, ToggleSaveView, CommentListView, LastWordListView, AuthorStatsView,
@@ -20,6 +21,7 @@ urlpatterns = [
     path('chains/', ChainListView.as_view()),
     path('chains/<int:pk>/', ChainDetailView.as_view()),
     path('dashboard/chains/<int:pk>/', AdminChainView.as_view()),
+    path('sprints/', SprintView.as_view()),     # Writing Sprints
     path('series/mine/', MySeriesView.as_view()),
     path('series/<int:pk>/', SeriesDetailView.as_view()),
     path('stories/', StoryListView.as_view()),

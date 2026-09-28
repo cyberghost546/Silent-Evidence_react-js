@@ -545,3 +545,19 @@ class BetaFeedback(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+
+
+# ---------------------------------------------------------------
+# WRITING SPRINTS - "write as much as you can in 20 minutes".
+# The writing itself stays in the browser (it can go on to the Write
+# page); Django only keeps the RESULT, for the weekly sprinters
+# leaderboard and the Sprinter badge (stories/sprint_views.py).
+# ---------------------------------------------------------------
+class SprintResult(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='sprints')
+    words = models.PositiveIntegerField()
+    minutes = models.PositiveSmallIntegerField()    # 10, 20 or 30
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
