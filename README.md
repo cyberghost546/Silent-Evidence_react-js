@@ -103,6 +103,21 @@ Some tests guard the whole site rather than one feature:
 public address accepts data by accident) and `forums/test_speed.py`
 (no database query per forum reply).
 
+## The app (install it on a phone)
+
+Silent Evidence is an installable web app (a "PWA"): on a phone it can
+be added to the home screen and opens full-screen, with an offline page.
+
+| File | What it does |
+| --- | --- |
+| `frontend/public/manifest.webmanifest` | the app's name, colours, icons and shortcuts |
+| `frontend/public/sw.js` | the service worker: caches the app's files, shows `offline.html` without internet, never caches Django's answers |
+| `frontend/public/icons/` | the home-screen icons (made from `favicon.svg`) |
+| `src/components/InstallAppButton/` | "Install the app" in the footer |
+
+It only works on the built site over HTTPS (so: once it's online). Changed
+`sw.js`? Bump its `VERSION` so phones pick up the new one.
+
 ## Learning material
 
 In [`docs/`](docs/): walkthroughs of a [Villain vote](docs/walkthrough-villain-vote.md)

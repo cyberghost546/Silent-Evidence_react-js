@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { getCategories } from '../../api/client'
+import InstallAppButton from '../InstallAppButton/InstallAppButton'
 import { XIcon, RedditIcon, DiscordIcon } from '../BrandIcons/BrandIcons'
 import { openWatcher } from '../SiteGuide/openWatcher'
 
@@ -192,6 +193,9 @@ function Footer() {
                 {/* border-t draws the divider line above it. */}
                 <div className='border-t border-slate-800 mt-12 pt-8 flex flex-col sm:flex-row justify-between gap-4 text-sm'>
                     <p>{year} Silent Evidence. All rights reserved.</p>
+
+                    {/* Only shows where installing is possible (InstallAppButton.jsx). */}
+                    <InstallAppButton />
 
                     <p>
                         Made with <span className='text-red-600'>&#9829;</span> for horror fans everywhere.

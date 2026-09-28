@@ -108,6 +108,13 @@ Test with Dashboard → Newsletter → "Send test".
 - [ ] Write a story with a cover picture, and see the picture
 - [ ] `https://your-site.vercel.app/admin/` shows Django's admin with its styling
 - [ ] `/robots.txt` and `/sitemap.xml` show your Vercel address
+- [ ] **The app:** on your phone, open the site in Chrome (Android) and
+  use "Install the app" in the footer - or in Safari (iPhone) tap
+  Share → *Add to Home Screen*. It should open full-screen with the
+  red "SE" icon. Then switch on airplane mode and open it: you should
+  see "The line went dead." (the offline page), not the browser's error.
+  (The service worker in `frontend/public/sw.js` only runs on the built,
+  HTTPS site - never on `npm run dev`.)
 - [ ] **Real IP addresses:** log in, then open Dashboard → Login Logs.
   Your own IP should be there (compare with a "what is my IP" site).
   - It shows a Vercel/Render address instead → try `TRUSTED_PROXY_COUNT=1` or `3`.
