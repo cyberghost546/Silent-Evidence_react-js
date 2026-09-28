@@ -18,6 +18,7 @@ from dashboard.models import SiteSettings
 from .notifications import notify
 from .email_views import send_verification_email
 from .age import is_adult
+from .badges import badge_report
 from stories.models import Like, Bookmark, Comment, published_stories
 from .models import Follow, Block, get_profile
 from .premium import refresh_premium
@@ -292,6 +293,14 @@ class ToggleFollowView(APIView):
         return Response({'following': created, 'follower_count': author.followers.count()})
 
 
+# Badges + streak for a profile (accounts/badges.py). Others only see
+# the badges you EARNED; you see all of them, with your progress.
+def profile_badges(person, is_me):
+    report = badge_report(person)
+    badges = report['badges'] if is_me else [badge for badge in report['badges'] if badge['earned']]
+    return {'badges': badges, 'streak': report['streak']}
+
+
 # ---------------------------------------------------------------
 # PROFILE PAGE
 # ---------------------------------------------------------------
@@ -367,6 +376,10 @@ class ProfileView(APIView):
             'total_likes': total_likes,
             'is_following': is_following,
             'is_me': is_me,
+            # Badges + reading streak (accounts/badges.py). Everyone
+            # sees the earned badges; on your OWN profile you also see
+            # the ones still to earn, with how far along you are.
+            **profile_badges(person, is_me),
         })
 
 

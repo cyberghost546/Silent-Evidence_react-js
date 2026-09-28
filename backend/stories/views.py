@@ -21,7 +21,7 @@ from moderation.content_filter import check_text
 from moderation.models import Report
 from .models import (
     Story, Like, Bookmark, Comment, LastWord, ReadingHistory, CoAuthorInvite,
-    FearRating, Reaction, REACTION_KINDS,
+    FearRating, Reaction, REACTION_KINDS, ReadingDay,
     published_stories, stories_for,
 )
 from .serializers import (
@@ -605,6 +605,8 @@ class SavedStoriesView(APIView):
 def record_reading(user, story):
     if user.is_authenticated:
         ReadingHistory.objects.update_or_create(user=user, story=story)
+        # Today counts as a reading day (streaks, accounts/badges.py).
+        ReadingDay.objects.get_or_create(user=user, date=timezone.localdate())
 
 
 # GET    /api/stories/history/  -> the stories you read, newest first

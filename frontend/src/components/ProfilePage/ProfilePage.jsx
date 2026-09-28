@@ -9,6 +9,7 @@ import StoryGridCard from '../StorySections/StoryGridCard'
 import EmptyState from '../StorySections/EmptyState'
 import PublicationMap from './PublicationMap'
 import { usePageTitle } from '../../hooks/usePageTitle'
+import ProfileBadges from './ProfileBadges'
 
 
 // ---------------------------------------------------------------
@@ -267,6 +268,9 @@ function ProfilePage() {
                     </div>
                 ) : (
                 <>
+                {/* Badges + reading streak (ProfileBadges.jsx). */}
+                <ProfileBadges badges={profile.badges} streak={profile.streak} isMe={profile.is_me} />
+
                 <PublicationMap stories={stories} />
 
                 <section>

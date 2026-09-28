@@ -506,3 +506,16 @@ class ChainPart(models.Model):
 
     def __str__(self):
         return f'{self.chain}: {self.body[:30]}'
+
+
+# ---------------------------------------------------------------
+# READING DAYS - "did this member read a story on this day?"
+# One row per member per day (record_reading() in views.py adds it).
+# Used for reading streaks and the Night Owl badge (accounts/badges.py).
+# ---------------------------------------------------------------
+class ReadingDay(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='reading_days')
+    date = models.DateField()
+
+    class Meta:
+        unique_together = ['user', 'date']
