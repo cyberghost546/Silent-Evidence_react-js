@@ -11,6 +11,7 @@ import SeriesPage from './components/SeriesPage/SeriesPage'
 import ForumsPage from './components/Forums/ForumsPage'
 import VideosPage from './components/VideosPage/VideosPage'
 import ChainsPage from './components/Chains/ChainsPage'
+import ExplorePage from './components/ExplorePage/ExplorePage'
 import ChainPage from './components/Chains/ChainPage'
 import BoardPage from './components/Forums/BoardPage'
 import ThreadPage from './components/Forums/ThreadPage'
@@ -243,6 +244,9 @@ function App() {
 
         {/* Anyone can send a message - no ProtectedRoute. */}
         <Route path='/contact' element={<ContactPage />} />
+
+        {/* The Explore menu: /explore/latest, /popular, /timeline. */}
+        <Route path='/explore/:mode' element={<ExplorePage />} />
 
         {/* Story chains: written together, one part at a time. */}
         <Route path='/chains' element={<ChainsPage />} />
