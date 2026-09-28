@@ -42,6 +42,8 @@ const VideosPage = lazy(() => import('./components/VideosPage/VideosPage'))
 const VillainsPage = lazy(() => import('./components/VillainsPage/VillainsPage'))
 const SprintsPage = lazy(() => import('./components/SprintsPage/SprintsPage'))
 const TrueStoriesPage = lazy(() => import('./components/TrueStories/TrueStoriesPage'))
+const ReadAlongsPage = lazy(() => import('./components/ReadAlongs/ReadAlongsPage'))
+const ReadAlongRoom = lazy(() => import('./components/ReadAlongs/ReadAlongRoom'))
 const JudgePage = lazy(() => import('./components/ChallengesPage/JudgePage'))
 const HauntedMapPage = lazy(() => import('./components/Map/HauntedMapPage'))
 const OfflineLibraryPage = lazy(() => import('./components/OfflineLibrary/OfflineLibraryPage'))
@@ -278,6 +280,10 @@ function App() {
 
         {/* Writing Sprints: timed writing + weekly leaderboard. */}
         <Route path='/sprints' element={<SprintsPage />} />
+
+        {/* Read a story together at a set time, with a chat. */}
+        <Route path='/read-alongs' element={<ReadAlongsPage />} />
+        <Route path='/read-alongs/:id' element={<ReadAlongRoom />} />
 
         {/* Where the stories happened (Leaflet + OpenStreetMap). */}
         <Route path='/map' element={<HauntedMapPage />} />

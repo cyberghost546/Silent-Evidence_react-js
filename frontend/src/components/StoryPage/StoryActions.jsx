@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Bookmark, BookmarkCheck, Link as LinkIcon, Check, MessageCircle, ChevronDown, Flag, ListPlus, Download, WifiOff } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { Bookmark, BookmarkCheck, Link as LinkIcon, Check, MessageCircle, ChevronDown, Flag, ListPlus, Download, WifiOff, Users } from 'lucide-react'
 import { useDropdown } from '../../hooks/useDropdown'
 import { useRequireLogin } from '../../hooks/useRequireLogin'
 import { saveStory } from '../../api/client'
@@ -135,6 +136,11 @@ function StoryActions({ story }) {
                         <ListPlus className='h-4 w-4' />
                         Add to reading list
                     </button>
+                    {/* Read it together at a set time (ReadAlongsPage.jsx). */}
+                    <Link to={`/read-alongs?story=${story.id}`} role='menuitem' onClick={close} className={ITEM_STYLE}>
+                        <Users className='h-4 w-4' />
+                        Host a read-along
+                    </Link>
                     {/* A locked 18+ story has no text to download yet. */}
                     {offlineSupported() && !story.lock && (
                         <button type='button' role='menuitem' onClick={handleOffline} disabled={offlineBusy} className={ITEM_STYLE}>

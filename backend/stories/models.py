@@ -696,3 +696,33 @@ class StoryVersion(models.Model):
 
     class Meta:
         ordering = ['-saved_at', '-id']
+
+
+# ---------------------------------------------------------------
+# READ-ALONGS - a group reads one story together at a set time
+# ("Friday midnight read"), chatting as they go. When it's over,
+# everyone's fear ratings are revealed. (stories/readalong_views.py)
+#
+#   before starts_at             -> upcoming: people can join
+#   starts_at ... + 90 minutes   -> live: the chat is open
+#   after that                   -> ended: chat closed, ratings revealed
+# ---------------------------------------------------------------
+class ReadAlong(models.Model):
+    story = models.ForeignKey(Story, on_delete=models.CASCADE, related_name='read_alongs')
+    host = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='read_alongs_hosted')
+    starts_at = models.DateTimeField()
+    joined = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name='read_alongs_joined')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['starts_at']
+
+
+class ReadAlongMessage(models.Model):
+    room = models.ForeignKey(ReadAlong, on_delete=models.CASCADE, related_name='messages')
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='read_along_messages')
+    body = models.CharField(max_length=500)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['created_at']

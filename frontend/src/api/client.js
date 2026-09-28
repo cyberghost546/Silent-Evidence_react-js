@@ -1408,6 +1408,30 @@ export function saveSprint(words, minutes) {
 
 // Author Dashboard, "Over time": 12 weeks of views / likes / read-through,
 // and read-through per story. -> { weeks: [...], stories: [...], views_tracked_since }
+// --- Read-alongs (stories/readalong_views.py) ---
+
+export function getReadAlongs() {
+    return getJSON('/api/read-alongs/')
+}
+
+// startsAt = an ISO date/time in UTC
+export function createReadAlong(storyId, startsAt) {
+    return authRequest('/api/read-alongs/', 'POST', { story_id: storyId, starts_at: startsAt })
+}
+
+// after = the newest message id we already have (0 = all of them)
+export function getReadAlong(id, after = 0) {
+    return authRequest(`/api/read-alongs/${id}/?after=${after}`)
+}
+
+export function joinReadAlong(id) {
+    return authRequest(`/api/read-alongs/${id}/join/`, 'POST')
+}
+
+export function sendReadAlongMessage(id, body) {
+    return authRequest(`/api/read-alongs/${id}/messages/`, 'POST', { body })
+}
+
 // --- Judged challenges (sitecontent/judging_views.py) ---
 
 // Judges: the entries + my scores.
