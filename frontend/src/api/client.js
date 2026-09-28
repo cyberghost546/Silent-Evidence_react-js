@@ -1345,3 +1345,16 @@ export function removeBetaReader(storyId, username) {
 export function sendBetaFeedback(storyId, body) {
     return authRequest(`/api/stories/${storyId}/beta/feedback/`, 'POST', { body })
 }
+
+
+// --- Continue reading ---
+
+// percent = how far down the story you are, 0-100.
+export function saveReadingProgress(storyId, percent) {
+    return authRequest(`/api/stories/${storyId}/progress/`, 'POST', { percent })
+}
+
+// -> [ { progress: 43, story: {...card...} } ]
+export function getContinueReading() {
+    return authRequest('/api/stories/continue/')
+}

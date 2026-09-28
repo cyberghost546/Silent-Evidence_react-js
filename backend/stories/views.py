@@ -866,3 +866,49 @@ class ToggleReactionView(APIView):
         if not created:
             reaction.delete()
         return Response(reaction_data(story, request.user))
+
+
+# ---------------------------------------------------------------
+# CONTINUE READING
+#
+#   POST /api/stories/5/progress/  { percent: 43 }  - the story page
+#        saves how far you got (every few seconds while you read)
+#   GET  /api/stories/continue/                     - the stories you
+#        started but didn't finish (for the homepage row)
+# ---------------------------------------------------------------
+class ReadingProgressView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        story = get_object_or_404(stories_for(request.user), pk=pk)
+        try:
+            percent = int(request.data.get('percent'))
+        except (TypeError, ValueError):
+            return Response({'detail': 'percent must be a number.'}, status=400)
+        # max/min = keep it between 0 and 100, whatever was sent.
+        percent = max(0, min(100, percent))
+        ReadingHistory.objects.update_or_create(user=request.user, story=story, defaults={'progress': percent})
+        return Response({'progress': percent})
+
+
+# "Started" = past the first 5%; "not finished" = under 95%.
+CONTINUE_FROM, CONTINUE_UNTIL = 5, 95
+
+
+class ContinueReadingView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        visible_ids = stories_for(request.user).values('id')
+        rows = (
+            ReadingHistory.objects
+            .filter(user=request.user, story__in=visible_ids, progress__gte=CONTINUE_FROM, progress__lt=CONTINUE_UNTIL)
+            .select_related('story__author', 'story__category')[:6]
+        )
+        return Response([
+            {
+                'progress': row.progress,
+                'story': StoryCardSerializer(row.story, context={'request': request}).data,
+            }
+            for row in rows
+        ])

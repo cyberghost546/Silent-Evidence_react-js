@@ -108,6 +108,8 @@ class StoryDetailSerializer(StoryCardSerializer):
     is_draft = serializers.SerializerMethodField()
     # Your own beta feedback on this draft (only for beta readers).
     my_beta_feedback = serializers.SerializerMethodField()
+    # How far YOU got last time (0-100), for "Continue where you left off".
+    my_progress = serializers.SerializerMethodField()
     reactions = serializers.SerializerMethodField()
 
     # Meta inherits too: same model, and the card's field list with
@@ -115,7 +117,7 @@ class StoryDetailSerializer(StoryCardSerializer):
     class Meta(StoryCardSerializer.Meta):
         fields = StoryCardSerializer.Meta.fields + [
             'body', 'category_slug', 'word_count', 'like_count', 'comment_count', 'liked', 'saved',
-            'coauthors', 'tags', 'series', 'lock', 'fear', 'reactions', 'is_draft', 'my_beta_feedback',
+            'coauthors', 'tags', 'series', 'lock', 'fear', 'reactions', 'is_draft', 'my_beta_feedback', 'my_progress',
             # From the Write a Story page. The story page doesn't show
             # these yet, but they're here for when it does.
             'language', 'video_url', 'audio_url', 'location', 'latitude', 'longitude',
@@ -129,6 +131,12 @@ class StoryDetailSerializer(StoryCardSerializer):
     # { counts: { got_me: 3, cant_sleep: 1, creepy: 0 }, mine: ['got_me'] }
     def get_reactions(self, story):
         return reaction_data(story, self.context['request'].user)
+
+    def get_my_progress(self, story):
+        user = self.context['request'].user
+        if not user.is_authenticated:
+            return 0
+        return story.readers.filter(user=user).values_list('progress', flat=True).first() or 0
 
     def get_is_draft(self, story):
         return not story.is_published

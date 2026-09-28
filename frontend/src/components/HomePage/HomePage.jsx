@@ -6,6 +6,7 @@ import WriteCallToAction from '../HomeFeed/WriteCallToAction'
 import LastWords from '../HomeFeed/LastWords'
 import MoodOfTheDay from '../HomeFeed/MoodOfTheDay'
 import SpotlightBanner from '../HomeFeed/SpotlightBanner'
+import ContinueReading from '../HomeFeed/ContinueReading'
 import { usePageTitle } from '../../hooks/usePageTitle'
 
 
@@ -30,6 +31,8 @@ function HomePage() {
             <div className='space-y-20 bg-gray-900 px-4 py-14'>
                 {/* Only shows while an admin's spotlight runs. */}
                 <SpotlightBanner />
+                {/* Half-read stories (logged-in members only). */}
+                <ContinueReading />
                 <StorySections />
                 {/* Only shows when an admin planned a mood for today. */}
                 <MoodOfTheDay />

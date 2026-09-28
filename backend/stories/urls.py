@@ -8,6 +8,7 @@ from .views import (
     ToggleLikeView, ToggleSaveView, CommentListView, LastWordListView, AuthorStatsView,
     FeedView, SavedStoriesView, ReadingHistoryView, MyStoriesView, ManageStoryView, SearchView,
     InviteListView, InviteActionView, FearRatingView, ToggleReactionView,
+    ReadingProgressView, ContinueReadingView,
 )
 
 
@@ -31,6 +32,8 @@ urlpatterns = [
 
     # Pages from the user menu (logged in)
     path('stories/saved/', SavedStoriesView.as_view()),        # My Lists
+    path('stories/continue/', ContinueReadingView.as_view()),
+    path('stories/<int:pk>/progress/', ReadingProgressView.as_view()),
     path('stories/history/', ReadingHistoryView.as_view()),    # Reading History
     path('stories/mine/', MyStoriesView.as_view()),            # My Stories
 

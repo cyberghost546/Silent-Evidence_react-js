@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { Eye, BookOpen } from 'lucide-react'
 import { getStory, getStories, mediaUrl } from '../../api/client'
@@ -24,6 +24,7 @@ import ReactionBar from './ReactionBar'
 import { useAuth } from '../../hooks/useAuth'
 import CampfireMode from './CampfireMode'
 import { BetaBanner, BetaFeedbackBox } from './BetaBox'
+import { useReadingProgress } from '../../hooks/useReadingProgress'
 
 
 // The name the reader's text size is saved under in the browser.
@@ -53,6 +54,13 @@ function StoryPage() {
 
     const [story, setStory] = useState(null)
     const [reloadKey, setReloadKey] = useState(0)
+
+    // CONTINUE READING: remember how far down you are (logged in, a
+    // readable published story). Hooks must run on EVERY render -
+    // before the "Loading..." return below - so it's up here.
+    const bodyRef = useRef(null)
+    const trackProgress = Boolean(user && story && !story.lock && !story.is_draft)
+    useReadingProgress(story?.id, bodyRef, trackProgress)
     // Browser tab: the story's title (story is null while loading).
     usePageTitle(story?.title)
     const [notFound, setNotFound] = useState(false)
@@ -279,9 +287,30 @@ function StoryPage() {
                 {story.lock ? (
                     <StoryLock lock={story.lock} onUnlocked={() => setReloadKey(key => key + 1)} />
                 ) : (
-                    <div className='mt-8'>
-                        <StoryBody body={story.body} size={textSize} />
-                    </div>
+                    <>
+                        {/* Came back to a half-read story: offer to jump
+                            to where you were (saved by useReadingProgress). */}
+                        {story.my_progress >= 5 && story.my_progress < 95 && (
+                            <button
+                                type='button'
+                                onClick={() => {
+                                    const box = bodyRef.current.getBoundingClientRect()
+                                    // The spot where you'd seen my_progress % of the
+                                    // story: its top + that much of its height,
+                                    // minus one screen (you saw up to the screen's bottom).
+                                    const target = window.scrollY + box.top + (box.height * story.my_progress) / 100 - window.innerHeight
+                                    window.scrollTo({ top: Math.max(0, target), behavior: 'smooth' })
+                                }}
+                                className='mt-8 w-full rounded-xl border border-red-900/60 bg-red-950/20 px-4 py-3 text-left text-sm text-red-100 hover:bg-red-950/40'
+                            >
+                                📖 Continue where you left off ({story.my_progress}%)
+                            </button>
+                        )}
+                        {/* ref = the box useReadingProgress measures. */}
+                        <div ref={bodyRef} className='mt-8'>
+                            <StoryBody body={story.body} size={textSize} />
+                        </div>
+                    </>
                 )}
 
                 {/* Previous / next part (only for series). */}

@@ -377,6 +377,9 @@ class ReadingHistory(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='reading_history')
     story = models.ForeignKey(Story, on_delete=models.CASCADE, related_name='readers')
     last_read_at = models.DateTimeField(auto_now=True)
+    # CONTINUE READING: how far down the story you got, 0-100 (percent).
+    # The story page saves it while you read (ReadingProgressView).
+    progress = models.PositiveSmallIntegerField(default=0)
 
     class Meta:
         unique_together = ['user', 'story']
