@@ -22,14 +22,33 @@ from . import security
 # FOR MEMBERS
 # ===============================================================
 
-# POST /api/reports/   { story_id OR comment_id, reason, details }
-# The "Report" button on a story or a comment.
+# What can be reported: the field in the request -> the field on Report.
+TARGETS = {
+    'story_id': 'story',
+    'comment_id': 'comment',
+    'chat_message_id': 'chat_message',       # a read-along chat message
+    'reading_list_id': 'reading_list',       # a public reading list
+}
+
+
+def find_target(request, field, value):
+    # You can only report what you can SEE.
+    from stories.models import ReadAlongMessage, ReadingList
+    if field == 'story_id':
+        return get_object_or_404(stories_for(request.user), pk=value)
+    if field == 'comment_id':
+        return get_object_or_404(Comment, pk=value, is_hidden=False)
+    if field == 'chat_message_id':
+        return get_object_or_404(ReadAlongMessage, pk=value, is_hidden=False, room__story__in=stories_for(request.user))
+    return get_object_or_404(ReadingList, pk=value, is_public=True)
+
+
+# POST /api/reports/   { story_id OR comment_id OR chat_message_id OR reading_list_id, reason, details }
+# The "Report" buttons on stories, comments, read-along chats and reading lists.
 class ReportCreateView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        story_id = request.data.get('story_id')
-        comment_id = request.data.get('comment_id')
         reason = request.data.get('reason', '')
         details = (request.data.get('details') or '').strip()
 
@@ -38,15 +57,12 @@ class ReportCreateView(APIView):
         if reason not in dict(Report.REASONS):
             return Response({'detail': 'Pick a reason.'}, status=400)
 
-        # Exactly ONE of the two. (bool(a) == bool(b) = both or neither.)
-        if bool(story_id) == bool(comment_id):
-            return Response({'detail': 'Report either a story or a comment.'}, status=400)
-
-        if story_id:
-            # stories_for(): you can only report what you can see.
-            target = {'story': get_object_or_404(stories_for(request.user), pk=story_id)}
-        else:
-            target = {'comment': get_object_or_404(Comment, pk=comment_id, is_hidden=False)}
+        # Exactly ONE thing is reported.
+        given = [field for field in TARGETS if request.data.get(field)]
+        if len(given) != 1:
+            return Response({'detail': 'Report one thing at a time.'}, status=400)
+        field = given[0]
+        target = {TARGETS[field]: find_target(request, field, request.data.get(field))}
 
         # Reporting the same thing twice while it's still open does nothing.
         if Report.objects.filter(reporter=request.user, status='open', **target).exists():
@@ -101,7 +117,8 @@ def appeal_data(appeal):
 
 
 def report_data(report):
-    # What was reported, in one shape for both kinds.
+    # What was reported, in one shape for every kind.
+    # link = where an admin can see it on the site.
     if report.story_id:
         target = {
             'type': 'story',
@@ -111,8 +128,9 @@ def report_data(report):
             'author': report.story.author.username,
             'removed': report.story.is_archived,
             'story_id': report.story_id,
+            'link': f'/stories/{report.story_id}',
         }
-    else:
+    elif report.comment_id:
         target = {
             'type': 'comment',
             'id': report.comment_id,
@@ -121,6 +139,31 @@ def report_data(report):
             'author': report.comment.author.username,
             'removed': report.comment.is_hidden,
             'story_id': report.comment.story_id,
+            'link': f'/stories/{report.comment.story_id}',
+        }
+    elif report.chat_message_id:
+        message = report.chat_message
+        target = {
+            'type': 'chat',
+            'id': message.id,
+            'title': f'Read-along chat: "{message.room.story.title}"',
+            'text': message.body,
+            'author': message.author.username,
+            'removed': message.is_hidden,
+            'story_id': message.room.story_id,
+            'link': f'/read-alongs/{message.room_id}',
+        }
+    else:
+        reading_list = report.reading_list
+        target = {
+            'type': 'list',
+            'id': reading_list.id,
+            'title': f'Reading list: "{reading_list.title}"',
+            'text': reading_list.description,
+            'author': reading_list.owner.username,
+            'removed': not reading_list.is_public,
+            'story_id': None,
+            'link': f'/reading-lists/{reading_list.id}',
         }
 
     return {
@@ -149,6 +192,7 @@ class AdminReportListView(APIView):
     def get(self, request):
         reports = Report.objects.select_related(
             'reporter', 'handled_by', 'story__author', 'comment__author', 'comment__story',
+            'chat_message__author', 'chat_message__room__story', 'reading_list__owner',
         )
         rows = [report_data(report) for report in reports[:300]]
         counts = {'open': 0, 'resolved': 0, 'dismissed': 0}
@@ -158,7 +202,8 @@ class AdminReportListView(APIView):
 
 
 # POST /api/dashboard/reports/7/  { action: 'remove' | 'dismiss' }
-#   remove  = archive the story / hide the comment, report "resolved"
+#   remove  = archive the story / hide the comment or chat message /
+#             make the reading list private; report "resolved"
 #   dismiss = it's fine, report "dismissed"
 # Every OPEN report about the same thing is closed together - no
 # need to click through five reports about one spam comment.
@@ -170,19 +215,28 @@ class AdminReportActionView(APIView):
         action = request.data.get('action')
 
         if action == 'remove':
+            # "Remove" for each kind: archive the story, hide the comment
+            # or chat message, make the reading list private.
             if report.story_id:
                 report.story.is_archived = True
                 report.story.save()
-            else:
+            elif report.comment_id:
                 report.comment.is_hidden = True
                 report.comment.save()
+            elif report.chat_message_id:
+                report.chat_message.is_hidden = True
+                report.chat_message.save()
+            else:
+                report.reading_list.is_public = False
+                report.reading_list.save()
             new_status = 'resolved'
         elif action == 'dismiss':
             new_status = 'dismissed'
         else:
             return Response({'detail': 'Unknown action.'}, status=400)
 
-        same_target = {'story_id': report.story_id} if report.story_id else {'comment_id': report.comment_id}
+        # The field that's filled in, e.g. {'chat_message_id': 12}.
+        same_target = {f'{name}_id': getattr(report, f'{name}_id') for name in TARGETS.values() if getattr(report, f'{name}_id')}
         Report.objects.filter(status='open', **same_target).update(
             status=new_status, handled_by=request.user, handled_at=timezone.now(),
         )

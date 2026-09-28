@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Flag, CircleCheck, CircleX, MessageSquare, BookOpen } from 'lucide-react'
+import { Flag, CircleCheck, CircleX, MessageSquare, BookOpen, MessagesSquare, ListOrdered } from 'lucide-react'
 import { getAdminReports, actOnReport } from '../../api/client'
 import { AdminFilters, PageMessages } from '../Dashboard/AdminParts'
 
@@ -8,9 +8,11 @@ import { AdminFilters, PageMessages } from '../Dashboard/AdminParts'
 // ---------------------------------------------------------------
 // ADMIN DASHBOARD -> REPORTS (/dashboard/reports). Admins only.
 //
-// Members press "Report" on a story or a comment. Every report
-// lands here. For an open report, the admin either:
-//   Remove it - the story is archived / the comment is hidden
+// Members press "Report" on a story, a comment, a read-along chat
+// message or a public reading list. Every report lands here. For an
+// open report, the admin either:
+//   Remove it - the story is archived / the comment or chat message
+//               is hidden / the reading list is made private
 //               (not deleted: it can be undone on Stories /
 //               Moderation, or through an Appeal)
 //   Dismiss   - it's fine, nothing happens
@@ -30,6 +32,15 @@ const STATUS_STYLES = {
     dismissed: 'border-slate-600 text-gray-400',
 }
 
+// Per kind of report: its icon, the Remove button's words, and the
+// label once it's been removed.
+const KINDS = {
+    story: { icon: BookOpen, remove: 'Archive story', removed: 'ARCHIVED' },
+    comment: { icon: MessageSquare, remove: 'Hide comment', removed: 'HIDDEN' },
+    chat: { icon: MessagesSquare, remove: 'Hide message', removed: 'HIDDEN' },
+    list: { icon: ListOrdered, remove: 'Make list private', removed: 'PRIVATE' },
+}
+
 function shortDate(isoString) {
     return new Date(isoString).toLocaleString(undefined, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
 }
@@ -40,7 +51,8 @@ function shortDate(isoString) {
 // ---------------------------------------------------------------
 function ReportCard({ report, onAction, busy }) {
     const target = report.target
-    const TargetIcon = target.type === 'story' ? BookOpen : MessageSquare
+    const kind = KINDS[target.type] || KINDS.comment
+    const TargetIcon = kind.icon
 
     return (
         <li className='rounded-xl border border-slate-800 bg-slate-900/60 p-5'>
@@ -67,11 +79,11 @@ function ReportCard({ report, onAction, busy }) {
                     {target.type === 'story' && target.removed ? (
                         target.title
                     ) : (
-                        <Link to={`/stories/${target.story_id}`} className='hover:text-red-400'>{target.title}</Link>
+                        <Link to={target.link || `/stories/${target.story_id}`} className='hover:text-red-400'>{target.title}</Link>
                     )}
                     {target.removed && (
                         <span className='rounded bg-amber-900/60 px-1.5 py-0.5 text-[10px] font-semibold text-amber-300'>
-                            {target.type === 'story' ? 'ARCHIVED' : 'HIDDEN'}
+                            {kind.removed}
                         </span>
                     )}
                 </p>
@@ -97,7 +109,7 @@ function ReportCard({ report, onAction, busy }) {
                         className='flex items-center gap-1.5 rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-700 disabled:opacity-50'
                     >
                         <CircleX className='h-4 w-4' />
-                        {target.type === 'story' ? 'Archive story' : 'Hide comment'}
+                        {kind.remove}
                     </button>
                     <button
                         type='button'

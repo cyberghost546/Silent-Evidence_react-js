@@ -100,7 +100,7 @@ class ReadAlongDetailView(APIView):
 
         # The chat: everything, or only what's new since ?after=<id>
         # (the page asks every few seconds - see ReadAlongRoom.jsx).
-        messages = room.messages.select_related('author')
+        messages = room.messages.filter(is_hidden=False).select_related('author')
         after = request.query_params.get('after', '')
         if after.isdigit():
             messages = messages.filter(id__gt=int(after))

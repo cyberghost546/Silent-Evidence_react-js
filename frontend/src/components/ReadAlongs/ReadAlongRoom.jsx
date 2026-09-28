@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { Radio, Send, Skull } from 'lucide-react'
+import { Radio, Send, Skull, Flag } from 'lucide-react'
 import { getReadAlong, joinReadAlong, sendReadAlongMessage } from '../../api/client'
 import { useAuth } from '../../hooks/useAuth'
 import { usePageTitle } from '../../hooks/usePageTitle'
@@ -8,6 +8,7 @@ import { useRequireLogin } from '../../hooks/useRequireLogin'
 import PageLayout, { PageMessage } from '../PageLayout/PageLayout'
 import { whenLabel } from '../../utils/readAlongTime'
 import { INPUT_STYLE } from '../../styles/formStyles'
+import ReportDialog from '../ReportDialog/ReportDialog'
 
 
 // ---------------------------------------------------------------
@@ -30,6 +31,8 @@ function ReadAlongRoom() {
     const [notFound, setNotFound] = useState(false)
     const [text, setText] = useState('')
     const [problem, setProblem] = useState('')
+    // The chat message being reported (its id), or null.
+    const [reporting, setReporting] = useState(null)
     const listRef = useRef(null)
     // The newest message id we have - the next refresh asks for what came after.
     const lastIdRef = useRef(0)
@@ -134,9 +137,15 @@ function ReadAlongRoom() {
                         </p>
                     )}
                     {messages.map(message => (
-                        <p key={message.id} className='text-sm'>
+                        <p key={message.id} className='group text-sm'>
                             <span className={`font-semibold ${message.author === room.host ? 'text-red-300' : 'text-gray-100'}`}>{message.author}</span>
                             <span className='text-gray-300'>: {message.body}</span>
+                            {/* Report someone else's message (Reports in the dashboard). */}
+                            {user && message.author !== user.username && (
+                                <button type='button' onClick={() => setReporting(message.id)} aria-label={`Report message from ${message.author}`} className='ml-2 align-middle text-gray-500 opacity-60 hover:text-red-400 hover:opacity-100'>
+                                    <Flag className='inline h-3 w-3' />
+                                </button>
+                            )}
                         </p>
                     ))}
                 </div>
@@ -150,6 +159,8 @@ function ReadAlongRoom() {
                 )}
                 {problem && <p className='px-4 pb-3 text-sm text-red-400'>{problem}</p>}
             </section>
+
+            {reporting && <ReportDialog target={{ chat_message_id: reporting }} what='message' onClose={() => setReporting(null)} />}
         </PageLayout>
     )
 }

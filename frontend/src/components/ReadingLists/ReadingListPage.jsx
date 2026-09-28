@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { Link as LinkIcon, Check, Lock, Trash2 } from 'lucide-react'
+import { Link as LinkIcon, Check, Lock, Trash2, Flag } from 'lucide-react'
 import { getReadingList, updateReadingList, deleteReadingList, removeFromReadingList } from '../../api/client'
 import { useApi } from '../../hooks/useApi'
 import { usePageTitle } from '../../hooks/usePageTitle'
 import PageLayout, { PageMessage } from '../PageLayout/PageLayout'
 import StoryGridCard from '../StorySections/StoryGridCard'
+import ReportDialog from '../ReportDialog/ReportDialog'
+import { useAuth } from '../../hooks/useAuth'
 
 
 // ---------------------------------------------------------------
@@ -21,6 +23,8 @@ function ReadingListPage() {
     const navigate = useNavigate()
     const { data: list, setData: setList, error } = useApi(() => getReadingList(id), [id])
     const [copied, setCopied] = useState(false)
+    const [reporting, setReporting] = useState(false)
+    const { user } = useAuth()
     usePageTitle(list?.title || 'Reading list')
 
     if (error) {
@@ -80,6 +84,14 @@ function ReadingListPage() {
                     </button>
                 </div>
             )}
+
+            {/* Someone else's public list: report it (spam, hateful title...). */}
+            {user && !list.is_mine && (
+                <button type='button' onClick={() => setReporting(true)} className='-mt-4 mb-6 flex items-center gap-1 text-xs text-gray-400 hover:text-red-400'>
+                    <Flag className='h-3.5 w-3.5' /> Report this list
+                </button>
+            )}
+            {reporting && <ReportDialog target={{ reading_list_id: list.id }} what='reading list' onClose={() => setReporting(false)} />}
 
             {list.stories.length === 0 ? (
                 <PageMessage title='No stories here yet' text={list.is_mine ? 'Open any story, press Actions, then "Add to reading list".' : 'Check back later.'}>

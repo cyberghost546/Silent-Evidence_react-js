@@ -37,9 +37,12 @@ class Report(models.Model):
     # SET_NULL: if the reporter deletes their account, keep the report.
     reporter = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='reports_made')
 
-    # Exactly one of these two is filled in (checked in the view).
+    # Exactly ONE of these is filled in (checked in the view): what
+    # was reported. (TARGETS in moderation/views.py lists them.)
     story = models.ForeignKey(Story, on_delete=models.CASCADE, null=True, blank=True, related_name='reports')
     comment = models.ForeignKey(Comment, on_delete=models.CASCADE, null=True, blank=True, related_name='reports')
+    chat_message = models.ForeignKey('stories.ReadAlongMessage', on_delete=models.CASCADE, null=True, blank=True, related_name='reports')
+    reading_list = models.ForeignKey('stories.ReadingList', on_delete=models.CASCADE, null=True, blank=True, related_name='reports')
 
     reason = models.CharField(max_length=20, choices=REASONS)
     details = models.TextField(max_length=1000, blank=True)
@@ -54,8 +57,7 @@ class Report(models.Model):
         ordering = ['-created_at']
 
     def __str__(self):
-        target = f'story {self.story_id}' if self.story_id else f'comment {self.comment_id}'
-        return f'Report on {target}: {self.reason} ({self.status})'
+        return f'Report #{self.id}: {self.reason} ({self.status})'
 
 
 # ---------------------------------------------------------------

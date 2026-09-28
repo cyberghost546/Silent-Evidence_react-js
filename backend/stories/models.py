@@ -722,6 +722,9 @@ class ReadAlongMessage(models.Model):
     room = models.ForeignKey(ReadAlong, on_delete=models.CASCADE, related_name='messages')
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='read_along_messages')
     body = models.CharField(max_length=500)
+    # Hidden by an admin after a report (moderation/views.py) - it
+    # disappears from the room, but the report can still show it.
+    is_hidden = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
