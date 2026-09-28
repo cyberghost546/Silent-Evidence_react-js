@@ -25,9 +25,9 @@ vi.mock('../../api/client', () => ({
     createSeries: vi.fn(),
 }))
 
-function renderWritePage() {
+function renderWritePage(path = '/write') {
     render(
-        <MemoryRouter initialEntries={['/write']}>
+        <MemoryRouter initialEntries={[path]}>
             <Routes>
                 <Route path='/write' element={<WriteStory />} />
                 <Route path='/stories/:id' element={<p>The story page</p>} />
@@ -44,6 +44,19 @@ describe('Write a Story', () => {
         localStorage.clear()
         getCategories.mockResolvedValue([{ id: 3, name: 'Haunted Houses', slug: 'haunted-houses' }])
         createStory.mockReset()
+    })
+
+    it('text shared from another app lands in the story (Share menu)', async () => {
+        renderWritePage('/write?title=The%20Knock&text=It%20started%20at%203am.&url=https%3A%2F%2Fexample.com%2Fnote')
+        expect(screen.getByLabelText(/^Title/)).toHaveValue('The Knock')
+        expect(document.getElementById('body').value).toBe('It started at 3am.\n\nhttps://example.com/note')
+    })
+
+    it('shared text is added AFTER a draft you already had', async () => {
+        localStorage.setItem('writeStoryDraft:raven', JSON.stringify({ title: 'Mine', body: 'My draft.' }))
+        renderWritePage('/write?text=More%20ideas')
+        expect(screen.getByLabelText(/^Title/)).toHaveValue('Mine')
+        expect(document.getElementById('body').value).toBe('My draft.\n\nMore ideas')
     })
 
     it('lists what is missing instead of sending an empty story', async () => {

@@ -31,7 +31,8 @@ function ProtectedRoute({ children, adminOnly = false }) {
         // Log In page can send you back here afterwards.
         // replace = don't add /dashboard to the back-button history,
         // or pressing Back would just bounce you to /login again.
-        return <Navigate to='/login' replace state={{ from: location.pathname }} />
+        // pathname + search: keep ?text=... (shared from another app) through the log-in.
+        return <Navigate to='/login' replace state={{ from: location.pathname + location.search }} />
     }
 
     if (adminOnly && !user.is_staff) {

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { Sparkles, ChevronDown, ImagePlus, Crown } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { getCategories, createStory } from '../../api/client'
@@ -132,7 +132,19 @@ function WriteStory() {
     // form of useState). { ...EMPTY_FORM, ...draft } = start from the
     // empty form, then copy the saved values over the top - so a
     // draft saved before we added a new field still works.
-    const [form, setForm] = useState(() => ({ ...EMPTY_FORM, ...loadDraft(draftKey) }))
+    //
+    // SHARED FROM ANOTHER APP (Android's Share menu -> Silent Evidence,
+    // "share_target" in public/manifest.webmanifest): the shared words
+    // arrive as /write?title=...&text=...&url=... and go into the story
+    // - added at the END of a draft you already had, never replacing it.
+    const [shared] = useSearchParams()
+    const [form, setForm] = useState(() => {
+        const start = { ...EMPTY_FORM, ...loadDraft(draftKey) }
+        const sharedText = [shared.get('text'), shared.get('url')].filter(Boolean).join('\n\n').trim()
+        if (sharedText) start.body = start.body ? `${start.body}\n\n${sharedText}` : sharedText
+        if (shared.get('title') && !start.title) start.title = shared.get('title').slice(0, 200)
+        return start
+    })
 
     // Show the yellow "Draft restored" bar? Only if the draft had
     // something in it.
