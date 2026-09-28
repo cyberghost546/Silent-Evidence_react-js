@@ -106,12 +106,13 @@ sends it along (plus the CSRF token), and `AuthContext.jsx` keeps
 | App | What's in it |
 | --- | --- |
 | `accounts` | Sign up / log in, profiles, settings, follows, blocks, leaderboard |
-| `stories` | Stories, likes, saves, comments, reading history, co-author invites, search, feed |
+| `stories` | Stories, likes, saves, comments (with replies), reading history + progress, co-author invites, search, feed, series, fear meter, reactions, story chains, beta readers |
 | `messaging` | Private messages |
 | `moderation` | Reports, appeals, login logs + lock-out, content filter, verification, warnings & bans, AI toxicity checks |
 | `sitecontent` | Announcement banner, writing prompts, challenges, bundles, featured authors, spotlight, polls |
 | `support` | Help tickets (member <-> admin conversations) |
 | `mailings` | Newsletter, comment digest (`python manage.py send_comment_digests weekly`), the email log and the email templates (`render_email()` in `email_templates.py`) |
+| `forums` | Forum boards, threads and replies |
 | `categories` | Story categories |
 | `slides` | The homepage slideshow |
 | `dashboard` | Admin dashboard numbers, site settings + rate limits (`SiteSettings.load()`), IP blocklist, audit log (both in `middleware.py`), SEO (`/sitemap.xml`, `/robots.txt`), heatmap |
@@ -166,6 +167,11 @@ rules are in `backend/accounts/age.py`; the lock screen is
 | `/dashboard/errors` | `ErrorLogDashboard/` - crashes from `ErrorBoundary` (React) and `ErrorLogMiddleware` (Django) | admins |
 | `/challenges`, `/bundles` | `ChallengesPage/`, `BundlesPage/` | |
 | `/support` | `SupportPage/` | yes |
+| `/forums`, `/forums/:slug`, `/forums/:slug/:id` | `Forums/` (boards made by a migration) | reading: no, posting: yes |
+| `/chains`, `/chains/:id` | `Chains/` - stories written together in turns | reading: no, writing: yes |
+| `/videos` | `VideosPage/` (admins add them at `/dashboard/videos`) | |
+| `/explore/latest`, `/popular`, `/timeline` | `ExplorePage/` | |
+| `/series/:id` | `SeriesPage/` | |
 
 All routes live in `frontend/src/App.jsx`.
 
