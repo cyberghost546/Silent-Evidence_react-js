@@ -93,6 +93,23 @@ TEMPLATES = {
         'body': '---\nYou get this because "Weekly Horror Digest" is on. Switch it off: {settings_link}',
         'sample': {'settings_link': 'http://localhost:5173/settings'},
     },
+    'weekly_top': {
+        'name': 'Top of the week',
+        'description': 'Sent every Monday (python manage.py send_weekly_top) to members with "Weekly Horror Digest" on.',
+        'subject': 'This week on Silent Evidence',
+        'body': (
+            'The most-read stories this week:\n{top_stories}\n\n'
+            'Villain of the Week: {villain}\n\n'
+            'Top sprinters:\n{sprinters}\n\n'
+            '---\nYou get this because "Weekly Horror Digest" is on. Switch it off: {settings_link}'
+        ),
+        'sample': {
+            'top_stories': '1. "The House on Wren Street" by the_keeper - http://localhost:5173/stories/12\n2. "Static" by raven - http://localhost:5173/stories/9',
+            'villain': "The Tall Man (14 votes). Vote for this week's: http://localhost:5173/villains",
+            'sprinters': 'moth - 2400 words\nraven - 1800 words',
+            'settings_link': 'http://localhost:5173/settings',
+        },
+    },
 }
 
 

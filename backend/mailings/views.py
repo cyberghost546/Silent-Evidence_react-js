@@ -8,6 +8,7 @@ from rest_framework.views import APIView
 from .digests import digest_recipients, build_digest, send_digests
 from .email_templates import render_email
 from .models import Newsletter, DigestRun
+from .weekly_top import build_weekly_top, send_weekly_top
 
 
 # ---------------------------------------------------------------
@@ -123,3 +124,24 @@ class CommentDigestView(APIView):
             return Response({'detail': 'Unknown period.'}, status=400)
         run = send_digests(period, started_by=request.user)
         return Response({'detail': f'Sent {run.emails_sent} {period} digest emails.'})
+
+
+# GET  /api/dashboard/weekly-top/  -> the email as it would go out now
+#                                     ({ subject, body } or { empty: true })
+# POST /api/dashboard/weekly-top/  -> send it now (instead of waiting
+#                                     for Monday's scheduled run)
+class WeeklyTopView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        email = build_weekly_top()
+        if email is None:
+            return Response({'empty': True})
+        subject, body = email
+        return Response({'subject': subject, 'body': body, 'recipient_count': newsletter_recipients().count()})
+
+    def post(self, request):
+        count = send_weekly_top(sent_by=request.user)
+        if not count:
+            return Response({'detail': 'Nothing to send - no stories were read this week.'}, status=400)
+        return Response({'detail': f'Sent to {count} members.'}, status=201)

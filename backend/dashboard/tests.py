@@ -18,6 +18,7 @@ PASSWORD = 'Str0ng-pass-123'
 DASHBOARD_URLS = [
     '/api/dashboard/videos/',
     '/api/dashboard/true-stories/',
+    '/api/dashboard/weekly-top/',
     '/api/dashboard/errors/',
     '/api/dashboard/login-map/',
     '/api/dashboard/analytics/',

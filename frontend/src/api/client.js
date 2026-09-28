@@ -814,6 +814,15 @@ export function sendNewsletter(subject, body, testOnly) {
     return authRequest('/api/dashboard/newsletter/', 'POST', { subject, body, test_only: testOnly })
 }
 
+// "Top of the week": preview it ({ subject, body, recipient_count } or { empty: true }) / send it now.
+export function getWeeklyTop() {
+    return authRequest('/api/dashboard/weekly-top/')
+}
+
+export function sendWeeklyTop() {
+    return authRequest('/api/dashboard/weekly-top/', 'POST')
+}
+
 // period = 'daily' or 'weekly'
 // { subscribers, would_send, recipients, preview, history }
 export function getDigestPreview(period) {

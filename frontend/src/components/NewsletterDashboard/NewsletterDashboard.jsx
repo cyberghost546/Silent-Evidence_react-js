@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Newspaper, Send, FlaskConical } from 'lucide-react'
 import { getNewsletters, sendNewsletter } from '../../api/client'
 import { PageMessages } from '../Dashboard/AdminParts'
+import WeeklyTopPanel from './WeeklyTopPanel'
 import { INPUT_STYLE, LABEL_STYLE, BUTTON_STYLE } from '../../styles/formStyles'
 
 
@@ -98,6 +99,10 @@ function NewsletterDashboard() {
                     </button>
                 </div>
             </form>
+
+            {/* The automatic Monday email - preview + send early.
+                After sending, reload the "Sent before" list below. */}
+            <WeeklyTopPanel onSent={() => setReloadKey(key => key + 1)} />
 
             <h2 className='mt-10 font-semibold text-white'>Sent before</h2>
             <ul className='mt-3 space-y-2'>

@@ -138,6 +138,20 @@ your local test data to the live site with it.
   server as the site doesn't help if that server is lost.
 - **Restoring** is safest on a fresh database: `migrate`, then `restore_site`.
 
+## 7. Weekly emails (optional)
+
+Two more Render **Cron Jobs**, set up the same way as the nightly backup
+(same repo, Root Directory `backend`, same environment variables):
+
+| Name | Schedule | Command |
+| --- | --- | --- |
+| Top of the week | `0 8 * * 1` (08:00 every Monday) | `python manage.py send_weekly_top` |
+| Comment digest | `0 9 * * 1` (09:00 every Monday) | `python manage.py send_comment_digests weekly` |
+
+Both only email members who switched the digest on in Settings, and
+"Top of the week" skips quiet weeks. You can preview it any time in
+Dashboard → Newsletter. Real emails need step 4 first.
+
 ## If something goes wrong
 
 | What you see | Likely cause |
