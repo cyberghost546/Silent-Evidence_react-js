@@ -6,6 +6,7 @@ from .series_views import MySeriesView, SeriesDetailView
 from .sprint_views import SprintView
 from .trend_views import AuthorTrendsView
 from .edit_views import StoryEditView, StoryVersionsView, RestoreVersionView
+from .feedback_views import StoryFeedbackView
 from .recommend_views import RecommendedStoriesView
 from .map_views import StoryMapView
 from .readalong_views import ReadAlongListView, ReadAlongDetailView, JoinReadAlongView, ReadAlongMessageView
@@ -62,6 +63,7 @@ urlpatterns = [
     path('stories/<int:pk>/save/', ToggleSaveView.as_view()),
     path('stories/<int:pk>/comments/', CommentListView.as_view()),
     path('stories/<int:pk>/edit/', StoryEditView.as_view()),                                  # edit YOUR story
+    path('stories/<int:pk>/feedback/', StoryFeedbackView.as_view()),                          # private feedback from Claude
     path('stories/<int:pk>/versions/', StoryVersionsView.as_view()),                          # its history
     path('stories/<int:pk>/versions/<int:version_id>/restore/', RestoreVersionView.as_view()),
     path('stories/<int:pk>/manage/', ManageStoryView.as_view()),   # publish / delete YOUR story

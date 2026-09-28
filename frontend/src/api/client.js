@@ -1492,6 +1492,16 @@ export function saveStoryEdit(id, data) {
     return authRequest(`/api/stories/${id}/edit/`, 'PATCH', data)
 }
 
+// Private feedback from Claude on your own story.
+// -> { configured, remaining_today (null = no limit), history: [{ id, created_at, feedback }] }
+export function getStoryFeedback(id) {
+    return authRequest(`/api/stories/${id}/feedback/`)
+}
+
+export function askStoryFeedback(id) {
+    return authRequest(`/api/stories/${id}/feedback/`, 'POST')
+}
+
 export function getStoryVersions(id) {
     return authRequest(`/api/stories/${id}/versions/`)
 }

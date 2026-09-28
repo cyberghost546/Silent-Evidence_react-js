@@ -726,3 +726,18 @@ class ReadAlongMessage(models.Model):
 
     class Meta:
         ordering = ['created_at']
+
+
+# ---------------------------------------------------------------
+# PRIVATE FEEDBACK FROM CLAUDE on your own story (the Edit page).
+# Kept, so you can read it again - and so we can count the daily
+# limit (each request costs a little money). stories/feedback_views.py
+# ---------------------------------------------------------------
+class WritingFeedback(models.Model):
+    story = models.ForeignKey(Story, on_delete=models.CASCADE, related_name='ai_feedback')
+    requested_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='ai_feedback')
+    feedback = models.JSONField()   # { overall, strengths: [...], suggestions: [{ area, note }], scares }
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']

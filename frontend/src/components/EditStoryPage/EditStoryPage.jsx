@@ -7,6 +7,7 @@ import { usePageTitle } from '../../hooks/usePageTitle'
 import { formatLongDate, timeAgo } from '../../utils/format'
 import PageLayout, { PageMessage } from '../PageLayout/PageLayout'
 import StoryEditor from '../WriteStory/StoryEditor'
+import FeedbackPanel from './FeedbackPanel'
 import { INPUT_STYLE, LABEL_STYLE, BUTTON_STYLE } from '../../styles/formStyles'
 
 
@@ -97,7 +98,11 @@ function EditStoryPage() {
     return (
         <PageLayout title='Edit story' subtitle={story.title}>
             <div className='grid grid-cols-1 gap-8 lg:grid-cols-[1fr_20rem]'>
-                <EditForm key={editKey} story={story} onSaved={reloadVersions} />
+                <div>
+                    <EditForm key={editKey} story={story} onSaved={reloadVersions} />
+                    {/* An AI editor's notes on the saved story (FeedbackPanel.jsx). */}
+                    <FeedbackPanel storyId={story.id} />
+                </div>
 
                 {/* ---------- VERSION HISTORY ---------- */}
                 <aside>
