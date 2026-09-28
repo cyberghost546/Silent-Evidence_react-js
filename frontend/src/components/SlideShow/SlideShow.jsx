@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { getSlides, mediaUrl } from '../../api/client'
+import { useAuth } from '../../hooks/useAuth'
 
 
 // Shared look for the "Loading / error / no slides" boxes, so all
@@ -27,6 +28,7 @@ function SlideShow({ interval = 5000 }) {
     // Before, "no slides" and "still loading" looked the same - an
     // empty array - so an empty database showed "Loading..." forever.
     // Two extra pieces of state let us tell the cases apart.
+    const { user } = useAuth()
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
 
@@ -89,6 +91,10 @@ function SlideShow({ interval = 5000 }) {
     }
 
     if (slides.length === 0) {
+        // Visitors and members: no slides = no slideshow at all (a
+        // big grey box saying "add one in the dashboard" means
+        // nothing to them). Only admins get the reminder.
+        if (!user?.is_staff) return null
         return (
             <div className={MESSAGE_BOX}>
                 <p>No slides yet.</p>

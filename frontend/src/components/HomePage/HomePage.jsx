@@ -6,6 +6,7 @@ import WriteCallToAction from '../HomeFeed/WriteCallToAction'
 import LastWords from '../HomeFeed/LastWords'
 import MoodOfTheDay from '../HomeFeed/MoodOfTheDay'
 import SpotlightBanner from '../HomeFeed/SpotlightBanner'
+import SeasonalTakeover from '../HomeFeed/SeasonalTakeover'
 import ContinueReading from '../HomeFeed/ContinueReading'
 import { usePageTitle } from '../../hooks/usePageTitle'
 
@@ -34,6 +35,9 @@ function HomePage() {
             {/* One dark band behind all the sections.
                 space-y-20 = the same gap between every section. */}
             <div className='space-y-20 bg-gray-900 px-4 py-14'>
+                {/* Only shows around Halloween, Friday the 13th...
+                    (utils/horrorDays.js). Preview: /?season=halloween */}
+                <SeasonalTakeover />
                 {/* Only shows while an admin's spotlight runs. */}
                 <SpotlightBanner />
                 {/* Half-read stories (logged-in members only). */}

@@ -77,6 +77,12 @@ class StoryListView(generics.ListAPIView):
         if mood:
             stories = stories.filter(mood=mood)
 
+        # ?tag=halloween - stories with that tag (the homepage's
+        # seasonal banner uses it). Tags are stored in lower case.
+        tag = self.request.query_params.get('tag')
+        if tag:
+            stories = stories.filter(tags__name=tag.strip().lower())
+
         # The minus sign = descending (biggest / newest first).
         # Anything we don't recognise (or nothing at all) = newest.
         sort = self.request.query_params.get('sort')

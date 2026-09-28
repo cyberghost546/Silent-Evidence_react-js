@@ -200,3 +200,15 @@ class InviteTests(TestCase):
         other_story = make_story(self.friend)
         response = self.client.post('/api/invites/', {'story_id': other_story.id, 'username': 'friend'})
         self.assertEqual(response.status_code, 404)
+
+
+class TagFilterTests(TestCase):
+    def test_list_stories_with_one_tag(self):
+        from .models import Tag
+        writer = make_user('lanternkeeper')
+        spooky = make_story(writer, title='Pumpkin Night')
+        make_story(writer, title='Summer camp')
+        spooky.tags.add(Tag.objects.create(name='Halloween'))   # saved as "halloween"
+
+        titles = [s['title'] for s in self.client.get('/api/stories/?tag=HALLOWEEN').json()]
+        self.assertEqual(titles, ['Pumpkin Night'])
