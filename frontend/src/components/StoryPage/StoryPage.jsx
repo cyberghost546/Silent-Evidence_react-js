@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom'
 import { Eye, BookOpen } from 'lucide-react'
 import { getStory, getStories, mediaUrl } from '../../api/client'
 import { pluralize, formatLongDate, splitParagraphs } from '../../utils/format'
-import { stripFormatting } from '../../utils/storyFormat'
+import { stripFormatting, countScares } from '../../utils/storyFormat'
 import Breadcrumbs from '../Breadcrumbs/Breadcrumbs'
 import SectionHeading from '../StorySections/SectionHeading'
 import StoryCard from '../StorySections/StoryCard'
@@ -23,6 +23,8 @@ import FearMeter from './FearMeter'
 import ReactionBar from './ReactionBar'
 import { useAuth } from '../../hooks/useAuth'
 import CampfireMode from './CampfireMode'
+import JumpScareNotice from './JumpScareNotice'
+import { useScareWarnings } from '../../hooks/useScareWarnings'
 import { BetaBanner, BetaFeedbackBox } from './BetaBox'
 import { useReadingProgress } from '../../hooks/useReadingProgress'
 
@@ -68,6 +70,9 @@ function StoryPage() {
 
     // Focus mode on/off.
     const [focus, setFocus] = useState(false)
+
+    // Warn before jump scares? (the reader's choice, JumpScareNotice.jsx)
+    const [scareWarnings, setScareWarnings] = useScareWarnings()
 
     // Text size, remembered between visits (same trick as the
     // grid/list choice on CategoryPage).
@@ -274,6 +279,8 @@ function StoryPage() {
                             textSize={textSize}
                             onTextSizeChange={setTextSize}
                         />
+                        {/* Only when the writer marked jump scares. */}
+                        <JumpScareNotice count={countScares(story.body)} warn={scareWarnings} onChange={setScareWarnings} />
                         {/* Background sound while reading (CampfireMode.jsx). */}
                         <div className='mt-3'>
                             <CampfireMode />
@@ -308,7 +315,7 @@ function StoryPage() {
                         )}
                         {/* ref = the box useReadingProgress measures. */}
                         <div ref={bodyRef} className='mt-8'>
-                            <StoryBody body={story.body} size={textSize} />
+                            <StoryBody body={story.body} size={textSize} showScares={scareWarnings} />
                         </div>
                     </>
                 )}
@@ -402,6 +409,7 @@ function StoryPage() {
                     title={story.title}
                     body={story.body}
                     textSize={textSize}
+                    showScares={scareWarnings}
                     onClose={() => setFocus(false)}
                 />
             )}

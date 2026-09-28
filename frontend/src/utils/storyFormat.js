@@ -8,6 +8,7 @@
 //   ## Heading    ### Small heading
 //   - list item   1. numbered item
 //   > quote       ---  (a divider line)
+//   !!scare       (a jump scare comes next - see JUMP_SCARE_MARK)
 //
 // parseStory() turns that text into a list of "blocks" that
 // StoryBody.jsx draws. We NEVER turn the text into HTML - anyone can
@@ -17,12 +18,27 @@
 // ---------------------------------------------------------------
 
 
+// ---------------------------------------------------------------
+// JUMP SCARES: a writer puts this on its own line right before the
+// scary moment (the "Jump scare" button on the Write page does it).
+// Readers who asked for warnings see a small warning there; for
+// everyone else it's invisible. It's never read out loud.
+// ---------------------------------------------------------------
+export const JUMP_SCARE_MARK = '!!scare'
+
+// How many jump-scare marks a story has.
+export function countScares(text) {
+    return text.split('\n').filter(line => line.trim().toLowerCase() === JUMP_SCARE_MARK).length
+}
+
+
 // Turns the story text into blocks like:
 //   { type: 'paragraph', text: 'It was dark...' }
 //   { type: 'h2', text: 'Chapter One' }
 //   { type: 'list', ordered: false, items: ['one', 'two'] }
 //   { type: 'quote', text: '...' }
 //   { type: 'hr' }
+//   { type: 'scare' }
 export function parseStory(text) {
     const blocks = []
     const lines = text.split('\n')
@@ -63,6 +79,13 @@ export function parseStory(text) {
         if (line === '---') {
             finish()
             blocks.push({ type: 'hr' })
+            continue
+        }
+
+        // A jump-scare mark on its own line (see JUMP_SCARE_MARK).
+        if (line.toLowerCase() === JUMP_SCARE_MARK) {
+            finish()
+            blocks.push({ type: 'scare' })
             continue
         }
 
@@ -150,6 +173,7 @@ export function stripFormatting(text) {
         .replace(/^> /gm, '')           // quotes
         .replace(/^- /gm, '')           // bullet lists
         .replace(/^---$/gm, '')         // divider lines
+        .replace(/^\s*!!scare\s*$/gim, '') // jump-scare marks
         .replace(/\*\*|__|\*/g, '')     // bold, underline, italic
 }
 
@@ -158,7 +182,8 @@ export function stripFormatting(text) {
 // splits on any run of spaces, tabs or new lines. An empty box
 // would give [''] (1 "word"), so that case returns 0 by hand.
 export function countWords(text) {
-    const trimmed = text.trim()
+    // Jump-scare marks aren't words the reader sees - leave them out.
+    const trimmed = text.replace(/^\s*!!scare\s*$/gim, '').trim()
     if (trimmed === '') return 0
     return trimmed.split(/\s+/).length
 }

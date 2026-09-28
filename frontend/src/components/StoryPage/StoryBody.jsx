@@ -1,3 +1,4 @@
+import { TriangleAlert } from 'lucide-react'
 import { parseStory, parseInline } from '../../utils/storyFormat'
 
 
@@ -32,8 +33,13 @@ function InlineText({ text }) {
 //
 // Usage:
 //   <StoryBody body={story.body} size='large' />
+//   <StoryBody body={story.body} showScares />   -> jump-scare warnings on
+//
+// showScares: the reader asked to be warned before jump scares
+// (StoryPage), or it's the writer's own Preview. Otherwise the
+// !!scare marks are simply not drawn.
 // ---------------------------------------------------------------
-function StoryBody({ body, size = 'normal' }) {
+function StoryBody({ body, size = 'normal', showScares = false }) {
     // Text -> blocks (paragraphs, headings, lists...). See
     // utils/storyFormat.js for the rules.
     const blocks = parseStory(body)
@@ -53,6 +59,16 @@ function StoryBody({ body, size = 'normal' }) {
 
                 if (block.type === 'h3') {
                     return <h3 key={index} className='text-xl font-bold text-white'><InlineText text={block.text} /></h3>
+                }
+
+                if (block.type === 'scare') {
+                    if (!showScares) return null
+                    return (
+                        <p key={index} role='note' className='flex items-center gap-2 text-sm font-semibold text-amber-300'>
+                            <TriangleAlert className='h-4 w-4' />
+                            Jump scare ahead
+                        </p>
+                    )
                 }
 
                 if (block.type === 'hr') {

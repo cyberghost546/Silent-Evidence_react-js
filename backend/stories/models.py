@@ -179,7 +179,9 @@ class Story(models.Model):
     # results to React like any other field.
     def word_count(self):
         # .split() cuts the text at spaces -> a list of words.
-        return len(self.body.split())
+        # "!!scare" (a jump-scare mark, see utils/storyFormat.js in
+        # React) isn't a word the reader sees, so it doesn't count.
+        return len([word for word in self.body.split() if word.lower() != '!!scare'])
 
     # wpm = "words per minute". The average reader does about 238.
     # The serializer passes a different number for people who picked

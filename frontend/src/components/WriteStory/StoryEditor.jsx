@@ -135,6 +135,9 @@ function StoryEditor({ value, onChange, id }) {
                 <Divider />
                 <ToolbarButton label='“ Quote' title='Quote' onClick={() => addToLineStart('> ')} disabled={preview} />
                 <ToolbarButton label='— HR' title='Divider line' onClick={() => insertText('\n\n---\n\n')} disabled={preview} />
+                {/* Marks where a jump scare happens - readers can ask to
+                    be warned (utils/storyFormat.js, JUMP_SCARE_MARK). */}
+                <ToolbarButton label='⚠ Scare' title='Jump scare' onClick={() => insertText('\n\n!!scare\n\n')} disabled={preview} />
 
                 <Divider />
                 <ToolbarButton label={<Undo2 className='h-4 w-4' />} title='Undo' onClick={undo} disabled={preview} />
@@ -161,7 +164,7 @@ function StoryEditor({ value, onChange, id }) {
                     {value.trim() === '' ? (
                         <p className='text-gray-500'>Nothing to preview yet.</p>
                     ) : (
-                        <StoryBody body={value} size='normal' />
+                        <StoryBody body={value} size='normal' showScares />
                     )}
                 </div>
             ) : (
