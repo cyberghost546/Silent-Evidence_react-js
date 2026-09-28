@@ -7,18 +7,6 @@ import SignUp from './components/SignUp/SignUp'
 import ForgotPassword from './components/ForgotPassword/ForgotPassword'
 import ResetPassword from './components/ResetPassword/ResetPassword'
 import VerifyEmail from './components/VerifyEmail/VerifyEmail'
-import SeriesPage from './components/SeriesPage/SeriesPage'
-import ForumsPage from './components/Forums/ForumsPage'
-import VideosPage from './components/VideosPage/VideosPage'
-import VillainsPage from './components/VillainsPage/VillainsPage'
-import SprintsPage from './components/SprintsPage/SprintsPage'
-import TrueStoriesPage from './components/TrueStories/TrueStoriesPage'
-import TrueStorySubmitPage from './components/TrueStories/TrueStorySubmitPage'
-import ChainsPage from './components/Chains/ChainsPage'
-import ExplorePage from './components/ExplorePage/ExplorePage'
-import ChainPage from './components/Chains/ChainPage'
-import BoardPage from './components/Forums/BoardPage'
-import ThreadPage from './components/Forums/ThreadPage'
 import CategoryPage from './components/CategoryPage/CategoryPage'
 import StoryPage from './components/StoryPage/StoryPage'
 import RandomStory from './components/RandomStory/RandomStory'
@@ -26,15 +14,9 @@ import NotFound from './components/NotFound/NotFound'
 import ProtectedRoute from './auth/ProtectedRoute'
 import MaintenanceGate from './components/MaintenanceGate/MaintenanceGate'
 import ErrorBoundary from './components/ErrorBoundary/ErrorBoundary'
-import ContactPage from './components/ContactPage/ContactPage'
 import ProfilePage from './components/ProfilePage/ProfilePage'
 import DashboardLayout from './components/Dashboard/DashboardLayout'
-import ChallengesPage from './components/ChallengesPage/ChallengesPage'
-import BundlesPage from './components/BundlesPage/BundlesPage'
-import LeaderboardPage from './components/LeaderboardPage/LeaderboardPage'
-import SearchPage from './components/SearchPage/SearchPage'
 import InfoPage from './components/InfoPage/InfoPage'
-import SiteGuide from './components/SiteGuide/SiteGuide'
 import WatcherRoute from './components/SiteGuide/WatcherRoute'
 import './App.css'
 
@@ -49,6 +31,29 @@ import './App.css'
 //
 // To add an admin page: add a lazy line here (not a normal import).
 // ---------------------------------------------------------------
+
+// Public pages most visitors don't open on their first visit - same
+// idea, so the first download stays small. The pages people LAND on
+// (home, a story, a category, a profile) stay normal imports, so
+// they show up without a "Loading..." in between.
+const SeriesPage = lazy(() => import('./components/SeriesPage/SeriesPage'))
+const ForumsPage = lazy(() => import('./components/Forums/ForumsPage'))
+const VideosPage = lazy(() => import('./components/VideosPage/VideosPage'))
+const VillainsPage = lazy(() => import('./components/VillainsPage/VillainsPage'))
+const SprintsPage = lazy(() => import('./components/SprintsPage/SprintsPage'))
+const TrueStoriesPage = lazy(() => import('./components/TrueStories/TrueStoriesPage'))
+const TrueStorySubmitPage = lazy(() => import('./components/TrueStories/TrueStorySubmitPage'))
+const ChainsPage = lazy(() => import('./components/Chains/ChainsPage'))
+const ExplorePage = lazy(() => import('./components/ExplorePage/ExplorePage'))
+const ChainPage = lazy(() => import('./components/Chains/ChainPage'))
+const BoardPage = lazy(() => import('./components/Forums/BoardPage'))
+const ThreadPage = lazy(() => import('./components/Forums/ThreadPage'))
+const ContactPage = lazy(() => import('./components/ContactPage/ContactPage'))
+const ChallengesPage = lazy(() => import('./components/ChallengesPage/ChallengesPage'))
+const BundlesPage = lazy(() => import('./components/BundlesPage/BundlesPage'))
+const LeaderboardPage = lazy(() => import('./components/LeaderboardPage/LeaderboardPage'))
+const SearchPage = lazy(() => import('./components/SearchPage/SearchPage'))
+const SiteGuide = lazy(() => import('./components/SiteGuide/SiteGuide'))
 
 // Pages only logged-in members use - same idea (Suspense in SiteLayout).
 const WriteStory = lazy(() => import('./components/WriteStory/WriteStory'))

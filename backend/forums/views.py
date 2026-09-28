@@ -5,7 +5,7 @@ from rest_framework.permissions import IsAdminUser, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from accounts.models import Block, get_profile
+from accounts.models import Block, get_profile, loaded_profile
 from accounts.notifications import notify, short_title
 from dashboard.limits import hourly_limit_reached
 from dashboard.models import SiteSettings
@@ -29,7 +29,9 @@ from .models import Board, Thread, Post
 # ---------------------------------------------------------------
 
 def avatar_of(user):
-    profile = get_profile(user)
+    # loaded_profile: the views below load profiles WITH the authors
+    # (select_related('author__profile')) - no query per reply.
+    profile = loaded_profile(user)
     return profile.avatar.url if profile.avatar else ''
 
 
@@ -139,8 +141,10 @@ class ThreadView(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get(self, request, pk):
-        thread = get_object_or_404(Thread.objects.select_related('board', 'author'), pk=pk)
-        posts = thread.posts.select_related('author').exclude(author_id__in=blocked_ids_for(request.user))
+        # 'author__profile': load each author's profile in the SAME
+        # query, so avatar_of() doesn't ask the database once per reply.
+        thread = get_object_or_404(Thread.objects.select_related('board', 'author__profile'), pk=pk)
+        posts = thread.posts.select_related('author__profile').exclude(author_id__in=blocked_ids_for(request.user))
         # Admins also see hidden posts (greyed out), so they can undo.
         if not request.user.is_staff:
             posts = posts.filter(is_hidden=False)

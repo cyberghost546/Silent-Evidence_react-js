@@ -10,8 +10,8 @@ from rest_framework.views import APIView
 
 # One app is allowed to import another app's models - that's how
 # the dashboard can count slides and categories.
-from accounts.age import user_age
-from accounts.models import get_profile
+from accounts.age import age_on
+from accounts.models import get_profile, loaded_profile
 from categories.models import Category
 from slides.models import Slide
 from stories.models import Story
@@ -89,7 +89,9 @@ class DashboardStatsView(APIView):
 # role: 'admin' if they're staff (Django's own flag), otherwise the
 # role saved on their profile ('user' or 'author').
 def admin_user_data(user):
-    profile = get_profile(user)
+    # users_with_counts() loads the profiles with select_related, so
+    # loaded_profile() needs no extra query per user.
+    profile = loaded_profile(user)
     return {
         'id': user.id,
         'username': user.username,
@@ -99,7 +101,7 @@ def admin_user_data(user):
         'is_verified': profile.is_verified,
         'is_premium': profile.is_premium,
         # Confirmed age for 18+ stories (None = not confirmed yet).
-        'age': user_age(user),
+        'age': age_on(profile.birth_date) if profile.birth_date else None,
         'story_count': user.story_count,
         'comment_count': user.comment_count,
         'date_joined': user.date_joined,

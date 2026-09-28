@@ -140,6 +140,23 @@ def get_profile(user):
     return profile
 
 
+# For LISTS only (forum replies, the admin Users table): the view
+# already loaded every profile together with its user, using
+# .select_related('profile') or ('author__profile'). Use that copy -
+# no extra query per row. (get_profile() would ask the database
+# again for every single row: the "N+1 problem".)
+#
+# Why not make get_profile() do this everywhere? Because then a view
+# that changes a profile and reads it again could get the OLD copy.
+# In a list that only READS, the loaded copy is always right.
+def loaded_profile(user):
+    try:
+        return user.profile
+    except Profile.DoesNotExist:
+        # A user who never had a profile row yet (older accounts).
+        return get_profile(user)
+
+
 # ---------------------------------------------------------------
 # BLOCK - "this user blocked that user". Same shape as Follow above.
 #   user.blocking.all()  -> the Block rows where I blocked someone
