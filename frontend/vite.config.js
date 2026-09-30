@@ -27,5 +27,8 @@ export default defineConfig({
     // Typing into forms is simulated key by key; when all test files
     // run at once that can take longer than the default 5 seconds.
     testTimeout: 15000,
+    // Only our component tests. The browser tests in e2e/ are
+    // Playwright's (npm run test:e2e) - Vitest can't run them.
+    include: ['src/**/*.test.{js,jsx}'],
   },
 })

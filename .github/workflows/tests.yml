@@ -1,0 +1,95 @@
+# ---------------------------------------------------------------
+# AUTOMATIC TESTS - GitHub runs these on its own computers every
+# time you push (or open a pull request). You'll see a green tick
+# or a red cross next to the commit on GitHub.
+#
+# Three jobs, running side by side:
+#   backend   - Django's tests (python manage.py test)
+#   frontend  - lint, the Vitest tests, and a production build
+#   browser   - the Playwright tests (frontend/e2e/) in real Chromium
+#
+# No secrets needed: without DJANGO_SECRET_KEY / DATABASE_URL the
+# settings use the safe local defaults (SQLite, a dev key).
+# ---------------------------------------------------------------
+name: Tests
+
+on:
+  push:
+  pull_request:
+
+# A newer push to the same branch cancels the older, still-running check.
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+          cache: pip
+          cache-dependency-path: backend/requirements*.txt
+      - run: pip install -r requirements-dev.txt
+      # Catches a model change that someone forgot to make a migration for.
+      - run: python manage.py makemigrations --check --dry-run
+      - run: python manage.py test
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      # npm ci = install exactly what package-lock.json says.
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+
+  browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+          cache: pip
+          cache-dependency-path: backend/requirements*.txt
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: pip install -r backend/requirements.txt
+      - run: npm ci
+        working-directory: frontend
+      # Download Chromium (plus the Linux libraries it needs).
+      - run: npx playwright install --with-deps chromium
+        working-directory: frontend
+      # playwright.config.js starts Django + Vite itself. There's no venv
+      # here, so E2E_PYTHON tells it to use the plain `python`.
+      - run: npm run test:e2e
+        working-directory: frontend
+        env:
+          CI: '1'
+          E2E_PYTHON: python
+      # If a browser test fails, keep the screenshots and traces so you
+      # can download them from the run's page on GitHub.
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-results
+          path: frontend/test-results/
+          retention-days: 7
