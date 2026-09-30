@@ -1,3 +1,8 @@
+// This file gives back ROUTES, not a component, so the "fast refresh"
+// rule (a file should only export components) doesn't fit it: React
+// Router only accepts real <Route> elements inside <Routes>. Editing
+// an admin page still refreshes instantly - only this list reloads fully.
+/* eslint-disable react-refresh/only-export-components */
 import { lazy } from 'react'
 import { Route } from 'react-router-dom'
 import ProtectedRoute from '../auth/ProtectedRoute'
