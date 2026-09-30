@@ -103,6 +103,27 @@ Some tests guard the whole site rather than one feature:
 public address accepts data by accident) and `forums/test_speed.py`
 (no database query per forum reply).
 
+**Browser tests** (Playwright) - a real Chrome clicks through the
+site: reading, jump-scare warnings, choose-your-path, writing and
+editing a story, reading lists, Villain of the Week, admin-only pages.
+
+```bash
+cd frontend
+npx playwright install chromium   # once (on your computer it uses your Chrome anyway)
+npm run test:e2e
+```
+
+It starts its own Django (port 8010) and Vite (port 5180) with its
+own database, `backend/e2e.sqlite3`, filled fresh every run by
+`manage.py e2e_seed` - so your `db.sqlite3` is never touched, and your
+normal dev servers can keep running. The tests are in `frontend/e2e/`;
+`helpers.js` has `logIn(page, 'e2e_reader')` and the test users.
+
+**On GitHub, automatically:** `.github/workflows/tests.yml` runs all of
+the above (Django tests, lint, Vitest, build, browser tests) on every
+push and pull request. A red cross next to a commit = something broke;
+click it to see which step.
+
 ## The app (install it on a phone)
 
 Silent Evidence is an installable web app (a "PWA"): on a phone it can
@@ -145,12 +166,12 @@ sends it along (plus the CSRF token), and `AuthContext.jsx` keeps
 | App | What's in it |
 | --- | --- |
 | `accounts` | Sign up / log in, profiles, settings, follows, blocks, leaderboard |
-| `stories` | Stories, likes, saves, comments (with replies), reading history + progress, co-author invites, search, feed, series, fear meter, reactions, story chains, beta readers, writing sprints, views per day, anonymous true stories, reading lists, narration uploads, version history, recommendations, read-alongs, Claude feedback |
+| `stories` | Stories, likes, saves, comments (with replies), reading history + progress, co-author invites, search, feed, series, fear meter, reactions, story chains, beta readers, writing sprints, views per day, anonymous true stories, reading lists, narration uploads, version history, recommendations, read-alongs, Claude feedback, Word (.docx) import (`docx_import.py`), search with typo tolerance (`search.py` - Postgres full-text on the live site, a simpler match on SQLite) |
 | `messaging` | Private messages |
-| `moderation` | Reports, appeals, login logs + lock-out, content filter, verification, warnings & bans, AI toxicity checks |
+| `moderation` | Reports (stories, comments, read-along chat messages, public reading lists), appeals, login logs + lock-out, content filter, verification, warnings & bans, AI toxicity checks |
 | `sitecontent` | Announcement banner, writing prompts, challenges, bundles, featured authors, spotlight, polls, villain of the week |
 | `support` | Help tickets (member <-> admin conversations) |
-| `mailings` | Newsletter, comment digest (`python manage.py send_comment_digests weekly`), the email log and the email templates (`render_email()` in `email_templates.py`) |
+| `mailings` | Newsletter, comment digest (`python manage.py send_comment_digests weekly`), follow digest - new stories from writers you follow (`python manage.py send_follow_digest`, daily), the email log and the email templates (`render_email()` in `email_templates.py`) |
 | `forums` | Forum boards, threads and replies |
 | `categories` | Story categories |
 | `slides` | The homepage slideshow |
@@ -158,7 +179,7 @@ sends it along (plus the CSRF token), and `AuthContext.jsx` keeps
 | `contact` | The contact form |
 
 **One rule worth knowing:** "which stories may this person see?" is
-answered in one place - `stories_for(user)` in `backend/stories/models.py`.
+answered in one place - `stories_for(user)` in `backend/stories/models/story.py`.
 It applies the reader's content rating setting, their blocked users and
 private profiles. Use it for any new list of stories.
 
