@@ -154,7 +154,9 @@ else:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
+            # DJANGO_SQLITE_NAME: the browser tests (frontend/e2e/) use
+            # their OWN file, e2e.sqlite3, so they never touch your data.
+            'NAME': BASE_DIR / env('DJANGO_SQLITE_NAME', 'db.sqlite3'),
         }
     }
 

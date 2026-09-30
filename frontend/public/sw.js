@@ -131,7 +131,7 @@ self.addEventListener('fetch', event => {
 // we show it - even when no Silent Evidence tab is open.
 // ---------------------------------------------------------------
 self.addEventListener('push', event => {
-    let data = {}
+    let data   // set by the try, or by the catch if the message isn't JSON
     try {
         data = event.data ? event.data.json() : {}
     } catch {
