@@ -1,8 +1,6 @@
-from datetime import datetime, time, timedelta
+from datetime import time
 
-from django.contrib.auth import get_user_model
-from django.db.models import F, Count, Sum, Q, ExpressionWrapper, FloatField
-from django.db.models.functions import TruncDate
+from django.db.models import F, Q, ExpressionWrapper, FloatField
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from rest_framework import generics
@@ -13,22 +11,33 @@ from rest_framework.exceptions import Throttled, ValidationError
 
 from dashboard.limits import hourly_limit_reached
 from dashboard.models import SiteSettings
-
-from accounts.models import Follow, Block, get_profile
+from accounts.models import Block, get_profile
 from accounts.age import story_lock
 from accounts.notifications import notify, short_title
 from moderation.content_filter import check_text
 from moderation.models import Report
 from .models import (
-    Story, Like, Bookmark, Comment, LastWord, ReadingHistory, CoAuthorInvite,
-    FearRating, Reaction, REACTION_KINDS, ReadingDay, StoryViewDay,
-    published_stories, stories_for,
+    Story,
+    Like,
+    Bookmark,
+    LastWord,
+    ReadingHistory,
+    ReadingDay,
+    StoryViewDay,
+    published_stories,
+    stories_for,
 )
-from .search import search_stories
 from .serializers import (
-    StoryCardSerializer, StoryDetailSerializer, StoryWriteSerializer, CommentSerializer, LastWordSerializer,
-    MyStorySerializer, CoAuthorInviteSerializer, fear_data, reaction_data,
+    StoryCardSerializer,
+    StoryDetailSerializer,
+    StoryWriteSerializer,
+    CommentSerializer,
+    LastWordSerializer,
+    MyStorySerializer,
 )
+
+
+
 
 
 # GET /api/stories/
@@ -405,222 +414,6 @@ class LastWordListView(generics.ListCreateAPIView):
 
 
 # ---------------------------------------------------------------
-# AUTHOR DASHBOARD
-# ---------------------------------------------------------------
-
-# How many rows of `queryset` were created on each day since `since`.
-# Answers a dict: { date(2026, 9, 24): 3, date(2026, 9, 26): 1 }
-# Days with nothing simply aren't in it.
-#
-# TruncDate('created_at') cuts the time off ("2026-09-24 21:17" ->
-# "2026-09-24"), then .values('day').annotate(Count) groups the rows
-# by that day and counts each group - all in ONE database query.
-def count_per_day(queryset, since):
-    rows = (
-        queryset.filter(created_at__gte=since)
-        .annotate(day=TruncDate('created_at'))
-        .values('day')
-        .annotate(total=Count('id'))
-    )
-    return {row['day']: row['total'] for row in rows}
-
-
-# GET /api/author/stats/?days=30   (or ?days=7)
-#
-# Everything the Author Dashboard shows, for the logged-in user:
-#   totals        - all-time numbers
-#   period        - the same things, but only the last 7/30 days
-#   status        - how many stories are published / drafts / scheduled
-#   daily         - one row per day, for the charts
-#   top_stories   - your 5 most-read stories
-#   recent_comments - the 5 newest comments readers left you
-class AuthorStatsView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        me = request.user
-
-        # Only 7 or 30 allowed - anything else becomes 30.
-        days = 7 if request.query_params.get('days') == '7' else 30
-
-        # The first day of the period, at midnight. With days=7 and
-        # today = the 26th: 26 - 6 = the 20th, so 7 days INCLUDING today.
-        today = timezone.localdate()
-        first_day = today - timedelta(days=days - 1)
-        since = timezone.make_aware(datetime.combine(first_day, time.min))
-
-        # --- The building blocks (nothing is fetched yet - Django
-        # only runs a query when we count, sum or loop over it) ---
-        my_stories = Story.objects.filter(author=me)
-        visible = published_stories().filter(author=me)
-        likes = Like.objects.filter(story__author=me)
-        followers = Follow.objects.filter(following=me)
-
-        # Comments from OTHER people. story__author = "the comment's
-        # story's author" - two hops through the relations.
-        comments = Comment.objects.filter(story__author=me).exclude(author=me)
-
-        # --- The charts: one entry per day, zeros included ---
-        likes_by_day = count_per_day(likes, since)
-        followers_by_day = count_per_day(followers, since)
-        comments_by_day = count_per_day(comments, since)
-
-        daily = []
-        for i in range(days):
-            day = first_day + timedelta(days=i)
-            daily.append({
-                'date': day.isoformat(),                   # "2026-09-24"
-                'likes': likes_by_day.get(day, 0),         # .get(key, 0) = 0 if that day is missing
-                'followers': followers_by_day.get(day, 0),
-                'comments': comments_by_day.get(day, 0),
-            })
-
-        # --- Top 5 stories by views (drafts too, so you see them all) ---
-        # distinct=True is needed when counting TWO relations at once,
-        # or the database multiplies them together (3 likes x 2 comments
-        # would count as 6 of each).
-        top = (
-            my_stories
-            .annotate(
-                like_count=Count('likes', distinct=True),
-                # ~Q(...) = NOT. Your own replies don't count, same as
-                # the `comments` total above.
-                comment_count=Count('comments', filter=~Q(comments__author=me), distinct=True),
-            )
-            .order_by('-views', '-created_at')[:5]
-        )
-        now = timezone.now()
-        top_stories = []
-        for story in top:
-            if not story.is_published:
-                status = 'draft'
-            elif story.publish_at and story.publish_at > now:
-                status = 'scheduled'
-            else:
-                status = 'published'
-
-            top_stories.append({
-                'id': story.id,
-                'title': story.title,
-                'views': story.views,
-                'likes': story.like_count,
-                'comments': story.comment_count,
-                'status': status,
-            })
-
-        recent_comments = [
-            {
-                'id': comment.id,
-                'author': comment.author.username,
-                'body': comment.body,
-                'story_id': comment.story_id,
-                'story_title': comment.story.title,
-                'created_at': comment.created_at,
-            }
-            for comment in comments.select_related('author', 'story').order_by('-created_at')[:5]
-        ]
-
-        return Response({
-            'days': days,
-            'totals': {
-                # Sum gives None when there are no stories -> "or 0".
-                'views': visible.aggregate(total=Sum('views'))['total'] or 0,
-                'likes': likes.count(),
-                'followers': followers.count(),
-                'comments': comments.count(),
-            },
-            'period': {
-                'likes': likes.filter(created_at__gte=since).count(),
-                'followers': followers.filter(created_at__gte=since).count(),
-                'comments': comments.filter(created_at__gte=since).count(),
-                'stories': visible.filter(created_at__gte=since).count(),
-            },
-            'status': {
-                'published': visible.count(),
-                'drafts': my_stories.filter(is_published=False).count(),
-                'scheduled': my_stories.filter(is_published=True, publish_at__gt=now).count(),
-            },
-            'daily': daily,
-            'top_stories': top_stories,
-            'recent_comments': recent_comments,
-        })
-
-
-# GET /api/stories/feed/            -> newest first
-# GET /api/stories/feed/?sort=popular -> most views first
-#
-# "My Feed": published stories by the authors YOU follow.
-# Logged-in only - we need to know who "you" are.
-#
-#   { "following": [ { "username": "the_keeper", "avatar": "" }, ... ],
-#     "stories":   [ ...story cards, same shape as /api/stories/... ] }
-#
-# `following` is sent too, so React can tell the two empty cases
-# apart: "you follow nobody" vs "they haven't written anything yet".
-class FeedView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        # The ids of everyone I follow. (Follow rows where I'm the
-        # follower -> their `following` column.)
-        followed_ids = Follow.objects.filter(follower=request.user).values_list('following_id', flat=True)
-
-        # author__in = "the author is one of these".
-        stories = stories_for(request.user).filter(author__in=followed_ids).select_related('author', 'category')
-
-        if request.query_params.get('sort') == 'popular':
-            stories = stories.order_by('-views', '-created_at')
-        else:
-            stories = stories.order_by('-created_at')
-
-        # The people themselves, for the row of avatars at the top.
-        # select_related('following__profile') fetches each user and
-        # their profile (avatar) in the same query.
-        follows = (
-            Follow.objects.filter(follower=request.user)
-            .select_related('following__profile')
-            .order_by('following__username')
-        )
-        following = []
-        for follow in follows:
-            person = follow.following
-            # Users made before Profile existed may not have one yet.
-            has_avatar = hasattr(person, 'profile') and person.profile.avatar
-            following.append({
-                'username': person.username,
-                'avatar': person.profile.avatar.url if has_avatar else '',
-            })
-
-        return Response({
-            'following': following,
-            # [:60] = at most 60 stories on one page.
-            # many=True = "this is a LIST of stories, not one".
-            'stories': StoryCardSerializer(stories[:60], many=True, context={'request': request}).data,
-        })
-
-
-# ---------------------------------------------------------------
-# MY LISTS - the stories you saved ("Save" on a story page).
-# ---------------------------------------------------------------
-
-# GET /api/stories/saved/  -> your saved stories, last saved first.
-class SavedStoriesView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        # Start from stories_for() so a story that became invisible
-        # to you (blocked author, now private...) drops off the list.
-        # bookmarks__user = "has a Bookmark row whose user is me".
-        stories = (
-            stories_for(request.user)
-            .filter(bookmarks__user=request.user)
-            .select_related('author', 'category')
-            .order_by('-bookmarks__created_at')
-        )
-        return Response(StoryCardSerializer(stories, many=True, context={'request': request}).data)
-
-
-# ---------------------------------------------------------------
 # READING HISTORY - filled in by StoryDetailView (record_reading).
 # ---------------------------------------------------------------
 
@@ -632,35 +425,6 @@ def record_reading(user, story):
         ReadingHistory.objects.update_or_create(user=user, story=story)
         # Today counts as a reading day (streaks, accounts/badges.py).
         ReadingDay.objects.get_or_create(user=user, date=timezone.localdate())
-
-
-# GET    /api/stories/history/  -> the stories you read, newest first
-#   [ { "last_read_at": "...", "story": {...card...} }, ... ]
-# DELETE /api/stories/history/  -> forget all of it
-class ReadingHistoryView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        # Only stories you may still see (same idea as Saved Stories).
-        visible_ids = stories_for(request.user).values('id')
-        rows = (
-            ReadingHistory.objects
-            .filter(user=request.user, story__in=visible_ids)
-            .select_related('story__author', 'story__category')[:100]
-        )
-
-        data = [
-            {
-                'last_read_at': row.last_read_at,
-                'story': StoryCardSerializer(row.story, context={'request': request}).data,
-            }
-            for row in rows
-        ]
-        return Response(data)
-
-    def delete(self, request):
-        ReadingHistory.objects.filter(user=request.user).delete()
-        return Response(status=204)
 
 
 # ---------------------------------------------------------------
@@ -702,210 +466,3 @@ class ManageStoryView(APIView):
     def delete(self, request, pk):
         self.get_my_story(request, pk).delete()
         return Response(status=204)
-
-
-# ---------------------------------------------------------------
-# SEARCH
-# ---------------------------------------------------------------
-
-# GET /api/search/?q=house
-#   { "stories": [...cards...], "authors": [ { username, avatar, story_count }, ... ] }
-class SearchView(APIView):
-    def get(self, request):
-        query = request.query_params.get('q', '').strip()
-
-        # Fewer than 2 letters would match almost everything.
-        if len(query) < 2:
-            return Response({'stories': [], 'authors': []})
-
-        # Every word must match somewhere; best matches first
-        # (stories/search.py - it also uses Postgres's own search online).
-        stories = search_stories(stories_for(request.user), query).select_related('author', 'category')[:30]
-
-        # Writers whose name matches, with how many stories they have.
-        authors = (
-            get_user_model().objects
-            .filter(username__icontains=query)
-            .select_related('profile')
-            .annotate(story_count=Count('stories', filter=Q(stories__is_published=True, stories__is_archived=False)))
-            .order_by('-story_count', 'username')[:10]
-        )
-
-        return Response({
-            'stories': StoryCardSerializer(stories, many=True, context={'request': request}).data,
-            'authors': [
-                {
-                    'username': author.username,
-                    'avatar': author.profile.avatar.url if hasattr(author, 'profile') and author.profile.avatar else '',
-                    'story_count': author.story_count,
-                }
-                for author in authors
-            ],
-        })
-
-
-# ---------------------------------------------------------------
-# CO-AUTHOR INVITES
-# ---------------------------------------------------------------
-
-# GET  /api/invites/  -> { "received": [...], "sent": [...] }
-# POST /api/invites/  { story_id, username }  -> invite someone
-class InviteListView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        received = CoAuthorInvite.objects.filter(to_user=request.user).select_related('story', 'from_user', 'to_user')
-        sent = CoAuthorInvite.objects.filter(from_user=request.user).select_related('story', 'from_user', 'to_user')
-        return Response({
-            'received': CoAuthorInviteSerializer(received, many=True).data,
-            'sent': CoAuthorInviteSerializer(sent, many=True).data,
-        })
-
-    def post(self, request):
-        # Only YOUR stories can get co-authors.
-        story = get_object_or_404(Story, pk=request.data.get('story_id'), author=request.user)
-
-        username = (request.data.get('username') or '').strip()
-        person = get_user_model().objects.filter(username__iexact=username).first()
-
-        if person is None:
-            return Response({'detail': 'No user with that username.'}, status=400)
-        if person == request.user:
-            return Response({'detail': "You can't invite yourself."}, status=400)
-        if CoAuthorInvite.objects.filter(story=story, to_user=person).exists():
-            return Response({'detail': f'{person.username} was already invited to this story.'}, status=400)
-        # Respect blocks in both directions.
-        if Block.objects.filter(Q(blocker=person, blocked=request.user) | Q(blocker=request.user, blocked=person)).exists():
-            return Response({'detail': "You can't invite this user."}, status=400)
-
-        invite = CoAuthorInvite.objects.create(story=story, from_user=request.user, to_user=person)
-        notify(person, request.user, 'invite',
-               f'{request.user.username} invited you to co-author "{short_title(story.title)}"', '/invites')
-        return Response(CoAuthorInviteSerializer(invite).data, status=201)
-
-
-# POST   /api/invites/3/accept/    (the person who was invited)
-# POST   /api/invites/3/decline/   (the person who was invited)
-# DELETE /api/invites/3/           (the person who sent it: cancel)
-class InviteActionView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request, pk, action):
-        # to_user=request.user: you can only answer invites sent TO you.
-        invite = get_object_or_404(CoAuthorInvite, pk=pk, to_user=request.user)
-
-        if invite.status != 'pending':
-            return Response({'detail': 'This invite was already answered.'}, status=400)
-
-        # Anything else in the URL (/invites/3/banana/) -> 404.
-        if action not in ('accept', 'decline'):
-            return Response({'detail': 'Not found.'}, status=404)
-
-        invite.status = 'accepted' if action == 'accept' else 'declined'
-        invite.save()
-        return Response(CoAuthorInviteSerializer(invite).data)
-
-    # action=None: this view has two URLs, and only one has an action.
-    def delete(self, request, pk, action=None):
-        invite = get_object_or_404(CoAuthorInvite, pk=pk, from_user=request.user)
-        invite.delete()
-        return Response(status=204)
-
-
-# ---------------------------------------------------------------
-# FEAR METER   POST /api/stories/5/fear/  { score: 1-5 }
-# Rate (or change your rating). Not your own story, and not an 18+
-# story you can't read yet.
-# ---------------------------------------------------------------
-class FearRatingView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request, pk):
-        story = get_object_or_404(stories_for(request.user), pk=pk)
-        if story.author == request.user:
-            return Response({'detail': "You can't rate your own story."}, status=400)
-        if story_lock(request.user, story):
-            return Response({'detail': 'Read the story first.'}, status=400)
-        try:
-            score = int(request.data.get('score'))
-        except (TypeError, ValueError):
-            score = 0
-        if not 1 <= score <= 5:
-            return Response({'detail': 'Pick 1 to 5 skulls.'}, status=400)
-
-        rating, created = FearRating.objects.get_or_create(user=request.user, story=story, defaults={'score': score})
-        # Keep the running total right: a new rating adds a vote;
-        # a changed one only swaps the old score for the new one.
-        # F() = let the database do the maths (safe for two at once).
-        if created:
-            Story.objects.filter(pk=story.pk).update(fear_total=F('fear_total') + score, fear_votes=F('fear_votes') + 1)
-        else:
-            Story.objects.filter(pk=story.pk).update(fear_total=F('fear_total') - rating.score + score)
-            rating.score = score
-            rating.save(update_fields=['score'])
-        story.refresh_from_db(fields=['fear_total', 'fear_votes'])
-        return Response(fear_data(story, request.user))
-
-
-# ---------------------------------------------------------------
-# REACTIONS   POST /api/stories/5/react/  { kind: 'got_me' }
-# Click once = on, click again = off (like the Like button).
-# ---------------------------------------------------------------
-class ToggleReactionView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request, pk):
-        story = get_object_or_404(stories_for(request.user), pk=pk)
-        kind = request.data.get('kind')
-        if kind not in dict(REACTION_KINDS):
-            return Response({'detail': 'Unknown reaction.'}, status=400)
-        reaction, created = Reaction.objects.get_or_create(user=request.user, story=story, kind=kind)
-        if not created:
-            reaction.delete()
-        return Response(reaction_data(story, request.user))
-
-
-# ---------------------------------------------------------------
-# CONTINUE READING
-#
-#   POST /api/stories/5/progress/  { percent: 43 }  - the story page
-#        saves how far you got (every few seconds while you read)
-#   GET  /api/stories/continue/                     - the stories you
-#        started but didn't finish (for the homepage row)
-# ---------------------------------------------------------------
-class ReadingProgressView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request, pk):
-        story = get_object_or_404(stories_for(request.user), pk=pk)
-        try:
-            percent = int(request.data.get('percent'))
-        except (TypeError, ValueError):
-            return Response({'detail': 'percent must be a number.'}, status=400)
-        # max/min = keep it between 0 and 100, whatever was sent.
-        percent = max(0, min(100, percent))
-        ReadingHistory.objects.update_or_create(user=request.user, story=story, defaults={'progress': percent})
-        return Response({'progress': percent})
-
-
-# "Started" = past the first 5%; "not finished" = under 95%.
-CONTINUE_FROM, CONTINUE_UNTIL = 5, 95
-
-
-class ContinueReadingView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        visible_ids = stories_for(request.user).values('id')
-        rows = (
-            ReadingHistory.objects
-            .filter(user=request.user, story__in=visible_ids, progress__gte=CONTINUE_FROM, progress__lt=CONTINUE_UNTIL)
-            .select_related('story__author', 'story__category')[:6]
-        )
-        return Response([
-            {
-                'progress': row.progress,
-                'story': StoryCardSerializer(row.story, context={'request': request}).data,
-            }
-            for row in rows
-        ])

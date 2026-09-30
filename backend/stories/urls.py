@@ -15,11 +15,15 @@ from .reading_list_views import ReadingListsView, ReadingListDetailView, Reading
 from .true_story_views import TrueStoryListView, TrueStoryDetailView, AdminTrueStoryListView, AdminTrueStoryActionView
 from .views import (
     StoryListView, StoryCreateView, StoryDetailView, FeaturedStoriesView, RandomStoryView,
-    ToggleLikeView, ToggleSaveView, CommentListView, LastWordListView, AuthorStatsView,
-    FeedView, SavedStoriesView, ReadingHistoryView, MyStoriesView, ManageStoryView, SearchView,
-    InviteListView, InviteActionView, FearRatingView, ToggleReactionView,
+    ToggleLikeView, ToggleSaveView, CommentListView, LastWordListView, MyStoriesView, ManageStoryView,
+)
+from .author_views import AuthorStatsView
+from .reader_views import (
+    FeedView, SavedStoriesView, ReadingHistoryView, FearRatingView, ToggleReactionView,
     ReadingProgressView, ContinueReadingView,
 )
+from .invite_views import InviteListView, InviteActionView
+from .search_views import SearchView
 
 
 # Included under "api/" in config/urls.py -> /api/stories/...
