@@ -39,9 +39,11 @@ const EXPLORE_ITEMS = [
     { label: 'Read-alongs', href: '/read-alongs' },
 ]
 
-// Shared styling for the plain nav links, kept in one constant so
-// every link looks identical and you only edit it once.
-const NAV_LINK = 'text-gray-200 hover:text-white transition-colors'
+// Shared styling for the plain nav links (they turn red on hover),
+// kept in one constant so every link looks identical and you only
+// edit it once. The dropdowns (Categories...) use the same colours
+// in NavDropdown.jsx.
+const NAV_LINK = 'text-gray-200 hover:text-red-500 transition-colors'
 
 // Same for the round-ish icon buttons on the right (messages, bell).
 // p-1.5 on phones, p-2 from "sm" up: 4px less per icon adds up when
