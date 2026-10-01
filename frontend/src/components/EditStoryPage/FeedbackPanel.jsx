@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { Sparkles } from 'lucide-react'
 import { getStoryFeedback, askStoryFeedback } from '../../api/client'
 import { useApi } from '../../hooks/useApi'
@@ -49,7 +50,7 @@ function FeedbackPanel({ storyId }) {
         setProblem('')
         try {
             const answer = await askStoryFeedback(storyId)
-            setData({ ...data, remaining_today: answer.remaining_today, history: answer.history })
+            setData({ ...data, remaining: answer.remaining, period: answer.period, history: answer.history })
         } catch (err) {
             setProblem(err.data?.detail || 'Could not get feedback.')
         } finally {
@@ -71,11 +72,20 @@ function FeedbackPanel({ storyId }) {
                     <p className='mt-1 text-sm text-gray-400'>
                         An AI editor reads your SAVED story and suggests improvements. It won't rewrite it - the writing stays yours. Only you see this.
                     </p>
-                    <button type='button' onClick={handleAsk} disabled={asking || data.remaining_today === 0} className='mt-3 rounded-lg bg-amber-700 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-600 disabled:opacity-50'>
+                    <button type='button' onClick={handleAsk} disabled={asking || data.remaining === 0} className='mt-3 rounded-lg bg-amber-700 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-600 disabled:opacity-50'>
                         {asking ? 'Claude is reading... (up to a minute)' : 'Ask for feedback'}
                     </button>
-                    {data.remaining_today !== null && (
-                        <span className='ml-3 text-xs text-gray-400'>{data.remaining_today} left today</span>
+                    {/* remaining: null = no limit (admins). period: 'month'
+                        for everyone, 'day' for Pro (feedback_views.py). */}
+                    {data.remaining !== null && (
+                        <span className='ml-3 text-xs text-gray-400'>
+                            {data.remaining} left {data.period === 'day' ? 'today' : 'this month'}
+                        </span>
+                    )}
+                    {data.remaining !== null && !data.is_pro && (
+                        <p className='mt-2 text-xs text-gray-500'>
+                            Want more? <Link to='/premium' className='text-yellow-400 underline'>Pro</Link> writers get 5 reviews a day.
+                        </p>
                     )}
                     {problem && <p className='mt-2 text-sm text-red-400'>{problem}</p>}
                 </>

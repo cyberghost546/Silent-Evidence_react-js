@@ -8,6 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from accounts.models import get_profile
 from dashboard.ai import MODEL, ai_is_configured
 from .models import Story, WritingFeedback
 
@@ -15,16 +16,26 @@ from .models import Story, WritingFeedback
 # ---------------------------------------------------------------
 # PRIVATE FEEDBACK FROM CLAUDE (the Edit page, your own stories only)
 #
-#   GET  /api/stories/<id>/feedback/  -> { configured, remaining_today, history: [...] }
-#   POST /api/stories/<id>/feedback/  -> ask for new feedback (costs money:
-#                                        max DAILY_LIMIT a day, admins unlimited)
+#   GET  /api/stories/<id>/feedback/  -> { configured, remaining, period, is_pro, history: [...] }
+#   POST /api/stories/<id>/feedback/  -> ask for new feedback (costs money, so
+#                                        there's a limit - see LIMITS below)
 #
 # Claude reads the story and answers like a helpful horror editor. It
 # never rewrites the story - the writing stays yours. The same Claude
 # set-up as the AI Generator (dashboard/ai.py): same model, same key.
 # ---------------------------------------------------------------
-DAILY_LIMIT = 3
 MAX_CHARS = 60_000   # about 10,000 words - longer stories are cut here
+
+# HOW OFTEN you can ask. Every review costs the site money (Claude
+# isn't free), so:
+#   everyone - 3 in any 30 days
+#   Pro      - 5 a day (a "fair use" limit - not unlimited, so one
+#              person can't run up a huge bill by accident)
+#   admins   - no limit
+LIMITS = {
+    'free': {'count': 3, 'days': 30, 'period': 'month'},
+    'pro': {'count': 5, 'days': 1, 'period': 'day'},
+}
 
 SYSTEM_PROMPT = '''You are an experienced, encouraging editor of horror fiction giving PRIVATE feedback to a writer on Silent Evidence, a community horror-story site. The writer asked for it before publishing or while revising.
 
@@ -58,12 +69,31 @@ FEEDBACK_SCHEMA = {
 }
 
 
-def used_today(user):
-    return WritingFeedback.objects.filter(requested_by=user, created_at__gte=timezone.now() - timedelta(days=1)).count()
+def limit_for(user):
+    return LIMITS['pro'] if get_profile(user).is_premium else LIMITS['free']
 
 
-def remaining_today(user):
-    return None if user.is_staff else max(0, DAILY_LIMIT - used_today(user))   # None = no limit
+# How many you asked for in the last N days.
+def used_in(user, days):
+    since = timezone.now() - timedelta(days=days)
+    return WritingFeedback.objects.filter(requested_by=user, created_at__gte=since).count()
+
+
+# How many you may still ask for. None = no limit (admins).
+def remaining(user):
+    if user.is_staff:
+        return None
+    limit = limit_for(user)
+    return max(0, limit['count'] - used_in(user, limit['days']))
+
+
+# The numbers React shows: "2 left this month" / "4 left today".
+def limit_data(user):
+    return {
+        'remaining': remaining(user),
+        'period': limit_for(user)['period'],
+        'is_pro': get_profile(user).is_premium,
+    }
 
 
 def history_data(story):
@@ -77,7 +107,7 @@ class StoryFeedbackView(APIView):
         story = get_object_or_404(Story, pk=pk, author=request.user)
         return Response({
             'configured': ai_is_configured(),
-            'remaining_today': remaining_today(request.user),
+            **limit_data(request.user),
             'history': history_data(story),
         })
 
@@ -85,8 +115,12 @@ class StoryFeedbackView(APIView):
         story = get_object_or_404(Story, pk=pk, author=request.user)
         if not ai_is_configured():
             return Response({'detail': 'Feedback from Claude is not switched on for this site.'}, status=503)
-        if remaining_today(request.user) == 0:
-            return Response({'detail': f'You can ask for feedback {DAILY_LIMIT} times a day. Try again tomorrow.'}, status=429)
+        if remaining(request.user) == 0:
+            if get_profile(request.user).is_premium:
+                message = f"You've used today's {LIMITS['pro']['count']} reviews. Try again tomorrow."
+            else:
+                message = f"You've used your {LIMITS['free']['count']} free reviews for this month. Pro members get {LIMITS['pro']['count']} a day."
+            return Response({'detail': message}, status=429)
         if len(story.body.split()) < 100:
             return Response({'detail': 'Write at least 100 words first - there needs to be a story to read.'}, status=400)
 
@@ -123,6 +157,6 @@ class StoryFeedbackView(APIView):
         WritingFeedback.objects.create(story=story, requested_by=request.user, feedback=feedback)
         return Response({
             'feedback': feedback,
-            'remaining_today': remaining_today(request.user),
+            **limit_data(request.user),
             'history': history_data(story),
         }, status=201)

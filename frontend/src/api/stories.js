@@ -299,6 +299,14 @@ export function getAuthorTrends() {
     return authRequest('/api/author/trends/')
 }
 
+// PRO: how far readers get in your stories (Author Dashboard).
+//   getReadersStop()   -> { stories: [{ id, title, readers }] }
+//   getReadersStop(5)  -> { story, readers, marks: [{ mark: 10, reached, percent }, ...] }
+// Not Pro -> error 403 with error.data.pro_required = true.
+export function getReadersStop(storyId = null) {
+    return authRequest(storyId ? `/api/author/readers-stop/?story=${storyId}` : '/api/author/readers-stop/')
+}
+
 
 // --- Reading lists (named lists of stories, public ones can be shared) ---
 

@@ -11,6 +11,7 @@ import BarChart from '../Dashboard/BarChart'
 import TopStoriesTable from './TopStoriesTable'
 import AuthorTrends from './AuthorTrends'
 import AuthorCandles from './AuthorCandles'
+import AuthorReadersStop from './AuthorReadersStop'
 import { formatShortDate } from '../../utils/format'
 
 
@@ -238,6 +239,9 @@ function AuthorDashboard() {
                     Its own request, so the 7/30-day switch above
                     doesn't reload it. */}
                 <AuthorTrends />
+
+                {/* ========== WHERE READERS STOP (Pro) ========== */}
+                <AuthorReadersStop />
 
                 {/* ========== CANDLES (tips from readers) ========== */}
                 <AuthorCandles />

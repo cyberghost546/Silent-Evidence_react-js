@@ -89,3 +89,34 @@ test('free members see the Pro looks locked', async ({ page }) => {
     await expect(page.getByRole('button', { name: /Gold Crown/ })).toBeDisabled()
     await expect(page.getByRole('button', { name: 'Ember' })).toBeDisabled()
 })
+
+test('Writer Pro: the cover maker and "Where readers stop"', async ({ page }) => {
+    await logIn(page, 'e2e_pro')
+    await page.goto('/write')
+    await page.locator('#title').fill('The Lighthouse Keeper Never Left')
+    await page.locator('#category').selectOption({ index: 1 })
+    await page.locator('#body').fill('The light still turns every night. '.repeat(15))
+
+    await page.getByRole('button', { name: 'Blood moon' }).click()
+    await page.getByRole('button', { name: 'Make my cover' }).click()
+    // The made cover shows as the upload preview.
+    await expect(page.getByAltText('Cover preview')).toBeVisible()
+    await expect(page.getByText('cover.jpg')).toBeVisible()
+    await page.getByAltText('Cover preview').screenshot({ path: 'test-results/made-cover.png' })
+
+    await page.getByRole('button', { name: 'Publish Story' }).click()
+    await expect(page.getByRole('heading', { level: 1, name: 'The Lighthouse Keeper Never Left' })).toBeVisible()
+
+    // The Pro chart is on the Author Dashboard (no readers yet).
+    await page.goto('/author')
+    await expect(page.getByRole('heading', { name: 'Where readers stop' })).toBeVisible()
+    await expect(page.getByText('Nobody has read this one yet.')).toBeVisible()
+})
+
+test('free writers see the Writer Pro tools as Pro features', async ({ page }) => {
+    await logIn(page, 'e2e_writer')
+    await page.goto('/write')
+    await expect(page.getByText(/writers can make a cover in one click/)).toBeVisible()
+    await page.goto('/author')
+    await expect(page.getByText(/See the exact part of each story where readers give up/)).toBeVisible()
+})

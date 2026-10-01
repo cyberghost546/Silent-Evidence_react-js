@@ -7,8 +7,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from accounts.models import Follow
-from .models import Story, Like, Comment, published_stories
+from accounts.models import Follow, get_profile
+from .models import Story, Like, Comment, ReadingHistory, published_stories
 
 
 # ---------------------------------------------------------------
@@ -154,4 +154,75 @@ class AuthorStatsView(APIView):
             'daily': daily,
             'top_stories': top_stories,
             'recent_comments': recent_comments,
+        })
+
+
+# ---------------------------------------------------------------
+# WHERE READERS STOP (Pro writers) - /api/author/readers-stop/
+#
+# The story page saves how far each reader got, 0-100 %
+# (ReadingHistory.progress). From that we can say, for each 10%
+# mark: "how many of your readers got at least this far?"
+#
+#   10% ████████████ 100%
+#   50% ███████       60%   <- 40% gave up before the middle
+#  100% ███           25%   <- a quarter finished it
+#
+# A big drop between two marks = that part loses people.
+#
+#   GET /api/author/readers-stop/           -> { stories: [{ id, title, readers }] }
+#   GET /api/author/readers-stop/?story=5   -> { story, readers, marks: [{ mark, reached, percent }] }
+#
+# Pro only (and admins). Everyone else gets 403 with pro_required,
+# so the dashboard can show "this is a Pro feature" instead.
+# ---------------------------------------------------------------
+MARKS = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+
+
+class ReadersStopView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        me = request.user
+        if not (me.is_staff or get_profile(me).is_premium):
+            return Response({'detail': 'This is a Pro feature.', 'pro_required': True}, status=403)
+
+        # The readers of MY published stories - not counting myself
+        # (a writer re-reading their own story isn't a reader).
+        my_stories = published_stories().filter(author=me)
+        readers = ReadingHistory.objects.filter(story__in=my_stories).exclude(user=me)
+
+        story_id = request.query_params.get('story')
+        if not story_id:
+            # The list for the drop-down: each story with its number of readers.
+            rows = (
+                my_stories
+                .annotate(reader_count=Count('readers', filter=~Q(readers__user=me)))
+                .order_by('-reader_count', '-created_at')
+            )
+            return Response({
+                'stories': [{'id': story.id, 'title': story.title, 'readers': story.reader_count} for story in rows],
+            })
+
+        story = my_stories.filter(pk=story_id).first()
+        if story is None:
+            return Response({'detail': 'Not one of your published stories.'}, status=404)
+
+        progress = list(readers.filter(story=story).values_list('progress', flat=True))
+        total = len(progress)
+        marks = []
+        for mark in MARKS:
+            # sum(1 for ...) = count how many readers got this far.
+            reached = sum(1 for value in progress if value >= mark)
+            marks.append({
+                'mark': mark,
+                'reached': reached,
+                # round(..) = a whole percent; no readers -> 0, not a crash.
+                'percent': round(reached * 100 / total) if total else 0,
+            })
+
+        return Response({
+            'story': {'id': story.id, 'title': story.title},
+            'readers': total,
+            'marks': marks,
         })

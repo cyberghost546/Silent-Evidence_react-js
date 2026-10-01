@@ -4,6 +4,7 @@ import { Sparkles, ChevronDown, ImagePlus, Crown } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { getCategories, createStory, importDocx } from '../../api/client'
 import SegmentedControl from '../SegmentedControl/SegmentedControl'
+import CoverMaker from './CoverMaker'
 import StoryEditor from './StoryEditor'
 import PromptBox from './PromptBox'
 import TagInput from './TagInput'
@@ -590,13 +591,25 @@ function WriteStory() {
                         <FieldError messages={errors.cover_image || errors.cover_image_url} />
 
                         {/* Small preview of whichever cover is picked. */}
+                        {/* aspect-[40/21] = the shape of a cover (1200 x 630),
+                            so the whole picture shows, not just a strip. */}
                         {form.coverMode === 'upload' && coverPreview && (
-                            <img src={coverPreview} alt='Cover preview' className='mt-3 h-40 w-full rounded-lg object-cover' />
+                            <img src={coverPreview} alt='Cover preview' className='mt-3 aspect-[40/21] w-full max-w-lg rounded-lg object-cover' />
                         )}
                         {form.coverMode === 'url' && form.coverUrl.startsWith('http') && (
                             <img src={form.coverUrl} alt='Cover preview' className='mt-3 h-40 w-full rounded-lg object-cover' />
                         )}
                     </div>
+
+                    {/* Pro: draw a cover from the title. The made picture is
+                        used exactly like an uploaded one (coverFile). */}
+                    <CoverMaker
+                        title={form.title}
+                        onMake={file => {
+                            setCoverFile(file)
+                            updateField('coverMode', 'upload')
+                        }}
+                    />
                 </div>
 
                 {/* ---------- VIDEO URL ---------- */}

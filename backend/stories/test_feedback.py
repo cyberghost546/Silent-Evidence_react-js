@@ -3,8 +3,13 @@ import os
 from types import SimpleNamespace
 from unittest import mock
 
+from datetime import timedelta
+
 from django.contrib.auth.models import User
 from django.test import TestCase
+from django.utils import timezone
+
+from accounts.models import get_profile
 
 from stories.models import Story, WritingFeedback
 
@@ -46,19 +51,37 @@ class FeedbackTests(TestCase):
             response = self.ask()
         self.assertEqual(response.status_code, 201)
         self.assertEqual(response.json()['feedback']['overall'], 'A tense, well-paced story.')
-        self.assertEqual(response.json()['remaining_today'], 2)
+        self.assertEqual((response.json()['remaining'], response.json()['period']), (2, 'month'))
         # What Claude was sent: the story, with our instructions.
         sent = client.beta.messages.create.call_args.kwargs
         self.assertIn('The Well', sent['messages'][0]['content'])
         self.assertIn('Do not rewrite the story', sent['system'])
         self.assertEqual(WritingFeedback.objects.count(), 1)
 
-    def test_three_a_day(self):
+    def test_three_a_month_for_everyone(self):
         patch, _ = fake_claude()
         with patch:
             for _ in range(3):
                 self.assertEqual(self.ask().status_code, 201)
+            answer = self.ask()
+        self.assertEqual(answer.status_code, 429)
+        self.assertIn('Pro members get 5 a day', answer.json()['detail'])
+
+        # A month later they're available again.
+        WritingFeedback.objects.update(created_at=timezone.now() - timedelta(days=31))
+        self.assertEqual(self.client.get(f'/api/stories/{self.story.id}/feedback/').json()['remaining'], 3)
+
+    def test_five_a_day_for_pro(self):
+        profile = get_profile(self.writer)
+        profile.is_premium = True
+        profile.save()
+        patch, _ = fake_claude()
+        with patch:
+            for _ in range(5):
+                self.assertEqual(self.ask().status_code, 201)
             self.assertEqual(self.ask().status_code, 429)
+        data = self.client.get(f'/api/stories/{self.story.id}/feedback/').json()
+        self.assertEqual((data['remaining'], data['period'], data['is_pro']), (0, 'day', True))
 
     def test_only_your_own_story(self):
         User.objects.create_user('stranger', password=PASSWORD)

@@ -17,7 +17,7 @@ from .views import (
     StoryListView, StoryCreateView, StoryDetailView, FeaturedStoriesView, RandomStoryView,
     ToggleLikeView, ToggleSaveView, CommentListView, LastWordListView, MyStoriesView, ManageStoryView,
 )
-from .author_views import AuthorStatsView
+from .author_views import AuthorStatsView, ReadersStopView
 from .reader_views import (
     FeedView, SavedStoriesView, ReadingHistoryView, FearRatingView, ToggleReactionView,
     ReadingProgressView, ContinueReadingView,
@@ -87,6 +87,8 @@ urlpatterns = [
 
     # The Author Dashboard (logged in) -> /api/author/stats/?days=30
     path('author/stats/', AuthorStatsView.as_view()),
+    # Pro: how far readers get in each story (Author Dashboard)
+    path('author/readers-stop/', ReadersStopView.as_view()),
     path('reading-lists/', ReadingListsView.as_view()),                                   # shareable lists
     path('reading-lists/<int:pk>/', ReadingListDetailView.as_view()),
     path('reading-lists/<int:pk>/stories/<int:story_id>/', ReadingListStoryView.as_view()),
