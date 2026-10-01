@@ -1,7 +1,11 @@
 import { Link } from 'react-router-dom'
-import { Eye } from 'lucide-react'
+import { Eye, Skull } from 'lucide-react'
 import { mediaUrl } from '../../api/client'
 import { formatShortDate } from '../../utils/format'
+import MatureBadge from './MatureBadge'
+import EarlyAccessBadge from './EarlyAccessBadge'
+import PathBadge from './PathBadge'
+import { useMatureBlur } from '../../hooks/useMatureBlur'
 
 
 // ---------------------------------------------------------------
@@ -18,6 +22,8 @@ import { formatShortDate } from '../../utils/format'
 //     reading_time, created_at }
 // ---------------------------------------------------------------
 function StoryGridCard({ story }) {
+    // 18+ story and not a confirmed adult: blur the cover.
+    const blur = useMatureBlur(story)
     const initials = story.author.slice(0, 2).toUpperCase()
 
     return (
@@ -29,9 +35,11 @@ function StoryGridCard({ story }) {
             className='flex h-full flex-col overflow-hidden rounded-xl border border-slate-700/60 bg-slate-800 transition hover:-translate-y-0.5 hover:border-slate-500'
         >
             {/* ---------- PICTURE ---------- */}
-            <div className='relative h-48'>
+            {/* overflow-hidden: the blurred 18+ cover is zoomed a little -
+                keep it inside its box. */}
+            <div className='relative h-48 overflow-hidden'>
                 {story.cover_image ? (
-                    <img src={mediaUrl(story.cover_image)} alt='' className='h-full w-full object-cover' />
+                    <img src={mediaUrl(story.cover_image)} alt='' className={`h-full w-full object-cover ${blur}`} />
                 ) : (
                     <div className='h-full w-full bg-linear-to-br from-slate-700 to-slate-900' />
                 )}
@@ -43,6 +51,9 @@ function StoryGridCard({ story }) {
                 <span className='absolute bottom-3 left-3 rounded bg-black/60 px-2 py-0.5 text-[11px] font-semibold text-white'>
                     {story.reading_time} min read
                 </span>
+                <MatureBadge story={story} />
+                <EarlyAccessBadge story={story} />
+                <PathBadge story={story} />
             </div>
 
             {/* ---------- TEXT ---------- */}
@@ -50,7 +61,7 @@ function StoryGridCard({ story }) {
                 always sits at the very bottom of the card. */}
             <div className='flex flex-1 flex-col p-5'>
                 {story.category && (
-                    <p className='text-xs font-bold uppercase tracking-wider text-red-500'>{story.category}</p>
+                    <p className='text-xs font-bold uppercase tracking-wider text-red-400'>{story.category}</p>
                 )}
 
                 <h3 className='mt-2 text-lg font-bold text-white'>{story.title}</h3>
@@ -65,8 +76,14 @@ function StoryGridCard({ story }) {
                     </span>
                     <span className='text-gray-300'>{story.author}</span>
 
-                    {/* ml-auto pushes the views + date to the right. */}
-                    <span className='ml-auto inline-flex items-center gap-1 text-gray-500' title='Views'>
+                    {/* ml-auto pushes the fear, views + date to the right.
+                        Fear only once someone rated it (null = not yet). */}
+                    {story.fear_average !== null && story.fear_average !== undefined && (
+                        <span className='ml-auto inline-flex items-center gap-1 text-red-400' title='Fear meter (out of 5)'>
+                            <Skull className='h-3.5 w-3.5' /> {story.fear_average}
+                        </span>
+                    )}
+                    <span className={`${story.fear_average ? '' : 'ml-auto '}inline-flex items-center gap-1 text-gray-500`} title='Views'>
                         <Eye className='h-3.5 w-3.5' /> {story.views}
                     </span>
                     <span className='text-gray-500'>{formatShortDate(story.created_at)}</span>

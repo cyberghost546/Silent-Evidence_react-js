@@ -14,7 +14,7 @@ function EmptyState({ title, message }) {
     return (
         <div className='rounded-xl border border-gray-800 bg-gray-950 px-6 py-12 text-center'>
             <p className='font-semibold text-gray-400'>{title}</p>
-            {message && <p className='mt-2 text-sm text-gray-600'>{message}</p>}
+            {message && <p className='mt-2 text-sm text-gray-500'>{message}</p>}
         </div>
     )
 }

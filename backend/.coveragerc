@@ -1,0 +1,14 @@
+# Settings for "coverage" - which lines do the tests actually run?
+#
+#   coverage run manage.py test
+#   coverage report --sort=miss      (worst files at the bottom)
+#   coverage html                    (then open htmlcov/index.html)
+[run]
+source = .
+omit =
+    venv/*
+    */migrations/*
+    */tests.py
+    */test_*.py
+    manage.py
+    config/*

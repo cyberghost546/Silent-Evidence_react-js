@@ -1,6 +1,8 @@
 from datetime import timedelta
 
 from django.contrib.auth.models import User
+from django.db.models import Count, Q
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
@@ -8,8 +10,11 @@ from rest_framework.views import APIView
 
 # One app is allowed to import another app's models - that's how
 # the dashboard can count slides and categories.
+from accounts.age import age_on
+from accounts.models import get_profile, loaded_profile
 from categories.models import Category
 from slides.models import Slide
+from stories.models import Story
 
 
 # GET /api/dashboard/stats/
@@ -73,3 +78,295 @@ class DashboardStatsView(APIView):
                 for s in recent_slides
             ],
         })
+
+
+# ---------------------------------------------------------------
+# USERS PAGE (Admin Dashboard -> Users). Admins only.
+# ---------------------------------------------------------------
+
+# One user, the way the Users table wants it.
+#
+# role: 'admin' if they're staff (Django's own flag), otherwise the
+# role saved on their profile ('user' or 'author').
+def admin_user_data(user):
+    # users_with_counts() loads the profiles with select_related, so
+    # loaded_profile() needs no extra query per user.
+    profile = loaded_profile(user)
+    return {
+        'id': user.id,
+        'username': user.username,
+        'email': user.email,
+        'avatar': profile.avatar.url if profile.avatar else '',
+        'role': 'admin' if user.is_staff else profile.role,
+        'is_verified': profile.is_verified,
+        'is_premium': profile.is_premium,
+        # Confirmed age for 18+ stories (None = not confirmed yet).
+        'age': age_on(profile.birth_date) if profile.birth_date else None,
+        'story_count': user.story_count,
+        'comment_count': user.comment_count,
+        'date_joined': user.date_joined,
+    }
+
+
+# The users with their two counts added, for both views below.
+# distinct=True: counting stories AND comments in one query joins
+# both tables, and without it every story would be counted once
+# per comment (and the other way round).
+def users_with_counts():
+    return User.objects.select_related('profile').annotate(
+        story_count=Count('stories', distinct=True),
+        comment_count=Count('comments', distinct=True),
+    )
+
+
+# GET /api/dashboard/users/
+#
+#   { "counts": { "total": 2, "admins": 1, "authors": 1, "premium": 1 },
+#     "users": [ ...admin_user_data()... ] }
+#
+# ALL users at once, oldest first. The page searches, filters and
+# sorts them in the browser. That's fine for a few hundred users;
+# with thousands you'd do it here in Django (and send one page at
+# a time - "pagination").
+class AdminUserListView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        users = [admin_user_data(user) for user in users_with_counts().order_by('id')]
+
+        # Count them from the list we just made - no extra queries.
+        # sum(1 for ... if ...) = "how many match".
+        counts = {
+            'total': len(users),
+            'admins': sum(1 for u in users if u['role'] == 'admin'),
+            'authors': sum(1 for u in users if u['role'] == 'author'),
+            'premium': sum(1 for u in users if u['is_premium']),
+        }
+        return Response({'counts': counts, 'users': users})
+
+
+# PATCH  /api/dashboard/users/5/   { role / is_verified / is_premium }
+# DELETE /api/dashboard/users/5/
+class AdminUserDetailView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def patch(self, request, pk):
+        user = get_object_or_404(User, pk=pk)
+        profile = get_profile(user)
+        data = request.data
+
+        if 'role' in data:
+            role = data['role']
+            if role not in ('user', 'author', 'admin'):
+                return Response({'detail': 'Unknown role.'}, status=400)
+
+            # Taking away your OWN admin rights would lock you out of
+            # this page halfway through. Another admin must do it.
+            if user == request.user and role != 'admin':
+                return Response({'detail': "You can't remove your own admin role."}, status=400)
+
+            # 'admin' = Django's staff flag (it's what IsAdminUser and
+            # /admin check). Any other role = not staff + that role.
+            if role == 'admin':
+                user.is_staff = True
+            else:
+                user.is_staff = False
+                profile.role = role
+            user.save()
+
+        # FormData sends true/false as TEXT: 'true' / 'false'.
+        if 'is_verified' in data:
+            profile.is_verified = data['is_verified'] == 'true'
+        if 'is_premium' in data:
+            profile.is_premium = data['is_premium'] == 'true'
+        # "Reset age": they typed the wrong birth date - let them confirm again.
+        if data.get('reset_birth_date') in (True, 'true'):
+            profile.birth_date = None
+
+        profile.save()
+
+        # Read the user again WITH the counts, and send the new row back.
+        return Response(admin_user_data(users_with_counts().get(pk=pk)))
+
+    def delete(self, request, pk):
+        user = get_object_or_404(User, pk=pk)
+
+        if user == request.user:
+            return Response({'detail': "You can't delete your own account here."}, status=400)
+
+        # Everything they made goes with them (on_delete=CASCADE).
+        user.delete()
+        return Response(status=204)
+
+
+# ---------------------------------------------------------------
+# STORIES PAGE (Admin Dashboard -> Stories). Admins only.
+# ---------------------------------------------------------------
+
+# 'draft' / 'published' / 'archived' - one word for the dropdown.
+# (Archived wins: an archived story is off the site either way.)
+def story_status(story):
+    if story.is_archived:
+        return 'archived'
+    return 'published' if story.is_published else 'draft'
+
+
+def admin_story_data(story):
+    return {
+        'id': story.id,
+        'title': story.title,
+        'author': story.author.username,
+        'category': story.category.name if story.category else None,
+        'status': story_status(story),
+        'is_story_of_the_day': story.is_story_of_the_day,
+        'is_story_of_the_week': story.is_story_of_the_week,
+        'like_count': story.like_count,
+        'comment_count': story.comment_count,
+        'views': story.views,
+        'created_at': story.created_at,
+    }
+
+
+# All stories (drafts and archived too) with their two counts.
+# distinct=True for the same reason as users_with_counts() above.
+def stories_with_counts():
+    return Story.objects.select_related('author', 'category').annotate(
+        like_count=Count('likes', distinct=True),
+        comment_count=Count('comments', distinct=True),
+    )
+
+
+# GET /api/dashboard/stories/
+#   { "counts": { "total", "draft", "published", "archived" },
+#     "stories": [ ...admin_story_data()... ] }  newest first
+#
+# Like the Users page: everything at once, the page searches and
+# filters in the browser.
+class AdminStoryListView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        stories = [admin_story_data(story) for story in stories_with_counts().order_by('-created_at')]
+
+        counts = {'total': len(stories), 'draft': 0, 'published': 0, 'archived': 0}
+        for story in stories:
+            counts[story['status']] += 1
+
+        return Response({'counts': counts, 'stories': stories})
+
+
+# PATCH  /api/dashboard/stories/5/   { status } or { is_story_of_the_day } or { is_story_of_the_week }
+# DELETE /api/dashboard/stories/5/
+class AdminStoryDetailView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def patch(self, request, pk):
+        story = get_object_or_404(Story, pk=pk)
+        data = request.data
+
+        if 'status' in data:
+            status_word = data['status']
+            if status_word == 'draft':
+                story.is_published = False
+                story.is_archived = False
+            elif status_word == 'published':
+                story.is_published = True
+                story.is_archived = False
+            elif status_word == 'archived':
+                # is_published is left alone: un-archiving later puts
+                # the story back exactly as it was.
+                story.is_archived = True
+            else:
+                return Response({'detail': 'Unknown status.'}, status=400)
+
+        # FormData sends 'true' / 'false' as text.
+        # Only ONE Story of the Day (and one of the Week) at a time:
+        # picking a new one takes the tick off the old one.
+        for field in ('is_story_of_the_day', 'is_story_of_the_week'):
+            if field in data:
+                turn_on = data[field] == 'true'
+                if turn_on:
+                    # **{field: True} = "filter(is_story_of_the_day=True)",
+                    # with the field name coming from the loop.
+                    Story.objects.filter(**{field: True}).exclude(pk=story.pk).update(**{field: False})
+                setattr(story, field, turn_on)   # story.<field> = turn_on
+
+        story.save()
+        return Response(admin_story_data(stories_with_counts().get(pk=pk)))
+
+    def delete(self, request, pk):
+        get_object_or_404(Story, pk=pk).delete()
+        return Response(status=204)
+
+
+# ---------------------------------------------------------------
+# CONVERSION FUNNEL (Admin Dashboard -> Conversion Funnel)
+#
+# Of the people who signed up, how many went one step further?
+#   1. Signed up
+#   2. ...and set up their profile (avatar or bio)
+#   3. ...and took part (liked, saved or commented at least once)
+#   4. ...and started writing (any story, drafts too)
+#   5. ...and published a story
+#   6. ...and went premium
+# Every step is a smaller group of the people in the step before -
+# that's what makes it a funnel.
+#
+# (Visitors who never sign up aren't counted: the site doesn't
+# track anonymous visitors.)
+# ---------------------------------------------------------------
+
+# GET /api/dashboard/funnel/?days=30   (7, 30, 90, or 'all')
+class FunnelView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        days = request.query_params.get('days', '30')
+        people = User.objects.all()
+        if days != 'all':
+            # int() would crash on nonsense - fall back to 30.
+            days = int(days) if days.isdigit() else 30
+            people = people.filter(date_joined__gte=timezone.now() - timedelta(days=days))
+
+        # Each step keeps only the people who ALSO did it - so every
+        # step is a part of the step before (that's what makes it a
+        # funnel; a person who comments but never set up a profile
+        # drops out at step 2).
+        # Q(a) | Q(b) = a OR b. .distinct() because joining likes /
+        # comments would otherwise list one person several times.
+        # We keep the ids (values('id')) and filter the next step with
+        # id__in=..., which Django turns into one sub-query.
+        signed_up = people
+        profile_done = signed_up.filter(Q(profile__bio__gt='') | ~Q(profile__avatar='')).exclude(profile__isnull=True)
+        took_part = User.objects.filter(id__in=profile_done.values('id')).filter(
+            Q(likes__isnull=False) | Q(bookmarks__isnull=False) | Q(comments__isnull=False)
+        )
+        wrote = User.objects.filter(id__in=took_part.values('id'), stories__isnull=False)
+        published = User.objects.filter(id__in=wrote.values('id'), stories__is_published=True)
+        premium = User.objects.filter(id__in=published.values('id'), profile__is_premium=True)
+
+        steps = [
+            ('signed_up', 'Signed up', signed_up.count()),
+            ('profile', '...set up their profile', profile_done.distinct().count()),
+            ('engaged', '...liked, saved or commented', took_part.distinct().count()),
+            ('wrote', '...started writing a story', wrote.distinct().count()),
+            ('published', '...published a story', published.distinct().count()),
+            ('premium', '...went premium', premium.distinct().count()),
+        ]
+
+        total = steps[0][2]
+        result = []
+        previous = total
+        for key, label, count in steps:
+            result.append({
+                'key': key,
+                'label': label,
+                'count': count,
+                # "of everyone who signed up" and "of the step before".
+                # max(..., 1): never divide by zero.
+                'percent_of_total': round(count * 100 / max(total, 1)),
+                'percent_of_previous': round(count * 100 / max(previous, 1)),
+            })
+            previous = count
+
+        return Response({'days': days, 'steps': result})

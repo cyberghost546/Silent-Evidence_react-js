@@ -47,7 +47,7 @@ function NavDropdown({ label, items }) {
                 onClick={toggle}
                 aria-haspopup='menu'
                 aria-expanded={open}
-                className='flex items-center gap-1 text-gray-200 hover:text-white transition-colors'
+                className='flex items-center gap-1 text-gray-200 hover:text-red-500 transition-colors'
             >
                 {label}
 
@@ -104,11 +104,11 @@ function NavDropdown({ label, items }) {
                                 // still hanging open on the next page.
                                 onClick={close}
 
-                                // border-b draws the divider line between
-                                // rows. last:border-b-0 removes it from the
-                                // final row, so there is no stray line at
-                                // the bottom of the list.
-                                className='block px-4 py-3 text-sm text-gray-200 border-b border-slate-700 last:border-b-0 hover:bg-slate-700 hover:text-white transition-colors'
+                                // No divider lines between rows - the red hover
+                                // background already shows which row you're on.
+                                // (To bring them back: add
+                                // border-b border-slate-700 last:border-b-0)
+                                className='block px-4 py-3 text-sm text-gray-200 hover:bg-red-600 hover:text-white transition-colors'
                             >
                                 {item.label}
                             </a>

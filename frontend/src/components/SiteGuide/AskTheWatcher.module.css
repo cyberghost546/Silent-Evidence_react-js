@@ -1,0 +1,137 @@
+/* ---------------------------------------------------------------
+   Animations for Ask The Watcher.
+   (A CSS Module: the class names only apply to AskTheWatcher.jsx.)
+   The card and bubble animations match the Site Guide tour
+   (SiteTour.module.css), so the two feel like the same thing.
+   --------------------------------------------------------------- */
+
+
+/* THE CARD - slides up a little and fades in when it opens. */
+.card {
+    animation: slide-up 0.35s ease-out;
+}
+
+@keyframes slide-up {
+    from {
+        opacity: 0;
+        transform: translateY(24px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
+/* THE WATCHER'S BUBBLES - slide in from the right, like each new
+   step in the tour. Your bubbles fade up from below instead. */
+.bubble {
+    animation: fade-in 0.3s ease-out;
+}
+
+.bubbleYou {
+    animation: fade-up 0.2s ease-out;
+}
+
+@keyframes fade-in {
+    from {
+        opacity: 0;
+        transform: translateX(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes fade-up {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
+/* THE RED BAR WHILE THINKING - a red streak that runs across the
+   bar, over and over, until the answer arrives. */
+.scan {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 35%;
+    background: #dc2626;         /* red-600 */
+    animation: scan 1s ease-in-out infinite;
+}
+
+@keyframes scan {
+    from {
+        transform: translateX(-100%);
+    }
+    to {
+        transform: translateX(300%);
+    }
+}
+
+
+/* THE "TYPING" DOTS - three dots that bounce one after the other.
+   .dots is the row; ".dots span" = each of the three <span>s in it.
+   Same box style as the Watcher's speech bubbles. */
+.dots {
+    display: flex;
+    gap: 4px;
+    padding: 14px 16px;
+    border: 1px solid #334155;   /* slate-700 */
+    border-radius: 12px;
+    background: rgba(30, 41, 59, 0.8); /* slate-800/80 */
+}
+
+.dots span {
+    width: 6px;
+    height: 6px;
+    border-radius: 9999px;
+    background: #f87171;         /* red-400 */
+    animation: bounce 1.2s ease-in-out infinite;
+}
+
+/* :nth-child(2) = the 2nd dot. A delay makes them go one by one
+   instead of all together. */
+.dots span:nth-child(2) {
+    animation-delay: 0.15s;
+}
+
+.dots span:nth-child(3) {
+    animation-delay: 0.3s;
+}
+
+@keyframes bounce {
+    0%,
+    60%,
+    100% {
+        transform: translateY(0);
+        opacity: 0.5;
+    }
+    30% {
+        transform: translateY(-5px);
+        opacity: 1;
+    }
+}
+
+
+/* People who switched off animations in their system settings. */
+@media (prefers-reduced-motion: reduce) {
+    .card,
+    .bubble,
+    .bubbleYou,
+    .dots span {
+        animation: none;
+    }
+
+    /* No running streak - just show a full, still bar. */
+    .scan {
+        animation: none;
+        width: 100%;
+    }
+}

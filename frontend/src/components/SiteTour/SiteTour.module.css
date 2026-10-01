@@ -1,0 +1,45 @@
+/* ---------------------------------------------------------------
+   Animations for the Site Guide tour card.
+   --------------------------------------------------------------- */
+
+/* The card slides up a little and fades in when it opens. */
+.card {
+    animation: slide-up 0.35s ease-out;
+}
+
+@keyframes slide-up {
+    from {
+        opacity: 0;
+        transform: translateY(24px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* The speech bubble fades in on every new step. (It gets a new
+   key per step in SiteTour.jsx, so React makes a new element and
+   the animation plays again.) */
+.bubble {
+    animation: fade-in 0.3s ease-out;
+}
+
+@keyframes fade-in {
+    from {
+        opacity: 0;
+        transform: translateX(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Respect "reduce motion" in the visitor's system settings. */
+@media (prefers-reduced-motion: reduce) {
+    .card,
+    .bubble {
+        animation: none;
+    }
+}

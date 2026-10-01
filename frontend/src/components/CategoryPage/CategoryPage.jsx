@@ -11,6 +11,7 @@ import StoryCard from '../StorySections/StoryCard'
 import EmptyState from '../StorySections/EmptyState'
 import NotFound from '../NotFound/NotFound'
 import styles from './CategoryPage.module.css'
+import { usePageTitle } from '../../hooks/usePageTitle'
 
 
 // The toggle buttons' options live outside the component - they
@@ -20,6 +21,8 @@ const SORT_OPTIONS = [
     { value: 'newest', label: 'Newest' },
     { value: 'popular', label: 'Popular' },
     { value: 'oldest', label: 'Oldest' },
+    // Highest fear meter first (only stories someone rated).
+    { value: 'scariest', label: 'Scariest' },
 ]
 
 // The name the grid/list choice is saved under in the browser.
@@ -49,6 +52,7 @@ function CategoryPage() {
     const { slug } = useParams()
 
     const [category, setCategory] = useState(null)
+    usePageTitle(category?.name)
     const [notFound, setNotFound] = useState(false)
 
     // null = still loading, [] = loaded but empty.

@@ -1,0 +1,53 @@
+# ---------------------------------------------------------------
+# Files git should NOT keep track of. (frontend/.gitignore has the
+# React ones: node_modules, dist...)
+# ---------------------------------------------------------------
+
+# Python turns every .py file into a compiled .pyc in __pycache__.
+# They're made again automatically, and change on every run - so
+# they would show up in every commit for no reason.
+__pycache__/
+*.pyc
+
+# The Python virtual environment (the installed packages).
+# Anyone can make their own with: python -m venv venv
+venv/
+
+# The database. It's YOUR local data (users, password hashes,
+# stories), not code. Everyone else builds their own with
+# "python manage.py migrate".
+backend/db.sqlite3
+# The browser tests' own database (frontend/e2e/), made fresh every run.
+backend/e2e.sqlite3
+
+# Pictures people upload (avatars, story covers).
+backend/media/
+
+# Installed JavaScript packages (anywhere in the project). Anyone
+# gets them back with "npm install".
+node_modules/
+
+# Editor / OS clutter
+.vscode/
+.DS_Store
+
+# Made by "python manage.py collectstatic" (the live site builds it).
+backend/staticfiles/
+
+# Your secrets (passwords, keys) - NEVER in git. The .env.example
+# files show which ones exist, without the values.
+.env
+*.env
+!.env.example
+
+# Made by "python manage.py backup_site" - your users' data, never in git.
+backend/backups/
+
+# Test coverage reports (made by "npm run test:coverage" and "coverage run")
+coverage/
+htmlcov/
+.coverage
+
+# Playwright's reports and screenshots of failed browser tests
+frontend/test-results/
+frontend/playwright-report/

@@ -1,6 +1,13 @@
 import { NavLink, Link } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { GridIcon, PhotoIcon, UsersIcon, BookIcon, TagIcon, ArrowLeftIcon, LogoutIcon } from './DashboardIcons'
+import {
+    Bot, Flag, TriangleAlert, Gavel, ShieldCheck, Map, ShieldAlert, TrendingUp, Funnel, Swords,
+    Megaphone, Trophy, Mail, LifeBuoy, Newspaper, MessageSquare, Package, PenLine,
+    Cookie, CircleCheck, DollarSign, Crown, Ban, ShieldX, Search, Tag, Clock, Send, HeartPulse, Moon,
+    Star, Flashlight, ChartColumn, ScrollText, CalendarDays, FileText, Globe, Grid3x3, Gauge, Settings,
+    GitMerge, BotMessageSquare, ShieldBan, Bug, Clapperboard, Eye,
+} from 'lucide-react'
 import styles from './Dashboard.module.css'
 
 
@@ -15,13 +22,65 @@ import styles from './Dashboard.module.css'
 //          shown greyed out with a "soon" tag.
 //   end  - only for Overview, see the NavLink comment below.
 // ---------------------------------------------------------------
+const ICON = 'h-5 w-5 shrink-0'
+
 const NAV_ITEMS = [
     { label: 'Overview', to: '/dashboard', icon: <GridIcon />, end: true },
+    { label: 'Users', to: '/dashboard/users', icon: <UsersIcon /> },
+    { label: 'Stories', to: '/dashboard/stories', icon: <BookIcon /> },
+
+    // The newer pages use lucide-react icons. ICON is the same size
+    // as the hand-made icons (w-5 h-5).
+    { label: 'AI Generator', to: '/dashboard/ai', icon: <Bot className={ICON} /> },
+    { label: 'Moderation', to: '/dashboard/moderation', icon: <Flag className={ICON} /> },
+    { label: 'Reports', to: '/dashboard/reports', icon: <TriangleAlert className={ICON} /> },
+    { label: 'Appeals', to: '/dashboard/appeals', icon: <Gavel className={ICON} /> },
+    { label: 'Login Logs', to: '/dashboard/login-logs', icon: <ShieldCheck className={ICON} /> },
+    { label: 'Login Map', to: '/dashboard/login-map', icon: <Map className={ICON} /> },
+    { label: 'Security', to: '/dashboard/security', icon: <ShieldAlert className={ICON} /> },
+    { label: 'Analytics', to: '/dashboard/analytics', icon: <TrendingUp className={ICON} /> },
+    { label: 'Conversion Funnel', to: '/dashboard/funnel', icon: <Funnel className={ICON} /> },
+    { label: 'Challenges', to: '/dashboard/challenges', icon: <Swords className={ICON} /> },
     { label: 'Slideshow', to: '/dashboard/slides', icon: <PhotoIcon /> },
-    { label: 'Users', icon: <UsersIcon /> },
-    { label: 'Stories', icon: <BookIcon /> },
-    { label: 'Categories', icon: <TagIcon /> },
+    { label: 'Videos', to: '/dashboard/videos', icon: <Clapperboard className={ICON} /> },
+    { label: 'True Stories', to: '/dashboard/true-stories', icon: <Eye className={ICON} /> },
+    { label: 'Categories', to: '/dashboard/categories', icon: <TagIcon /> },
+    { label: 'Announcement', to: '/dashboard/announcements', icon: <Megaphone className={ICON} /> },
+    { label: 'Story of Week', to: '/dashboard/story-of-week', icon: <Trophy className={ICON} /> },
+    { label: 'Contact Inbox', to: '/dashboard/contact', icon: <Mail className={ICON} /> },
+    { label: 'User Support', to: '/dashboard/support', icon: <LifeBuoy className={ICON} /> },
+    { label: 'Newsletter', to: '/dashboard/newsletter', icon: <Newspaper className={ICON} /> },
+    { label: 'Comment Digest', to: '/dashboard/digest', icon: <MessageSquare className={ICON} /> },
+    { label: 'Bundles', to: '/dashboard/bundles', icon: <Package className={ICON} /> },
+    { label: 'Writing Prompts', to: '/dashboard/prompts', icon: <PenLine className={ICON} /> },
+    { label: 'Cookie Consent', to: '/dashboard/cookies', icon: <Cookie className={ICON} /> },
+    { label: 'Verification', to: '/dashboard/verification', icon: <CircleCheck className={ICON} /> },
+    { label: 'Revenue', to: '/dashboard/revenue', icon: <DollarSign className={ICON} /> },
+    { label: 'Premium Members', to: '/dashboard/premium', icon: <Crown className={ICON} /> },
+    { label: 'Content Filter', to: '/dashboard/content-filter', icon: <Ban className={ICON} /> },
+    { label: 'Warnings & Bans', to: '/dashboard/discipline', icon: <ShieldX className={ICON} /> },
+    { label: 'Admin Search', to: '/dashboard/search', icon: <Search className={ICON} /> },
+    { label: 'Tag Manager', to: '/dashboard/tags', icon: <Tag className={ICON} /> },
+    { label: 'Scheduled Stories', to: '/dashboard/scheduled', icon: <Clock className={ICON} /> },
+    { label: 'Email Log', to: '/dashboard/email-log', icon: <Send className={ICON} /> },
+    { label: 'Site Health', to: '/dashboard/health', icon: <HeartPulse className={ICON} /> },
+    { label: 'Error Log', to: '/dashboard/errors', icon: <Bug className={ICON} /> },
+    { label: 'Mood of Day', to: '/dashboard/moods', icon: <Moon className={ICON} /> },
+    { label: 'Featured Authors', to: '/dashboard/featured-authors', icon: <Star className={ICON} /> },
+    { label: 'Story Spotlight', to: '/dashboard/spotlight', icon: <Flashlight className={ICON} /> },
+    { label: 'Poll Manager', to: '/dashboard/polls', icon: <ChartColumn className={ICON} /> },
+    { label: 'Audit Log', to: '/dashboard/audit-log', icon: <ScrollText className={ICON} /> },
+    { label: 'Content Calendar', to: '/dashboard/calendar', icon: <CalendarDays className={ICON} /> },
+    { label: 'Email Templates', to: '/dashboard/email-templates', icon: <FileText className={ICON} /> },
+    { label: 'SEO Dashboard', to: '/dashboard/seo', icon: <Globe className={ICON} /> },
+    { label: 'Activity Heatmap', to: '/dashboard/heatmap', icon: <Grid3x3 className={ICON} /> },
+    { label: 'Rate Limits', to: '/dashboard/rate-limits', icon: <Gauge className={ICON} /> },
+    { label: 'Site Settings', to: '/dashboard/site-settings', icon: <Settings className={ICON} /> },
+    { label: 'Merge Stories', to: '/dashboard/merge', icon: <GitMerge className={ICON} /> },
+    { label: 'AI Toxicity Queue', to: '/dashboard/toxicity', icon: <BotMessageSquare className={ICON} /> },
+    { label: 'IP Blocklist', to: '/dashboard/blocklist', icon: <ShieldBan className={ICON} /> },
 ]
+
 
 // Shared look for every row, plus the two states.
 const ITEM_STYLE = 'flex items-center gap-3 rounded-md border px-3 py-2 text-sm transition-colors'
@@ -29,19 +88,33 @@ const ACTIVE_STYLE = 'border-red-800 bg-red-950/60 text-white'
 const NORMAL_STYLE = 'border-transparent text-gray-400 hover:bg-gray-800/60 hover:text-white'
 
 
-function Sidebar() {
+// open / onClose: on PHONES the sidebar is a drawer that slides in
+// from the left (DashboardLayout has the menu button). On big screens
+// (lg and up) it's always visible and these do nothing.
+function Sidebar({ open, onClose }) {
     const { user, logout } = useAuth()
 
     return (
-        // h-screen + sticky top-0 = the sidebar stays put while the
-        // page on the right scrolls. overflow-y-auto = if the menu is
-        // taller than the screen, the sidebar scrolls on its own.
-        <aside className={`${styles.sidebar} sticky top-0 flex h-screen w-60 shrink-0 flex-col overflow-y-auto border-r border-gray-800 bg-gray-900/50`}>
+        // Phones: `fixed` on top of the page, pushed off-screen to the
+        //   left (-translate-x-full) until `open`; transition = it slides.
+        // lg and up: `sticky` in its normal place, always shown.
+        // h-screen + overflow-y-auto = if the menu is taller than the
+        // screen, the sidebar scrolls on its own.
+        <aside
+            className={`${styles.sidebar} fixed inset-y-0 left-0 z-40 flex h-screen w-60 shrink-0 flex-col overflow-y-auto border-r border-gray-800 bg-gray-900 transition-transform lg:sticky lg:top-0 lg:translate-x-0 lg:bg-gray-900/50 ${
+                open ? 'translate-x-0' : '-translate-x-full'
+            }`}
+        >
 
-            {/* ---------- LOGO ---------- */}
-            <div className='border-b border-gray-800 px-5 py-4'>
-                <p className='text-xs text-gray-500'>Admin Panel</p>
-                <p className='font-bold text-red-600'>Silent Evidence</p>
+            {/* ---------- LOGO (+ a close button on phones) ---------- */}
+            <div className='flex items-start justify-between border-b border-gray-800 px-5 py-4'>
+                <div>
+                    <p className='text-xs text-gray-500'>Admin Panel</p>
+                    <p className='font-bold text-red-600'>Silent Evidence</p>
+                </div>
+                <button type='button' onClick={onClose} aria-label='Close menu' className='text-2xl leading-none text-gray-500 hover:text-white lg:hidden'>
+                    &times;
+                </button>
             </div>
 
             {/* ---------- MENU ---------- */}
@@ -71,6 +144,7 @@ function Sidebar() {
                             key={item.label}
                             to={item.to}
                             end={item.end}
+                            onClick={onClose}
                             className={({ isActive }) => `${ITEM_STYLE} ${isActive ? ACTIVE_STYLE : NORMAL_STYLE}`}
                         >
                             {item.icon}

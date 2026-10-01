@@ -27,8 +27,10 @@ export const ACCENTS = {
     },
     red: {
         bar: 'bg-red-600',
-        text: 'text-red-500',
-        hoverText: 'hover:text-red-400',
+        // red-400, not 500: small red text on the dark cards needs the
+        // lighter shade to be easy to read (4.5 : 1 contrast).
+        text: 'text-red-400',
+        hoverText: 'hover:text-red-300',
         badge: 'border-red-800/60 bg-red-950/40 text-red-400',
         glow: 'shadow-red-900/30',
     },

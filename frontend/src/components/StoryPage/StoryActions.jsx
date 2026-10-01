@@ -1,9 +1,13 @@
 import { useState } from 'react'
-import { Bookmark, BookmarkCheck, Link as LinkIcon, Check, MessageCircle, ChevronDown } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { Bookmark, BookmarkCheck, Link as LinkIcon, Check, MessageCircle, ChevronDown, Flag, ListPlus, Download, WifiOff, Users } from 'lucide-react'
 import { useDropdown } from '../../hooks/useDropdown'
 import { useRequireLogin } from '../../hooks/useRequireLogin'
 import { saveStory } from '../../api/client'
 import { XIcon, RedditIcon } from '../BrandIcons/BrandIcons'
+import ReportDialog from '../ReportDialog/ReportDialog'
+import AddToListDialog from '../ReadingLists/AddToListDialog'
+import { offlineSupported, isSavedOffline, saveOffline, removeOffline } from '../../utils/offlineStories'
 
 
 const ITEM_BASE = 'flex w-full items-center gap-3 px-4 py-2 text-sm transition-colors hover:bg-gray-800'
@@ -29,6 +33,43 @@ function StoryActions({ story }) {
     // Starts from what Django said, then changes when you click.
     const [saved, setSaved] = useState(story.saved)
     const [copied, setCopied] = useState(false)
+
+    // Is the Report pop-up open?
+    const [reporting, setReporting] = useState(false)
+    // Downloaded for offline reading? (utils/offlineStories.js)
+    const [offline, setOffline] = useState(() => offlineSupported() && isSavedOffline(story.id))
+    const [offlineBusy, setOfflineBusy] = useState(false)
+
+    async function handleOffline() {
+        setOfflineBusy(true)
+        try {
+            if (offline) {
+                await removeOffline(story.id)
+            } else {
+                await saveOffline(story)
+            }
+            setOffline(!offline)
+        } catch (err) {
+            console.error('Could not save for offline:', err)
+        } finally {
+            setOfflineBusy(false)
+        }
+    }
+
+    // Is the "Add to reading list" pop-up open?
+    const [addingToList, setAddingToList] = useState(false)
+
+    function handleAddToList() {
+        close()
+        if (!requireLogin()) return
+        setAddingToList(true)
+    }
+
+    function handleReport() {
+        close()
+        if (!requireLogin()) return   // logged out -> Log In page first
+        setReporting(true)
+    }
 
     // The address to share. window.location.origin = "http://localhost:5173"
     // now, and your real domain once the site is online.
@@ -91,6 +132,22 @@ function StoryActions({ story }) {
                         {saved ? <BookmarkCheck className='h-4 w-4 text-red-500' /> : <Bookmark className='h-4 w-4' />}
                         {saved ? 'Saved' : 'Save'}
                     </button>
+                    <button type='button' role='menuitem' onClick={handleAddToList} className={ITEM_STYLE}>
+                        <ListPlus className='h-4 w-4' />
+                        Add to reading list
+                    </button>
+                    {/* Read it together at a set time (ReadAlongsPage.jsx). */}
+                    <Link to={`/read-alongs?story=${story.id}`} role='menuitem' onClick={close} className={ITEM_STYLE}>
+                        <Users className='h-4 w-4' />
+                        Host a read-along
+                    </Link>
+                    {/* A locked 18+ story has no text to download yet. */}
+                    {offlineSupported() && !story.lock && (
+                        <button type='button' role='menuitem' onClick={handleOffline} disabled={offlineBusy} className={ITEM_STYLE}>
+                            {offline ? <WifiOff className='h-4 w-4 text-green-400' /> : <Download className='h-4 w-4' />}
+                            {offline ? 'Saved offline (remove)' : 'Save for offline'}
+                        </button>
+                    )}
 
                     <div className='my-2 border-t border-gray-800' />
 
@@ -117,7 +174,21 @@ function StoryActions({ story }) {
                             {link.label}
                         </a>
                     ))}
+
+                    <div className='my-2 border-t border-gray-800' />
+
+                    {/* Report - red, and last, so nobody clicks it by accident. */}
+                    <button type='button' role='menuitem' onClick={handleReport} className={`${ITEM_BASE} text-red-400 hover:text-red-300`}>
+                        <Flag className='h-4 w-4' />
+                        Report story
+                    </button>
                 </div>
+            )}
+
+            {addingToList && <AddToListDialog storyId={story.id} onClose={() => setAddingToList(false)} />}
+
+            {reporting && (
+                <ReportDialog target={{ story_id: story.id }} what='story' onClose={() => setReporting(false)} />
             )}
         </div>
     )

@@ -1,12 +1,18 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { CheckCircle2 } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
+import { useSiteStatus } from '../../hooks/useSiteStatus'
 import PasswordInput from '../PasswordInput/PasswordInput'
+import PasswordStrength from '../PasswordStrength/PasswordStrength'
+import AuthLayout from '../AuthLayout/AuthLayout'
 import { LABEL_STYLE, INPUT_STYLE, BUTTON_STYLE, FIELD_ERROR_STYLE } from '../../styles/formStyles'
 
-// A CSS Module. `styles` is an object: styles.card, styles.divider.
-// See SignUp.module.css for what they do and why they're not Tailwind.
+// Two CSS Modules. `styles` is this page's own (the "or register
+// with email" divider). `authStyles` is shared with Log In (the
+// glowing card). See the comments in each .css file.
 import styles from './SignUp.module.css'
+import authStyles from '../AuthLayout/AuthLayout.module.css'
 
 
 // Both "Continue with..." buttons share everything except colours,
@@ -58,6 +64,7 @@ function FieldError({ messages }) {
 function SignUp() {
     const { signup } = useAuth()
     const navigate = useNavigate()
+    const site = useSiteStatus()
 
     const [form, setForm] = useState({
         username: '',
@@ -107,20 +114,37 @@ function SignUp() {
         }
     }
 
-    return (
-        // A near-black strip behind the card - the red glow only
-        // really shows up against something dark.
-        <div className='bg-neutral-950 px-4 py-16'>
+    // For the little message under "Confirm Password". Only once
+    // they've started typing the second one - before that, there's
+    // nothing to compare.
+    const passwordsMatch = form.password2 !== '' && form.password === form.password2
 
-            {/* styles.card (from the CSS Module) = gradient + red glow.
-                Everything else is Tailwind. The template string
-                `${...} ...` glues the two together into one className. */}
-            <div className={`${styles.card} max-w-lg mx-auto rounded-2xl border border-slate-800 p-9 text-white`}>
+    // Admins can close sign-ups (Dashboard -> Site Settings). Then we
+    // show a notice instead of the form. (Django refuses too - this
+    // is just so nobody fills in the whole form for nothing.)
+    const signupsClosed = site && !site.signups_open
+
+    return (
+        // <AuthLayout> = the dark full-screen page with the
+        // "Back to site" link. Same as Log In.
+        <AuthLayout>
+
+            {/* authStyles.card (from the shared CSS Module) = gradient
+                + red glow. Everything else is Tailwind. The template
+                string glues them together into one className. */}
+            <div className={`${authStyles.card} w-full max-w-lg rounded-2xl border border-slate-800 p-8 text-white sm:p-9`}>
 
                 {/* ---------- TITLE ---------- */}
                 <h1 className='text-3xl font-extrabold'>Create an account</h1>
                 <p className='mt-1 text-sm text-gray-400'>Join Silent Evidence today</p>
 
+                {signupsClosed ? (
+                    <div className='mt-8 rounded-xl border border-amber-800 bg-amber-950/30 p-5 text-sm text-amber-100'>
+                        <p className='font-semibold'>Sign-ups are closed right now.</p>
+                        <p className='mt-1 text-amber-200/80'>Please try again later. Already have an account? <Link to='/login' className='font-semibold text-red-400 hover:text-red-300'>Log in</Link></p>
+                    </div>
+                ) : (
+                <>
                 {/* ---------- SOCIAL BUTTONS ---------- */}
                 {/* space-y-3 = a gap between the two buttons. */}
                 <div className='mt-8 space-y-3'>
@@ -144,7 +168,7 @@ function SignUp() {
                 </div>
 
                 {/* The lines on both sides come from the CSS Module. */}
-                <div className={`${styles.divider} my-6 text-xs text-slate-500`}>
+                <div className={`${styles.divider} my-6 text-xs text-slate-400`}>
                     or register with email
                 </div>
 
@@ -206,6 +230,10 @@ function SignUp() {
                             autoComplete='new-password'
                             required
                         />
+                        {/* The 4 bars that fill up as the password
+                            gets stronger. Just a hint - Django has the
+                            final say (the red message below it). */}
+                        <PasswordStrength password={form.password} />
                         <FieldError messages={errors.password} />
                     </div>
 
@@ -220,7 +248,19 @@ function SignUp() {
                             autoComplete='new-password'
                             required
                         />
-                        <FieldError messages={errors.password2} />
+
+                        {/* Live check while typing. If there's already
+                            an error from pressing the button, that shows
+                            instead (it's more important). */}
+                        {errors.password2 ? (
+                            <FieldError messages={errors.password2} />
+                        ) : passwordsMatch ? (
+                            <p className='mt-1 flex items-center gap-1 text-sm text-green-400'>
+                                <CheckCircle2 className='h-4 w-4' /> Passwords match
+                            </p>
+                        ) : form.password2 !== '' && (
+                            <p className='mt-1 text-sm text-gray-500'>Passwords don't match yet</p>
+                        )}
                     </div>
 
                     <button type='submit' disabled={saving} className={`${BUTTON_STYLE} w-full`}>
@@ -230,10 +270,18 @@ function SignUp() {
 
                 <p className='mt-6 text-center text-sm text-gray-400'>
                     Already have an account?{' '}
-                    <a href='/login' className='font-semibold text-red-500 hover:text-red-400'>Sign in</a>
+                    {/* <Link> instead of <a>: changes page without
+                        reloading the whole app. */}
+                    <Link to='/login' className='font-semibold text-red-500 hover:text-red-400'>Sign in</Link>
                 </p>
+                </>
+                )}
             </div>
-        </div>
+
+            <p className='mt-8 text-center text-sm text-slate-400'>
+                By creating an account you agree to our Terms &amp; Privacy Policy
+            </p>
+        </AuthLayout>
     )
 }
 

@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { Eye, BookOpen } from 'lucide-react'
 import { getStory, getStories, mediaUrl } from '../../api/client'
 import { pluralize, formatLongDate, splitParagraphs } from '../../utils/format'
+import { stripFormatting, countScares } from '../../utils/storyFormat'
 import Breadcrumbs from '../Breadcrumbs/Breadcrumbs'
 import SectionHeading from '../StorySections/SectionHeading'
 import StoryCard from '../StorySections/StoryCard'
@@ -13,12 +14,32 @@ import ReadingToolbar from './ReadingToolbar'
 import StoryBody from './StoryBody'
 import FocusView from './FocusView'
 import LikeButton from './LikeButton'
+import SupportWriterButton from '../SupportWriterButton/SupportWriterButton'
+import CandleBox from './CandleBox'
 import Comments from './Comments'
+import { SeriesLabel, SeriesNav } from './SeriesNav'
 import styles from './StoryPage.module.css'
+import { usePageTitle } from '../../hooks/usePageTitle'
+import StoryLock from './StoryLock'
+import EarlyAccessLock from './EarlyAccessLock'
+import ProName from '../ProName/ProName'
+import FearMeter from './FearMeter'
+import ReactionBar from './ReactionBar'
+import { useAuth } from '../../hooks/useAuth'
+import CampfireMode from './CampfireMode'
+import AmbientMode from './AmbientMode'
+import JumpScareNotice from './JumpScareNotice'
+import { useScareWarnings } from '../../hooks/useScareWarnings'
+import { BetaBanner, BetaFeedbackBox } from './BetaBox'
+import { useReadingProgress } from '../../hooks/useReadingProgress'
+import { useLineFocus } from '../../hooks/useLineFocus'
+import FollowButton from '../FollowButton/FollowButton'
 
 
 // The name the reader's text size is saved under in the browser.
 const TEXT_SIZE_KEY = 'storyTextSize'
+// "Easy read" on/off, remembered the same way.
+const EASY_READ_KEY = 'easyRead'
 
 
 // ===============================================================
@@ -40,13 +61,27 @@ const TEXT_SIZE_KEY = 'storyTextSize'
 function StoryPage() {
     // useParams() always gives STRINGS: { id: '5' }, not 5.
     const { id } = useParams()
+    const { user } = useAuth()
 
     const [story, setStory] = useState(null)
+    const [reloadKey, setReloadKey] = useState(0)
+
+    // CONTINUE READING: remember how far down you are (logged in, a
+    // readable published story). Hooks must run on EVERY render -
+    // before the "Loading..." return below - so it's up here.
+    const bodyRef = useRef(null)
+    const trackProgress = Boolean(user && story && !story.lock && !story.is_draft)
+    useReadingProgress(story?.id, bodyRef, trackProgress)
+    // Browser tab: the story's title (story is null while loading).
+    usePageTitle(story?.title)
     const [notFound, setNotFound] = useState(false)
     const [otherStories, setOtherStories] = useState([])
 
     // Focus mode on/off.
     const [focus, setFocus] = useState(false)
+
+    // Warn before jump scares? (the reader's choice, JumpScareNotice.jsx)
+    const [scareWarnings, setScareWarnings] = useScareWarnings()
 
     // Text size, remembered between visits (same trick as the
     // grid/list choice on CategoryPage).
@@ -55,6 +90,14 @@ function StoryPage() {
     useEffect(() => {
         localStorage.setItem(TEXT_SIZE_KEY, textSize)
     }, [textSize])
+
+    // Dyslexia-friendly text + line focus (index.css, useLineFocus.js).
+    const [easyRead, setEasyRead] = useState(() => localStorage.getItem(EASY_READ_KEY) === 'on')
+    useEffect(() => {
+        localStorage.setItem(EASY_READ_KEY, easyRead ? 'on' : 'off')
+    }, [easyRead])
+    // The paragraph in the middle of the screen stays bright (only in Easy read).
+    useLineFocus(bodyRef, easyRead && Boolean(story?.body))
 
     // ---------- Load the story ----------
     // Heads-up: while developing (npm run dev), each visit adds TWO
@@ -88,7 +131,9 @@ function StoryPage() {
         return () => {
             ignore = true
         }
-    }, [id])
+        // reloadKey: after confirming your age on the lock screen,
+        // load the story again - now WITH its text.
+    }, [id, reloadKey])
 
     // ---------- Load other stories from the same category ----------
     // ?. = optional chaining: undefined while the story is loading,
@@ -126,6 +171,9 @@ function StoryPage() {
         return <p className='bg-gray-900 py-24 text-center text-gray-400'>Loading...</p>
     }
 
+    // Is the logged-in reader the writer of this story?
+    const isAuthor = user?.username === story.author
+
     // Home / Haunted Houses / The Census Taker
     // (the category crumb only if the story has a category)
     const crumbs = [{ label: 'Home', to: '/' }]
@@ -135,7 +183,9 @@ function StoryPage() {
     crumbs.push({ label: story.title })
 
     // Listen reads the title first, then one paragraph at a time.
-    const speechPieces = [story.title, ...splitParagraphs(story.body)]
+    // stripFormatting removes the **bold** / ## marks first, so the
+    // voice doesn't read them out.
+    const speechPieces = [story.title, ...splitParagraphs(stripFormatting(story.body))]
 
     // The first other story is the recommendation, the rest go in the
     // "More from..." grid at the bottom.
@@ -178,6 +228,12 @@ function StoryPage() {
                     </Link>
                 )}
 
+                {/* A draft: "preview" or "you're beta-reading" (BetaBox.jsx). */}
+                {story.is_draft && <BetaBanner story={story} isAuthor={isAuthor} />}
+
+                {/* "Part 2 of 5 · The Lighthouse Diaries" (only for series). */}
+                <SeriesLabel series={story.series} />
+
                 <h1 className='mt-2 text-3xl font-extrabold tracking-tight text-white sm:text-4xl'>{story.title}</h1>
 
                 {/* Author on the left, Actions on the right. */}
@@ -187,7 +243,29 @@ function StoryPage() {
                             {initials}
                         </span>
                         <div>
-                            <p className='font-semibold text-red-400'>{story.author}</p>
+                            {/* The author (and co-authors, if anyone accepted
+                                a Co-author Invite), each a link to their profile. */}
+                            <p className='font-semibold text-red-400'>
+                                <Link to={`/profile/${story.author}`} className='hover:text-red-300'>
+                                    <ProName name={story.author} look={story.author_look} />
+                                </Link>
+                                {/* story.coauthors = ['night_owl', ...] or [].
+                                    Each one gets " & name" after the author. */}
+                                {story.coauthors?.map(name => (
+                                    <span key={name} className='text-gray-400'>
+                                        {' & '}
+                                        <Link to={`/profile/${name}`} className='text-red-400 hover:text-red-300'>{name}</Link>
+                                    </span>
+                                ))}
+
+                                {/* Follow the writer, right where you read
+                                    them. story.author_followed comes from
+                                    Django. Your own story = no button (the
+                                    FollowButton hides itself). */}
+                                <span className='ml-3 inline-block align-middle'>
+                                    <FollowButton username={story.author} following={story.author_followed} size='small' />
+                                </span>
+                            </p>
                             {/* flex-wrap: on a phone the details wrap onto a
                                 second line instead of squashing together. */}
                             <p className='flex flex-wrap items-center gap-x-2 text-xs text-gray-500'>
@@ -206,7 +284,15 @@ function StoryPage() {
 
                     {/* key={story.id}: a new story = a fresh menu, so the
                         "Saved" state of the previous story can't stick. */}
-                    <StoryActions key={story.id} story={story} />
+                    <div className='flex items-center gap-2'>
+                        {/* Your own story: a shortcut to edit it. */}
+                        {isAuthor && (
+                            <Link to={`/my-stories/${story.id}/edit`} className='rounded-md border border-gray-700 px-3 py-1.5 text-sm text-gray-200 hover:border-gray-500 hover:text-white'>
+                                Edit
+                            </Link>
+                        )}
+                        <StoryActions key={story.id} story={story} />
+                    </div>
                 </div>
 
                 {/* ================= 3. INTRO ================= */}
@@ -219,19 +305,93 @@ function StoryPage() {
                 )}
 
                 {/* ================= 4. READING TOOLS ================= */}
-                <div className='mt-8'>
-                    <ReadingToolbar
-                        speechPieces={speechPieces}
-                        onFocus={() => setFocus(true)}
-                        textSize={textSize}
-                        onTextSizeChange={setTextSize}
-                    />
-                </div>
+                {/* Not on a locked 18+ story - there's no text to read yet. */}
+                {!story.lock && (
+                    <div className='mt-8'>
+                        <ReadingToolbar
+                            speechPieces={speechPieces}
+                            onFocus={() => setFocus(true)}
+                            textSize={textSize}
+                            onTextSizeChange={setTextSize}
+                            easyRead={easyRead}
+                            onEasyReadChange={setEasyRead}
+                        />
+                        {/* Only when the writer marked jump scares. */}
+                        <JumpScareNotice count={countScares(story.body)} warn={scareWarnings} onChange={setScareWarnings} />
+                        {/* Background sound while reading (CampfireMode.jsx). */}
+                        <div className='mt-3'>
+                            <CampfireMode />
+                        </div>
+                        {/* Opt-in: the screen darkens as you read, flicker at scares. */}
+                        <div className='mt-3'>
+                            <AmbientMode bodyRef={bodyRef} />
+                        </div>
+                    </div>
+                )}
 
                 {/* ================= 5. THE STORY ================= */}
-                <div className='mt-8'>
-                    <StoryBody body={story.body} size={textSize} />
-                </div>
+                {/* A story you can't read yet: a lock screen instead of the
+                    text (Django didn't send the text at all). Two kinds:
+                    Pro early access, or 18+ (login / age / too young). */}
+                {story.lock === 'early_access' ? (
+                    <EarlyAccessLock opensAt={story.early_access_until} />
+                ) : story.lock ? (
+                    <StoryLock lock={story.lock} onUnlocked={() => setReloadKey(key => key + 1)} />
+                ) : (
+                    <>
+                        {/* Came back to a half-read story: offer to jump
+                            to where you were (saved by useReadingProgress). */}
+                        {story.my_progress >= 5 && story.my_progress < 95 && (
+                            <button
+                                type='button'
+                                onClick={() => {
+                                    const box = bodyRef.current.getBoundingClientRect()
+                                    // The spot where you'd seen my_progress % of the
+                                    // story: its top + that much of its height,
+                                    // minus one screen (you saw up to the screen's bottom).
+                                    const target = window.scrollY + box.top + (box.height * story.my_progress) / 100 - window.innerHeight
+                                    window.scrollTo({ top: Math.max(0, target), behavior: 'smooth' })
+                                }}
+                                className='mt-8 w-full rounded-xl border border-red-900/60 bg-red-950/20 px-4 py-3 text-left text-sm text-red-100 hover:bg-red-950/40'
+                            >
+                                📖 Continue where you left off ({story.my_progress}%)
+                            </button>
+                        )}
+                        {/* The writer's own narration, if there is one. */}
+                        {story.audio && (
+                            <div className='mt-8 rounded-xl border border-slate-800 bg-slate-900/60 p-4'>
+                                <p className='mb-2 text-sm font-semibold text-gray-200'>🎙️ Narrated by {story.author}</p>
+                                {/* The browser's own player - play, pause, seek, volume. */}
+                                <audio controls preload='none' src={mediaUrl(story.audio)} className='w-full'>
+                                    Your browser can't play this recording.
+                                </audio>
+                            </div>
+                        )}
+                        {/* ref = the box useReadingProgress measures. */}
+                        <div ref={bodyRef} className='mt-8'>
+                            <StoryBody body={story.body} size={textSize} showScares={scareWarnings} easyRead={easyRead} />
+                        </div>
+                    </>
+                )}
+
+                {/* Previous / next part (only for series). */}
+                <SeriesNav series={story.series} />
+
+                {/* The story's tags. Each one opens a search for it -
+                    search also looks at tags (SearchView in Django). */}
+                {story.tags?.length > 0 && (
+                    <div className='mt-8 flex flex-wrap gap-2'>
+                        {story.tags.map(tag => (
+                            <Link
+                                key={tag}
+                                to={`/search?q=${encodeURIComponent(tag)}`}
+                                className='rounded-full border border-slate-700 px-3 py-1 text-sm text-gray-300 transition-colors hover:border-red-700 hover:text-white'
+                            >
+                                #{tag}
+                            </Link>
+                        ))}
+                    </div>
+                )}
 
                 {/* ================= 6. RECOMMENDATION ================= */}
                 {recommended && (
@@ -247,13 +407,45 @@ function StoryPage() {
 
                 {/* ================= 7. LIKE + COMMENTS ================= */}
                 <div className='mt-12 border-t border-gray-800 pt-10'>
-                    <LikeButton
-                        key={story.id}
-                        storyId={story.id}
-                        initialLiked={story.liked}
-                        initialCount={story.like_count}
-                    />
-                    <Comments key={story.id} storyId={story.id} />
+                    {story.is_draft ? (
+                        // A DRAFT (preview or beta read): no likes or public
+                        // comments yet - beta readers get the private box.
+                        isAuthor ? (
+                            <p className='text-sm text-gray-400'>
+                                Beta readers' feedback appears on <Link to='/my-stories' className='text-purple-300 hover:text-purple-200'>My Stories</Link>.
+                            </p>
+                        ) : (
+                            <BetaFeedbackBox key={`beta-${story.id}`} story={story} />
+                        )
+                    ) : (
+                        <>
+                            {/* The fear meter - once you could read the story.
+                                You can't rate your own (Django refuses too). */}
+                            {!story.lock && (
+                                <div className='mb-6'>
+                                    <FearMeter key={`fear-${story.id}`} storyId={story.id} initial={story.fear} canRate={!isAuthor} />
+                                </div>
+                            )}
+
+                            {/* Like + the scary reactions, side by side.
+                                key = "start fresh for a new story". The keys
+                                must differ: siblings may never share a key. */}
+                            <div className='flex flex-wrap items-center gap-3'>
+                                <LikeButton
+                                    key={`like-${story.id}`}
+                                    storyId={story.id}
+                                    initialLiked={story.liked}
+                                    initialCount={story.like_count}
+                                />
+                                <ReactionBar key={`reactions-${story.id}`} storyId={story.id} initial={story.reactions} />
+                                {/* Only if the writer set a Support link (Settings). */}
+                                <SupportWriterButton url={story.author_tip_url} name={story.author} />
+                                {/* A tip paid on our site (payments app). Hidden on your own story. */}
+                                <CandleBox key={`candle-${story.id}`} storyId={story.id} writer={story.author} isAuthor={isAuthor} />
+                            </div>
+                            <Comments key={`comments-${story.id}`} storyId={story.id} />
+                        </>
+                    )}
                 </div>
             </div>
 
@@ -275,6 +467,8 @@ function StoryPage() {
                     title={story.title}
                     body={story.body}
                     textSize={textSize}
+                    showScares={scareWarnings}
+                    easyRead={easyRead}
                     onClose={() => setFocus(false)}
                 />
             )}

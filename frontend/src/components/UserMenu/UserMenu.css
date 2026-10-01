@@ -1,0 +1,76 @@
+/* ---------------------------------------------------------------
+   The scrollbar of the user menu list: a red bar with a small red
+   arrow at the top and bottom.
+
+   Use it on anything that scrolls: className='menu-scroll'.
+
+   Scrollbars can't be styled with Tailwind - they use special
+   browser "pseudo-elements" (::-webkit-scrollbar...). That's why
+   this is a plain CSS file. (NavDropdown.css has a simpler red
+   scrollbar without arrows: "dropdown-scroll".)
+   --------------------------------------------------------------- */
+
+/* Firefox: only a colour and "thin" - it has no arrow buttons.
+
+   @supports not selector(::-webkit-scrollbar) = "only in browsers
+   that DON'T know the ::-webkit-scrollbar parts" (= Firefox).
+   Why hide it from Chrome? Newer Chrome also understands
+   scrollbar-color - and as soon as it sees it, it IGNORES all the
+   ::-webkit-scrollbar styling below, arrows included. */
+@supports not selector(::-webkit-scrollbar) {
+    .menu-scroll {
+        scrollbar-width: thin;
+        scrollbar-color: #dc2626 transparent;
+    }
+}
+
+/* Chrome, Edge, Safari: the whole scrollbar is 10px wide. */
+.menu-scroll::-webkit-scrollbar {
+    width: 10px;
+}
+
+.menu-scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+/* The bar you drag. The transparent border + background-clip makes
+   the red part thinner (4px) than the scrollbar (10px), so it
+   looks slim but is still easy to grab. */
+.menu-scroll::-webkit-scrollbar-thumb {
+    background-color: #dc2626;
+    border: 3px solid transparent;
+    border-radius: 9999px;
+    background-clip: padding-box;
+}
+
+.menu-scroll::-webkit-scrollbar-thumb:hover {
+    background-color: #ef4444;
+}
+
+
+/* ---------- THE ARROWS ----------
+   ::-webkit-scrollbar-button = the little buttons at both ends.
+   :single-button = ONE button at each end (not two).
+   :decrement = the top one (scrolls up), :increment = the bottom one.
+
+   The arrow itself is a tiny SVG picture of a red triangle, written
+   straight into the CSS as a "data:" URL - no image file needed.
+   (%23 means "#" - a # can't be written as-is inside a URL.) */
+.menu-scroll::-webkit-scrollbar-button:single-button {
+    display: block;
+    height: 12px;
+    background-color: transparent;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 8px;
+}
+
+/* Top arrow: a triangle pointing up. */
+.menu-scroll::-webkit-scrollbar-button:single-button:vertical:decrement {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpolygon points='5,2 9,8 1,8' fill='%23dc2626'/%3E%3C/svg%3E");
+}
+
+/* Bottom arrow: a triangle pointing down. */
+.menu-scroll::-webkit-scrollbar-button:single-button:vertical:increment {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpolygon points='1,2 9,2 5,8' fill='%23dc2626'/%3E%3C/svg%3E");
+}

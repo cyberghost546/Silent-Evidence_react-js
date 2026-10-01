@@ -1,6 +1,83 @@
 @import "tailwindcss";
 
 /* ---------------------------------------------------------------
+   Colour contrast: the site is dark, and Tailwind's standard
+   gray-500 on it only reaches about 3.7 : 1. The accessibility rule
+   (WCAG AA) wants at least 4.5 : 1 for normal text, or people with
+   weaker eyesight - and everyone on a phone in the sun - can't read
+   it. So gray-500 is made a little lighter here, ONCE, and all 300+
+   "text-gray-500" places on the site get fixed together.
+   Checked on the darkest (slate-950) and lightest (slate-800)
+   backgrounds we use: 4.6 : 1 or better everywhere.
+   --------------------------------------------------------------- */
+@theme {
+    --color-gray-500: #8b93a3;
+}
+
+
+/* ---------------------------------------------------------------
+   THE PHONE TAB BAR'S HEIGHT, written down ONCE.
+
+   On phones a tab bar is glued to the bottom of the screen
+   (components/BottomNav). Anything else stuck to the bottom - the
+   back-to-top button, the cookie box, the tour, Ask The Watcher -
+   has to sit ABOVE it, and the page needs room at the end so the
+   footer isn't hidden underneath it.
+
+   They all use this one variable, e.g.
+       bottom-[calc(var(--tabbar-space)+1rem)]
+   so if the tab bar ever changes height, you change ONE number.
+
+   5rem = the 4rem bar + the small gap under it when it floats
+   (BottomNav.jsx), env(...) = the iPhone swipe bar under it.
+   From the lg size up there is no tab bar, so the space is 0.
+   --------------------------------------------------------------- */
+:root {
+    --tabbar-space: calc(5rem + env(safe-area-inset-bottom));
+}
+
+@media (min-width: 64rem) {
+    :root {
+        --tabbar-space: 0px;
+    }
+}
+
+
+/* ---------------------------------------------------------------
+   Small things that make it feel like an app, not a web page:
+   - no grey/blue flash over links and buttons when you tap them
+   - phones don't blow the text up on their own when you turn
+     the phone sideways
+   --------------------------------------------------------------- */
+html {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+
+
+/* ---------------------------------------------------------------
+   scrollbar-none = "scrolls, but shows no scrollbar".
+
+   For phone-style panels (the menu sheet in Header.jsx): phone apps
+   don't draw a scrollbar - you just swipe. Without this, the red
+   page scrollbar below gets drawn INSIDE the panel and cuts through
+   its rounded corner.
+
+   @utility makes it a real Tailwind class, so it works with
+   lg:, hover: and the rest like any other class.
+     scrollbar-width: none          -> Firefox (and new Chrome)
+     ::-webkit-scrollbar display    -> Chrome, Edge, Safari
+   --------------------------------------------------------------- */
+@utility scrollbar-none {
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
+}
+
+/* ---------------------------------------------------------------
    Why there's no Bootstrap here any more:
 
    Bootstrap and Tailwind both have classes called border, px-4,
@@ -13,3 +90,119 @@
    Pick one CSS framework per project - mixing them causes exactly
    this kind of "why is my class ignored?" bug.
    --------------------------------------------------------------- */
+
+
+/* ---------------------------------------------------------------
+   THE PAGE SCROLLBAR (the one on the right edge of the window).
+
+   A red bar on a dark track, to match the site. Same idea as
+   .dropdown-scroll in NavDropdown.css, but on <html> so it styles
+   the WHOLE page's scrollbar.
+
+   Two sets again, because browsers disagree:
+     - Firefox: scrollbar-color (and scrollbar-width)
+     - Chrome, Edge, Safari: the ::-webkit-scrollbar pseudo-elements
+   --------------------------------------------------------------- */
+/* Firefox only. @supports not selector(...) = "browsers that DON'T
+   know ::-webkit-scrollbar". New Chrome ignores the ::-webkit- rules
+   below if scrollbar-color is set, so Chrome must not see it. */
+@supports not selector(::-webkit-scrollbar) {
+    html {
+        scrollbar-color: #dc2626 #020617; /* thumb (red-600), track (slate-950) */
+        scrollbar-width: thin;
+    }
+}
+
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+/* The track = the groove the bar slides in. */
+::-webkit-scrollbar-track {
+    background: #020617;
+}
+
+/* The thumb = the part you drag. The border in the track colour
+   makes it look thinner and "floating", with rounded ends. */
+::-webkit-scrollbar-thumb {
+    background-color: #dc2626;
+    border: 2px solid #020617;
+    border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: #ef4444; /* red-500, a bit brighter */
+}
+
+
+/* ---------------------------------------------------------------
+   AMBIENT MODE flicker (components/StoryPage/AmbientMode.jsx).
+   Two soft dips in 1.1 seconds, like a failing bulb - kept under
+   the WCAG limit of 3 flashes per second. Never runs for readers
+   who asked their computer for reduced motion.
+   --------------------------------------------------------------- */
+@keyframes ambient-flicker {
+    0%, 100% { opacity: 1; }
+    20% { opacity: 0.35; }
+    35% { opacity: 1; }
+    60% { opacity: 0.5; }
+    75% { opacity: 1; }
+}
+
+.ambient-flicker {
+    animation: ambient-flicker 1.1s ease-in-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ambient-flicker {
+        animation: none;
+    }
+}
+
+
+/* ---------------------------------------------------------------
+   EASY READ (the "Easy read" button on a story).
+   What dyslexia charities recommend for screen text: a plain
+   sans-serif font (Verdana was made for screens), more space between
+   letters, words and lines, text lined up on the left, no italics,
+   and lines that aren't too long.
+   Line focus: the paragraph in the middle of the screen stays bright
+   (hooks/useLineFocus.js adds .is-focus), the others fade a little.
+   --------------------------------------------------------------- */
+.easy-read {
+    font-family: Verdana, Tahoma, sans-serif;
+    letter-spacing: 0.04em;
+    word-spacing: 0.16em;
+    line-height: 2;
+    text-align: left;
+    max-width: 65ch;
+}
+
+.easy-read em,
+.easy-read blockquote {
+    font-style: normal;
+}
+
+.easy-read > * {
+    transition: opacity 0.3s;
+}
+
+.easy-read:has(> .is-focus) > *:not(.is-focus) {
+    opacity: 0.55;
+}
+
+
+/* ---------------------------------------------------------------
+   THE MAPS (components/Map/). OpenStreetMap's pictures are light;
+   this turns them dark to match the site - invert the colours, then
+   turn the hues back round so water stays blue-ish. Only the map
+   pictures, not our pins or the pop-ups.
+   --------------------------------------------------------------- */
+.haunted-map .leaflet-tile-pane {
+    filter: invert(1) hue-rotate(180deg) brightness(0.85) contrast(0.9);
+}
+
+.haunted-map {
+    background: #0b1120;
+}

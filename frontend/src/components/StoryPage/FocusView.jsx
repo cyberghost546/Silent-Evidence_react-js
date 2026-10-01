@@ -14,7 +14,7 @@ import StoryBody from './StoryBody'
 //   title, body, textSize - what to show
 //   onClose               - called by the X button or the Escape key
 // ---------------------------------------------------------------
-function FocusView({ title, body, textSize, onClose }) {
+function FocusView({ title, body, textSize, showScares, easyRead, onClose }) {
     // Escape closes focus mode. Listening to the keyboard is outside
     // React, so it's an effect - and the cleanup removes the listener
     // when focus mode closes. (Same pattern as useDropdown.)
@@ -45,7 +45,7 @@ function FocusView({ title, body, textSize, onClose }) {
             {/* max-w-2xl: a narrow column is easier on the eyes. */}
             <div className='mx-auto max-w-2xl'>
                 <h1 className='mb-10 text-3xl font-extrabold text-white sm:text-4xl'>{title}</h1>
-                <StoryBody body={body} size={textSize} />
+                <StoryBody body={body} size={textSize} showScares={showScares} easyRead={easyRead} />
             </div>
         </div>
     )

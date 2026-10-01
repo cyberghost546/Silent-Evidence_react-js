@@ -1,0 +1,51 @@
+<!doctype html>
+<!--
+  Shown by the service worker (public/sw.js) when you open a page
+  with no internet. Plain HTML on purpose: it must work with NOTHING
+  else loaded - no React, no Tailwind, no Django.
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#020617" />
+    <title>Offline - Silent Evidence</title>
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #020617;
+        color: #e5e7eb;
+        font-family: system-ui, sans-serif;
+        text-align: center;
+        padding: 24px;
+        box-sizing: border-box;
+      }
+      h1 { color: #ef4444; font-family: Georgia, serif; font-size: 28px; margin: 16px 0 8px; }
+      p { color: #9ca3af; max-width: 360px; line-height: 1.6; }
+      button {
+        margin-top: 20px;
+        background: #dc2626;
+        color: white;
+        border: 0;
+        border-radius: 8px;
+        padding: 12px 20px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <img src="/icons/icon-192.png" alt="" width="72" height="72" style="border-radius: 16px" />
+      <h1>The line went dead.</h1>
+      <p>You're offline. The stories are still out there in the dark - reconnect and try again.</p>
+      <button type="button" onclick="location.reload()">Try again</button>
+      <p><a href="/offline-library" style="color:#fca5a5">Read your downloaded stories</a></p>
+    </main>
+  </body>
+</html>
