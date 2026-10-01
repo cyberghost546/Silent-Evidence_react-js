@@ -83,6 +83,7 @@ INSTALLED_APPS = [
     'support',
     'mailings',
     'forums',
+    'payments',
 ]
 
 MIDDLEWARE = [
@@ -337,3 +338,20 @@ CURRENCY = 'EUR'
 # Used to build links inside emails ("read it here: ..."), the
 # sitemap and robots.txt. The live site: your real address.
 SITE_URL = env('SITE_URL', 'http://localhost:5173')
+
+
+# ---------------------------------------------------------------
+# PAYMENTS (Pro + tips, the payments app) - with Stripe.
+#
+# Both keys come from Stripe's dashboard and go in the HOST's settings
+# (environment variables) - never in the code or git:
+#   STRIPE_SECRET_KEY      sk_test_... (test mode) or sk_live_... (real money)
+#   STRIPE_WEBHOOK_SECRET  whsec_...   (Stripe -> Developers -> Webhooks)
+#
+# No key on your computer? Then PAYMENTS_FAKE_MODE: a pretend payment
+# page so you can try Pro and tips without any account. It can never
+# be on for the live site, because DEBUG is off there.
+# ---------------------------------------------------------------
+STRIPE_SECRET_KEY = env('STRIPE_SECRET_KEY', '')
+STRIPE_WEBHOOK_SECRET = env('STRIPE_WEBHOOK_SECRET', '')
+PAYMENTS_FAKE_MODE = DEBUG and not STRIPE_SECRET_KEY

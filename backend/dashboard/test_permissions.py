@@ -27,6 +27,7 @@ PUBLIC_WRITE_ALLOWED = {
     'api/contact/',                          # ContactAnonThrottle
     'api/errors/',                           # ErrorReportThrottle
     'api/cookie-consent/',                   # CookieConsentThrottle
+    'api/payments/stripe-webhook/',          # STRIPE calls it: checked by Stripe's signature instead
 }
 
 WRITE_METHODS = ('post', 'put', 'patch', 'delete')
@@ -66,6 +67,8 @@ class PermissionGuardTests(TestCase):
         # have a throttle - or a script could flood them.
         needs_throttle = PUBLIC_WRITE_ALLOWED - {
             'api/accounts/logout/', 'api/accounts/login/', 'api/accounts/verify-email/', 'api/accounts/password-reset/confirm/',
+            # Signed by Stripe - and a limit could block Stripe's own retries.
+            'api/payments/stripe-webhook/',
         }
         views = dict(api_views())
         for path in needs_throttle:

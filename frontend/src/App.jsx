@@ -60,6 +60,10 @@ const BundlesPage = lazy(() => import('./components/BundlesPage/BundlesPage'))
 const LeaderboardPage = lazy(() => import('./components/LeaderboardPage/LeaderboardPage'))
 const SearchPage = lazy(() => import('./components/SearchPage/SearchPage'))
 const SiteGuide = lazy(() => import('./components/SiteGuide/SiteGuide'))
+// Pro + payments (the payments app in Django).
+const PremiumPage = lazy(() => import('./components/PremiumPage/PremiumPage'))
+const FakePaymentPage = lazy(() => import('./components/PremiumPage/FakePaymentPage'))
+const PaymentDonePage = lazy(() => import('./components/PremiumPage/PaymentDonePage'))
 
 // Pages only logged-in members use - same idea (Suspense in SiteLayout).
 const WriteStory = lazy(() => import('./components/WriteStory/WriteStory'))
@@ -189,6 +193,12 @@ function App() {
         <Route path='/challenges/:id/judge' element={<ProtectedRoute><JudgePage /></ProtectedRoute>} />
         <Route path='/bundles' element={<BundlesPage />} />
         <Route path='/bundles/:slug' element={<BundlesPage />} />
+
+        {/* Pro: anyone can look at the prices; paying needs a login.
+            /payment/fake/<id> only works on your computer (no Stripe key). */}
+        <Route path='/premium' element={<PremiumPage />} />
+        <Route path='/payment/fake/:id' element={<ProtectedRoute><FakePaymentPage /></ProtectedRoute>} />
+        <Route path='/payment/done/:id' element={<ProtectedRoute><PaymentDonePage /></ProtectedRoute>} />
 
         {/* Anyone can search. The words go in the URL: /search?q=house */}
         <Route path='/search' element={<SearchPage />} />

@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import {
     User, ChartColumnIncreasing, SquarePen, LayoutGrid, PanelRight,
     RefreshCw, BookOpen, MessageSquareMore, Mail, Clock, ClipboardList, Settings,
-    LogOut, ChevronDown, BookOpenText, Brain, LifeBuoy,
+    LogOut, ChevronDown, BookOpenText, Brain, LifeBuoy, Crown,
 } from 'lucide-react'
 import { useDropdown } from '../../hooks/useDropdown'
 import Avatar from '../Avatar/Avatar'
@@ -41,6 +41,8 @@ const MENU_GROUPS = [
         { label: 'Reading History', to: '/history', icon: Clock },
         { label: 'My Lists', to: '/lists', icon: ClipboardList },
         { label: 'Settings', to: '/settings', icon: Settings },
+        // Pro members see it too - the page says until when they're Pro.
+        { label: 'Silent Evidence Pro', to: '/premium', icon: Crown },
     ],
     // Help - its own group, so it gets its own divider line.
     // action = NOT a link: a button that opens a pop-up.

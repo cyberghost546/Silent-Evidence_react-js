@@ -58,6 +58,8 @@ def user_data(user):
         # '/media/avatars/me.jpg', or '' if they never uploaded one.
         # (An empty ImageField has no .url - asking for it crashes.)
         'avatar': profile.avatar.url if profile.avatar else '',
+        # Pro (paid, see the payments app): early access, the Pro looks...
+        'is_premium': profile.is_premium,
     }
 
 

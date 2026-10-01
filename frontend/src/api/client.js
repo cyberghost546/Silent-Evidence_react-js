@@ -12,6 +12,7 @@
 //   stories.js    reading, writing, likes, lists, series, the map
 //   community.js  forums, chains, challenges, villains, read-alongs...
 //   admin.js      the Admin Dashboard
+//   payments.js   Pro + tips (candles)
 //
 // Adding a function: put it in the file for its topic - nothing to
 // change here. A new topic file: add one "export *" line below.
@@ -21,3 +22,4 @@ export * from './accounts'
 export * from './stories'
 export * from './community'
 export * from './admin'
+export * from './payments'
