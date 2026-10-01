@@ -15,7 +15,7 @@ from .serializers import CategorySerializer
 # PUBLISHED stories point at this category. 'stories' is the
 # related_name on Story.category, and filter=Q(...) means drafts
 # don't count. The database does all the counting in ONE query -
-# much faster than asking "how many stories?" 52 separate times.
+# much faster than asking "how many stories?" 54 separate times.
 #
 # .order_by('id') keeps the order from the seed file. Without it,
 # the counting (SQL "GROUP BY") lets the database return rows in

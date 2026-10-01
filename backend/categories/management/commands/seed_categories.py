@@ -17,7 +17,7 @@
 # no error message, it simply isn't in the list. The command's NAME is
 # the filename, so this file has to be called seed_categories.py.
 #
-# Why a command instead of typing 52 rows into /admin? Because it is
+# Why a command instead of typing 54 rows into /admin? Because it is
 # repeatable. Wipe the database, run one line, and your categories are
 # back. Same on a teammate's machine, or on a server.
 # ---------------------------------------------------------------
@@ -415,6 +415,21 @@ CATEGORIES = [
         'icon': 'laptop',
         'color': 'emerald',
     },
+    # Two internet-born worlds that readers write their own stories in.
+    {
+        'name': 'Backrooms',
+        'slug': 'backrooms',
+        'description': 'No-clip out of reality into endless yellow rooms, damp carpet and the hum of the lights.',
+        'icon': 'lamp',          # the buzzing fluorescent lights
+        'color': 'amber',        # the yellow wallpaper
+    },
+    {
+        'name': 'SCP Foundation',
+        'slug': 'scp-foundation',
+        'description': 'Secure. Contain. Protect. Incident reports and the anomalies that got out.',
+        'icon': 'flask-conical', # the Foundation's labs
+        'color': 'teal',
+    },
 ]
 
 
@@ -441,7 +456,7 @@ class Command(BaseCommand):
             # It returns a tuple: (the object, True/False was-it-new).
             #
             # If we used Category.objects.create() in this loop instead,
-            # running the command twice would try to insert 52 duplicate
+            # running the command twice would try to insert 54 duplicate
             # slugs - and crash, because slug is unique=True.
             #
             # We match on slug because it is the unique field. Matching
