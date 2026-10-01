@@ -44,7 +44,9 @@ const EXPLORE_ITEMS = [
 const NAV_LINK = 'text-gray-200 hover:text-white transition-colors'
 
 // Same for the round-ish icon buttons on the right (messages, bell).
-const ICON_BUTTON = 'text-gray-300 hover:text-white transition-colors p-2'
+// p-1.5 on phones, p-2 from "sm" up: 4px less per icon adds up when
+// five of them share a 360px screen with the logo.
+const ICON_BUTTON = 'text-gray-300 hover:text-white transition-colors p-1.5 sm:p-2'
 
 // The links in the phone menu (the ☰ button). On a small screen the
 // normal nav doesn't fit, so these show in a panel instead.
@@ -194,9 +196,13 @@ function Header() {
                 the nav into the middle of the page. */}
             <div className='flex items-center gap-8 min-w-0'>
 
-                {/* The logo takes you home. text-xl on phones, so it
-                    fits next to the buttons. */}
-                <Link to='/' className='text-lg font-bold text-red-600 whitespace-nowrap sm:text-2xl'>
+                {/* The logo takes you home.
+                    On phones it's smaller (text-base), so it fits next to
+                    the 5 icons of a logged-in member. And if a phone is
+                    REALLY narrow, `truncate` cuts it with "..." instead of
+                    sliding under the icons. (truncate needs a block, and
+                    min-w-0 on the parent - see the div above.) */}
+                <Link to='/' className='block truncate text-base font-bold text-red-600 sm:text-2xl'>
                     Silent Evidence
                 </Link>
 
@@ -264,7 +270,7 @@ function Header() {
                     onClick={() => setSearchOpen(true)}
                     aria-label='Search'
                     title='Search (Ctrl + K)'
-                    className={`rounded-lg p-2 transition-colors ${
+                    className={`rounded-lg p-1.5 transition-colors sm:p-2 ${
                         searchOpen ? 'bg-red-600 text-white' : 'text-gray-300 hover:text-white'
                     }`}
                 >

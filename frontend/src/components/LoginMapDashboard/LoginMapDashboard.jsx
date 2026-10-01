@@ -121,7 +121,7 @@ function LoginMapDashboard() {
                     {/* ---------- EVERY IP ---------- */}
                     <section className='mt-10'>
                         <h2 className='text-lg font-bold text-white'>IP addresses</h2>
-                        <div className='mt-4 overflow-x-auto rounded-xl border border-slate-800 bg-slate-900/40'>
+                        <div className='mt-4 relative overflow-x-auto rounded-xl border border-slate-800 bg-slate-900/40'>
                             <table className='w-full min-w-[48rem] text-left text-sm'>
                                 <thead>
                                     <tr className='text-xs font-semibold uppercase tracking-wider text-gray-400'>

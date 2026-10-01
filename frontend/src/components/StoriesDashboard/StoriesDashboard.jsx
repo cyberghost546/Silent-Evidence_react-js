@@ -268,7 +268,12 @@ function StoriesDashboard() {
                 )}
             </div>
 
-            <div className='mt-3 overflow-x-auto rounded-xl border border-slate-800 bg-slate-900/40'>
+            {/* overflow-x-auto: on a phone the table scrolls sideways
+                inside this box. `relative` matters too: the hidden
+                screen-reader labels (sr-only) are position: absolute, and
+                without a `relative` box around them they "escape" the
+                scroll box and make the WHOLE page scroll sideways. */}
+            <div className='mt-3 relative overflow-x-auto rounded-xl border border-slate-800 bg-slate-900/40'>
                 <table className='w-full min-w-[52rem] text-left'>
                     <thead>
                         <tr className='text-xs font-semibold uppercase tracking-wider text-gray-400'>

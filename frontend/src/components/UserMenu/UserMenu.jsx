@@ -107,8 +107,10 @@ function UserMenu({ user, onLogout, onOpenTour }) {
                     (components/Avatar/Avatar.jsx). */}
                 <Avatar username={user.username} image={user.avatar} />
 
-                {/* Spins upside down while the menu is open. */}
-                <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`} />
+                {/* Spins upside down while the menu is open.
+                    hidden on phones: no room in the header, and tapping
+                    the avatar opens the menu anyway. */}
+                <ChevronDown className={`hidden h-4 w-4 text-gray-400 transition-transform sm:block ${open ? 'rotate-180' : ''}`} />
             </button>
 
             {/* ---------- THE PANEL ---------- */}

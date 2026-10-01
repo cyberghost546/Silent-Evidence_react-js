@@ -70,7 +70,7 @@ function BlocklistDashboard() {
                 <button type='submit' disabled={!ip.trim()} className={`${BUTTON_STYLE} shrink-0`}>Block</button>
             </form>
 
-            <div className='mt-6 overflow-x-auto rounded-xl border border-slate-800 bg-slate-900/40'>
+            <div className='mt-6 relative overflow-x-auto rounded-xl border border-slate-800 bg-slate-900/40'>
                 <table className='w-full min-w-[40rem] text-left text-sm'>
                     <thead>
                         <tr className='text-xs font-semibold uppercase tracking-wider text-gray-400'>
