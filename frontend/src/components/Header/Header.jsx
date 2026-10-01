@@ -303,10 +303,11 @@ function Header() {
                     // without adding an extra <div> to the page.
                     <>
                         {/* OUTLINED button: transparent inside, red border.
+                            rounded-full = pill shape (fully round ends).
                             Both are <a> now, because both go to a page. */}
                         <a
                             href='/login'
-                            className='whitespace-nowrap border border-red-600 text-red-500 px-4 py-1.5 rounded-md text-sm font-medium hover:bg-red-600 hover:text-white transition-colors'
+                            className='whitespace-nowrap border border-red-600 text-red-500 px-4 py-1.5 rounded-full text-sm font-medium hover:bg-red-600 hover:text-white transition-colors'
                         >
                             Log In
                         </a>
@@ -314,7 +315,7 @@ function Header() {
                         {/* SOLID button: filled red. */}
                         <a
                             href='/signup'
-                            className='hidden whitespace-nowrap sm:inline-block bg-red-600 text-white px-4 py-1.5 rounded-md text-sm font-medium hover:bg-red-700 transition-colors'
+                            className='hidden whitespace-nowrap sm:inline-block bg-red-600 text-white px-4 py-1.5 rounded-full text-sm font-medium hover:bg-red-700 transition-colors'
                         >
                             Sign Up
                         </a>
