@@ -20,8 +20,8 @@ export const READER_PERKS = [
     },
     {
         icon: Palette,
-        title: 'Your name in colour, and an avatar frame',
-        text: 'Pick them in Settings -> Profile.',
+        title: 'Your name in colour, and a Gold Crown avatar border',
+        text: 'Pick them in Settings -> Profile Appearance.',
     },
 ]
 
