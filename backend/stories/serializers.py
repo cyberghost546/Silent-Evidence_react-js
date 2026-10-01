@@ -1,11 +1,12 @@
 import re
+from datetime import timedelta
 
 from django.utils import timezone
 from rest_framework import serializers
 
 from accounts.age import story_lock
 from moderation.content_filter import check_text, BLOCKED_MESSAGE
-from .models import Story, Comment, LastWord, CoAuthorInvite, Tag, Series, wpm_for, stories_for, REACTION_KINDS
+from .models import Story, Comment, LastWord, CoAuthorInvite, Tag, Series, wpm_for, stories_for, REACTION_KINDS, EARLY_ACCESS_HOURS
 
 
 # Everything a story CARD needs - not the full body, which could be
@@ -53,7 +54,9 @@ class StoryCardSerializer(serializers.ModelSerializer):
         model = Story
         # content_rating: for the 18+ badge on cards (MatureBadge.jsx).
         # fear_average: the skulls on cards (None = nobody rated it yet).
-        fields = ['id', 'title', 'excerpt', 'cover_image', 'category', 'author', 'reading_time', 'views', 'created_at', 'content_rating', 'fear_average', 'is_interactive']
+        # early_access_until: null, or when the story opens to everyone
+        # (the card shows a PRO EARLY badge until then).
+        fields = ['id', 'title', 'excerpt', 'cover_image', 'category', 'author', 'reading_time', 'views', 'created_at', 'content_rating', 'fear_average', 'is_interactive', 'early_access_until']
 
     # self.context['request'] is there because the view passes it
     # (generic views do it by themselves). .get() + the check keep it
@@ -271,6 +274,9 @@ class StoryWriteSerializer(serializers.ModelSerializer):
     tag_names = serializers.ListField(
         child=serializers.CharField(max_length=30), write_only=True, required=False, max_length=5,
     )
+    # PRO EARLY ACCESS: "only Pro readers for the first 48 hours".
+    # Not a model field - create() turns it into early_access_until.
+    early_access = serializers.BooleanField(write_only=True, required=False, default=False)
 
     class Meta:
         model = Story
@@ -278,7 +284,7 @@ class StoryWriteSerializer(serializers.ModelSerializer):
             'id', 'title', 'excerpt', 'body', 'category', 'cover_image', 'cover_image_url',
             'language', 'video_url', 'audio_url', 'audio_file', 'location', 'latitude', 'longitude',
             'mood', 'content_rating', 'content_warnings', 'publish_at', 'is_published',
-            'tag_names', 'series',
+            'tag_names', 'series', 'early_access',
         ]
         # The model allows a story without a category (so deleting a
         # category doesn't delete its stories), but a NEW story must
@@ -357,6 +363,13 @@ class StoryWriteSerializer(serializers.ModelSerializer):
     # out first, let DRF create the story, then attach the tags.
     def create(self, validated_data):
         tag_names = validated_data.pop('tag_names', [])
+        early_access = validated_data.pop('early_access', False)
+
+        # Early access starts when the story goes public: now, or the
+        # scheduled date. (A draft has nothing to be early with.)
+        if early_access and validated_data.get('is_published'):
+            opens_at = validated_data.get('publish_at') or timezone.now()
+            validated_data['early_access_until'] = opens_at + timedelta(hours=EARLY_ACCESS_HOURS)
 
         # In a series: this story becomes the next part (last part + 1).
         series = validated_data.get('series')

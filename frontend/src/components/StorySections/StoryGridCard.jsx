@@ -3,6 +3,7 @@ import { Eye, Skull } from 'lucide-react'
 import { mediaUrl } from '../../api/client'
 import { formatShortDate } from '../../utils/format'
 import MatureBadge from './MatureBadge'
+import EarlyAccessBadge from './EarlyAccessBadge'
 import PathBadge from './PathBadge'
 import { useMatureBlur } from '../../hooks/useMatureBlur'
 
@@ -51,6 +52,7 @@ function StoryGridCard({ story }) {
                     {story.reading_time} min read
                 </span>
                 <MatureBadge story={story} />
+                <EarlyAccessBadge story={story} />
                 <PathBadge story={story} />
             </div>
 

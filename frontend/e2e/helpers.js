@@ -5,8 +5,9 @@ import { test as base, expect } from '@playwright/test'
 // Shared bits for the browser tests.
 //
 // The test users are made by `manage.py e2e_seed` (backend/dashboard/
-// management/commands/e2e_seed.py) - same password for all three:
-//   e2e_reader, e2e_writer (wrote the seeded stories), e2e_admin
+// management/commands/e2e_seed.py) - same password for all of them:
+//   e2e_reader, e2e_writer (wrote the seeded stories), e2e_admin,
+//   e2e_pro (already has Pro)
 // ---------------------------------------------------------------
 export const PASSWORD = 'E2e-Pass-2026!'
 

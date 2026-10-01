@@ -163,6 +163,12 @@ class Story(models.Model):
     # (see published_stories() below).
     publish_at = models.DateTimeField(null=True, blank=True)
 
+    # PRO EARLY ACCESS: until this moment, only Pro readers can read the
+    # text (everyone else sees the title and a lock screen - see
+    # story_lock() in accounts/age.py). Empty = open to everyone.
+    # Set when the writer ticks "Pro early access" on the Write page.
+    early_access_until = models.DateTimeField(null=True, blank=True)
+
     # The homepage picks. Tick these in the admin to choose the
     # Story of the Day / Week. If more than one is ticked, the most
     # recently edited one wins (see views.py).
@@ -224,6 +230,10 @@ READING_WPM = {
 #
 # Q(...) | Q(...) means OR. (A normal .filter(a, b) means AND.)
 # ---------------------------------------------------------------
+# How long a story stays Pro-only when the writer picks early access.
+EARLY_ACCESS_HOURS = 48
+
+
 def published_stories():
     return Story.objects.filter(is_published=True, is_archived=False).filter(
         Q(publish_at__isnull=True) | Q(publish_at__lte=timezone.now())

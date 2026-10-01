@@ -56,6 +56,7 @@ const EMPTY_FORM = {
     warnings: [],           // e.g. ['Violence', 'Gore']
     tags: [],               // e.g. ['lighthouse', 'vhs'] - see TagInput
     publishAt: '',          // from <input type='datetime-local'>
+    earlyAccess: false,     // true = only Pro readers for the first 48 hours
     audioUrl: '',
     series: '',             // a series id, '' = a single story
 }
@@ -373,6 +374,10 @@ function WriteStory() {
             data.append('publish_at', when.toISOString())
             isScheduled = when > new Date()
         }
+
+        // Pro early access: Django works out until when (48 hours
+        // after the story goes public).
+        data.append('early_access', form.earlyAccess ? 'true' : 'false')
 
         setSaving(true)
         setErrors({})
@@ -821,6 +826,28 @@ function WriteStory() {
                         className={`${INPUT_STYLE} [color-scheme:dark]`}
                     />
                     <FieldError messages={errors.publish_at} />
+                </div>
+
+                {/* ---------- PRO EARLY ACCESS ---------- */}
+                {/* A tick box: `checked` instead of `value`, and we read
+                    event.target.checked (true/false) when it changes. */}
+                <div className='rounded-lg border border-yellow-800/50 bg-yellow-950/20 p-4'>
+                    <label htmlFor='earlyAccess' className='flex cursor-pointer items-start gap-3'>
+                        <input
+                            id='earlyAccess'
+                            type='checkbox'
+                            checked={form.earlyAccess}
+                            onChange={event => updateField('earlyAccess', event.target.checked)}
+                            className='mt-1 h-4 w-4 accent-yellow-400'
+                        />
+                        <span>
+                            <span className='block text-sm font-semibold text-yellow-100'>Pro early access (48 hours)</span>
+                            <span className='block text-sm text-gray-400'>
+                                Pro readers can read it straight away; everyone else 48 hours later.
+                                It still shows on the site meanwhile, with a PRO EARLY label.
+                            </span>
+                        </span>
+                    </label>
                 </div>
 
                 {/* ---------- AUDIO ---------- */}

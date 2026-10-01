@@ -48,6 +48,12 @@ class Command(BaseCommand):
         member('e2e_reader')
         writer = member('e2e_writer')
         member('e2e_admin', is_staff=True, is_superuser=True)
+        # A reader who already has Pro (switched on by hand, like an
+        # admin would) - for the Pro early-access test.
+        pro = member('e2e_pro')
+        pro_profile = get_profile(pro)
+        pro_profile.is_premium = True
+        pro_profile.save()
 
         category = Category.objects.first()
         paragraph = 'The house at the end of Mercer Lane had been empty for eleven years. ' * 8

@@ -3,6 +3,7 @@ import { mediaUrl } from '../../api/client'
 import { ACCENTS } from '../../styles/accents'
 import { pluralize } from '../../utils/format'
 import MatureBadge from './MatureBadge'
+import EarlyAccessBadge from './EarlyAccessBadge'
 import PathBadge from './PathBadge'
 import { useMatureBlur } from '../../hooks/useMatureBlur'
 
@@ -55,6 +56,7 @@ function StoryCard({ story, accent = 'red' }) {
                     left side (not on phones). */}
                 <div className='absolute inset-y-0 right-0 hidden w-1/2 bg-linear-to-r from-transparent to-slate-800 sm:block' />
                 <MatureBadge story={story} />
+                <EarlyAccessBadge story={story} />
                 <PathBadge story={story} />
             </div>
 

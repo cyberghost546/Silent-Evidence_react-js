@@ -21,6 +21,7 @@ import { SeriesLabel, SeriesNav } from './SeriesNav'
 import styles from './StoryPage.module.css'
 import { usePageTitle } from '../../hooks/usePageTitle'
 import StoryLock from './StoryLock'
+import EarlyAccessLock from './EarlyAccessLock'
 import FearMeter from './FearMeter'
 import ReactionBar from './ReactionBar'
 import { useAuth } from '../../hooks/useAuth'
@@ -317,9 +318,12 @@ function StoryPage() {
                 )}
 
                 {/* ================= 5. THE STORY ================= */}
-                {/* An 18+ story you can't read yet: the lock screen instead
-                    of the text (Django didn't send the text at all). */}
-                {story.lock ? (
+                {/* A story you can't read yet: a lock screen instead of the
+                    text (Django didn't send the text at all). Two kinds:
+                    Pro early access, or 18+ (login / age / too young). */}
+                {story.lock === 'early_access' ? (
+                    <EarlyAccessLock opensAt={story.early_access_until} />
+                ) : story.lock ? (
                     <StoryLock lock={story.lock} onUnlocked={() => setReloadKey(key => key + 1)} />
                 ) : (
                     <>

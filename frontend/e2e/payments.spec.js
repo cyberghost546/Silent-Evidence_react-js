@@ -42,3 +42,26 @@ test('light a candle for a writer, who sees it on their dashboard', async ({ pag
     await expect(page.getByText('"Could not sleep!"')).toBeVisible()
     await expect(page.getByText('€4.50').first()).toBeVisible()
 })
+
+test('Pro early access: Pro readers first, everyone else later', async ({ page }) => {
+    await logIn(page, 'e2e_writer')
+    await page.goto('/write')
+    await page.locator('#title').fill('First Come, First Scared')
+    await page.locator('#category').selectOption({ index: 1 })
+    await page.locator('#body').fill('Nobody else has read this yet. '.repeat(15))
+    await page.getByLabel(/Pro early access/).check()
+    await page.getByRole('button', { name: 'Publish Story' }).click()
+    await expect(page.getByRole('heading', { level: 1, name: 'First Come, First Scared' })).toBeVisible()
+    const storyUrl = page.url()
+
+    // A visitor: the lock screen, no text.
+    await page.context().clearCookies()
+    await page.goto(storyUrl)
+    await expect(page.getByText('Pro readers are reading this one first')).toBeVisible()
+    await expect(page.getByText('Nobody else has read this yet.')).toHaveCount(0)
+
+    // A Pro reader: the story.
+    await logIn(page, 'e2e_pro')
+    await page.goto(storyUrl)
+    await expect(page.getByText('Nobody else has read this yet.').first()).toBeVisible()
+})

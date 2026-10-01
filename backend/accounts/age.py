@@ -1,5 +1,7 @@
 from datetime import date
 
+from django.utils import timezone
+
 from .models import get_profile
 
 
@@ -41,20 +43,40 @@ def is_adult(user):
 
 
 # May this person read this story's text? None = yes. Otherwise why not:
-#   'login'     - logged out: log in first (the age belongs to an account)
-#   'age'       - logged in, but age not confirmed yet
-#   'too_young' - confirmed, but under 18
+#   'login'        - 18+ story, logged out: log in first (the age belongs to an account)
+#   'age'          - 18+ story, logged in, but age not confirmed yet
+#   'too_young'    - 18+ story, confirmed, but under 18
+#   'early_access' - Pro readers only for now (Story.early_access_until)
+#
+# The last one isn't about age, but it's the same question ("may you
+# read the text?"), so it lives here too: every place that hides a
+# locked story's text already calls this function.
 def story_lock(user, story):
-    if story.content_rating != 'mature':
-        return None
     # Writers can always read their own story.
     if user.is_authenticated and story.author_id == user.id:
         return None
-    if not user.is_authenticated:
-        return 'login'
-    age = user_age(user)
-    if age is None:
-        return 'age'
-    if age < ADULT_AGE:
-        return 'too_young'
+
+    if story.content_rating == 'mature':
+        if not user.is_authenticated:
+            return 'login'
+        age = user_age(user)
+        if age is None:
+            return 'age'
+        if age < ADULT_AGE:
+            return 'too_young'
+
+    if is_early_access(story) and not can_read_early(user):
+        return 'early_access'
     return None
+
+
+# Is the story still in its Pro-only hours?
+def is_early_access(story):
+    return story.early_access_until is not None and story.early_access_until > timezone.now()
+
+
+# Pro readers - and admins (they may need to check a reported story).
+def can_read_early(user):
+    if not user.is_authenticated:
+        return False
+    return user.is_staff or get_profile(user).is_premium
