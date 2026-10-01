@@ -212,7 +212,7 @@ function Header() {
                     {/* text-sm font-medium = normal UI text size.
                         (The old text-2xl font-bold was heading size -
                         that's why it looked oversized.) */}
-                    <ul className='flex items-center gap-6 text-sm font-medium'>
+                    <ul className='flex items-center gap-6 text-sm font-bold'>
                         <li>
                             <a href='/' className={NAV_LINK}>Home</a>
                         </li>

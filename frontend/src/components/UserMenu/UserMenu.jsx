@@ -63,7 +63,7 @@ const MENU_GROUPS = [
 // gets two classes that set the same thing (text-gray-200 AND
 // text-red-400), the one that wins is decided by Tailwind's own CSS
 // order - NOT the order you wrote them in. Never rely on it.
-const ITEM_BASE = 'flex w-full items-center gap-3.5 px-5 py-2.5 text-[15px] transition-colors hover:bg-gray-800'
+const ITEM_BASE = 'flex w-full items-center gap-3.5 px-5 py-2.5 text-[15px] font-semibold transition-colors hover:bg-gray-800'
 const ITEM_STYLE = `${ITEM_BASE} text-gray-200 hover:text-white`
 const LOGOUT_STYLE = `${ITEM_BASE} text-red-400 hover:text-red-300`
 
