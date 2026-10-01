@@ -14,6 +14,69 @@
     --color-gray-500: #8b93a3;
 }
 
+
+/* ---------------------------------------------------------------
+   THE PHONE TAB BAR'S HEIGHT, written down ONCE.
+
+   On phones a tab bar is glued to the bottom of the screen
+   (components/BottomNav). Anything else stuck to the bottom - the
+   back-to-top button, the cookie box, the tour, Ask The Watcher -
+   has to sit ABOVE it, and the page needs room at the end so the
+   footer isn't hidden underneath it.
+
+   They all use this one variable, e.g.
+       bottom-[calc(var(--tabbar-space)+1rem)]
+   so if the tab bar ever changes height, you change ONE number.
+
+   5rem = the 4rem bar + the small gap under it when it floats
+   (BottomNav.jsx), env(...) = the iPhone swipe bar under it.
+   From the lg size up there is no tab bar, so the space is 0.
+   --------------------------------------------------------------- */
+:root {
+    --tabbar-space: calc(5rem + env(safe-area-inset-bottom));
+}
+
+@media (min-width: 64rem) {
+    :root {
+        --tabbar-space: 0px;
+    }
+}
+
+
+/* ---------------------------------------------------------------
+   Small things that make it feel like an app, not a web page:
+   - no grey/blue flash over links and buttons when you tap them
+   - phones don't blow the text up on their own when you turn
+     the phone sideways
+   --------------------------------------------------------------- */
+html {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+
+
+/* ---------------------------------------------------------------
+   scrollbar-none = "scrolls, but shows no scrollbar".
+
+   For phone-style panels (the menu sheet in Header.jsx): phone apps
+   don't draw a scrollbar - you just swipe. Without this, the red
+   page scrollbar below gets drawn INSIDE the panel and cuts through
+   its rounded corner.
+
+   @utility makes it a real Tailwind class, so it works with
+   lg:, hover: and the rest like any other class.
+     scrollbar-width: none          -> Firefox (and new Chrome)
+     ::-webkit-scrollbar display    -> Chrome, Edge, Safari
+   --------------------------------------------------------------- */
+@utility scrollbar-none {
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
+}
+
 /* ---------------------------------------------------------------
    Why there's no Bootstrap here any more:
 

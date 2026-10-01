@@ -3,7 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- viewport-fit=cover lets the page use the whole iPhone screen,
+         and turns on env(safe-area-inset-...) so the phone tab bar
+         (BottomNav.jsx) can stay clear of the home swipe bar. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Silent Evidence</title>
     <meta name="description" content="A community for horror story readers and writers." />
 

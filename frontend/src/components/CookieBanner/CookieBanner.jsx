@@ -57,12 +57,14 @@ function CookieBanner() {
     if (chosen || !banner?.is_enabled) return null
 
     return (
-        // fixed bottom-4 left-4: bottom-LEFT, so it doesn't cover the
+        // fixed, bottom-LEFT, so on a wide screen it doesn't cover the
         // "back to top" button or the Site Guide tour on the right.
+        // On a phone it's full width, so z-50 puts it ABOVE the
+        // back-to-top button (z-40) - the choice matters more.
         <div
             role='dialog'
             aria-label='Cookie choice'
-            className='fixed bottom-4 left-4 right-4 z-40 rounded-2xl border border-slate-700 bg-slate-900 p-5 shadow-2xl shadow-black/60 sm:right-auto sm:max-w-sm'
+            className='fixed bottom-[calc(var(--tabbar-space)+1rem)] left-4 right-4 z-50 rounded-2xl border border-slate-700 bg-slate-900 p-5 shadow-2xl shadow-black/60 sm:right-auto sm:max-w-sm'
         >
             <p className='flex items-center gap-2 font-semibold text-white'>
                 <Cookie className='h-5 w-5 text-amber-400' />

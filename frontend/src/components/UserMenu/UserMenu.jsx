@@ -105,7 +105,7 @@ function UserMenu({ user, onLogout, onOpenTour }) {
             >
                 {/* Your photo, or your initials on a red circle
                     (components/Avatar/Avatar.jsx). */}
-                <Avatar username={user.username} image={user.avatar} />
+                <Avatar username={user.username} image={user.avatar} size='header' />
 
                 {/* Spins upside down while the menu is open.
                     hidden on phones: no room in the header, and tapping

@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Link, useLocation } from 'react-router-dom'
-import { MessageCircleMore, Menu, X } from 'lucide-react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { MessageCircleMore, ArrowLeft } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { getUnreadCount } from '../../api/client'
 import UserMenu from '../UserMenu/UserMenu'
 import NotificationMenu from '../NotificationMenu/NotificationMenu'
+import BottomNav from '../BottomNav/BottomNav'
 import CategoryDropdown from '../CategoryDropdown/CategoryDropdown'
 import NavDropdown from '../NavDropdown/NavDropdown'
 import SearchModal from '../SearchModal/SearchModal'
@@ -45,36 +46,138 @@ const EXPLORE_ITEMS = [
 // in NavDropdown.jsx.
 const NAV_LINK = 'text-gray-200 hover:text-red-500 transition-colors'
 
-// Same for the round-ish icon buttons on the right (messages, bell).
-// p-1.5 on phones, p-2 from "sm" up: 4px less per icon adds up when
-// five of them share a 360px screen with the logo.
-const ICON_BUTTON = 'text-gray-300 hover:text-white transition-colors p-1.5 sm:p-2'
-
-// The links in the phone menu (the ☰ button). On a small screen the
-// normal nav doesn't fit, so these show in a panel instead.
-// The dropdowns (Categories, Forums, Explore) become plain links here.
-const MOBILE_LINKS = [
-    { label: 'Home', href: '/' },
-    { label: 'Search', href: '/search' },
-    { label: 'Videos', href: '/videos' },
-    ...EXPLORE_ITEMS,
-    ...FORUM_ITEMS,
-    { label: 'Leaderboard', href: '/leaderboard' },
-    { label: 'About', href: '/about' },
-    { label: 'Contact', href: '/contact' },
-]
-// (...EXPLORE_ITEMS = "put every item of that list in here". The
-// arrays above are defined first, so they exist by now.)
-
-
-// ---------------------------------------------------------------
-// The Messages icon, with a red number when you have unread ones.
+// The small icon buttons on the right (search, messages, bell) all
+// sit together inside ONE rounded "pill", like a phone app:
 //
-// It asks Django "how many unread?" when it appears, when you go to
-// another page, and every 30 seconds (the same "polling" idea as
-// the Messages page).
+//     ( 🔍  💬  🔔 )  (avatar)        <- phones: just ( 🔔 ), the
+//                                        others are in the tab bar
+//
+// Each button is a 32px circle (36px from "sm" up) with no
+// background of its own - the pill behind them is the background.
+// The bell (NotificationMenu.jsx) uses the same classes.
+const ICON_BUTTON = 'relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-gray-300 transition-colors hover:bg-white/10 hover:text-white sm:h-9 sm:w-9'
+
+// The pill itself: a faint background + a faint outline (ring).
+// (No "flex" in here: the pill is hidden on some screens, so where
+// it's used we add either flex or hidden lg:flex.)
+const ICON_PILL = 'items-center gap-0.5 rounded-full bg-white/5 p-1 ring-1 ring-white/10'
+
+
 // ---------------------------------------------------------------
-function MessagesLink() {
+// THE PAGE TITLE (phones and tablets only)
+//
+// Apps show the name of the screen you're on at the top - "Explore",
+// "Settings"... - instead of the logo on every screen. This list says
+// which name goes with which address. The first one that matches wins,
+// so the longer, more exact addresses come first.
+// ---------------------------------------------------------------
+const PAGE_TITLES = [
+    ['/explore/latest', 'Latest'],
+    ['/explore/popular', 'Most Viewed'],
+    ['/explore/timeline', 'Timeline'],
+    ['/explore', 'Explore'],
+    ['/forums', 'Forums'],
+    ['/videos', 'Videos'],
+    ['/profile', 'Profile'],
+    ['/messages', 'Messages'],
+    ['/notifications', 'Notifications'],
+    ['/settings', 'Settings'],
+    ['/write', 'Write a Story'],
+    ['/search', 'Search'],
+    ['/stories', 'Story'],
+    ['/category', 'Category'],
+    ['/challenges', 'Challenges'],
+    ['/chains', 'Story Chains'],
+    ['/bundles', 'Bundles'],
+    ['/true-stories', 'True Stories'],
+    ['/map', 'Haunted Map'],
+    ['/read-alongs', 'Read-alongs'],
+    ['/leaderboard', 'Leaderboard'],
+    ['/lists', 'My Lists'],
+    ['/history', 'Reading History'],
+    ['/my-stories', 'My Stories'],
+    ['/premium', 'Premium'],
+    ['/guide', 'Site Guide'],
+    ['/about', 'About'],
+    ['/contact', 'Contact'],
+]
+
+// The name for an address, or null = "show the logo instead"
+// (the home page, and any page that isn't in the list).
+function getPageTitle(pathname) {
+    // Array destructuring: each item is [address, name].
+    for (const [path, title] of PAGE_TITLES) {
+        // '/explore' should match '/explore' and '/explore/latest',
+        // but NOT '/explorers' - hence the + '/'.
+        if (pathname === path || pathname.startsWith(path + '/')) {
+            return title
+        }
+    }
+    return null
+}
+
+// The "main" screens - the ones in the bottom tab bar. They don't
+// get a back arrow (you get to them from the tabs). Every other page
+// is a page you went INTO, so it gets ← to go back, like in an app.
+function isMainScreen(pathname) {
+    return ['/', '/forums', '/videos', '/profile'].includes(pathname)
+        || pathname.startsWith('/explore')
+}
+
+// The phone menu (the ☰ button). On a small screen the normal nav
+// doesn't fit, so these show in a panel instead.
+//
+// They're split into SECTIONS, each with a small heading, so the
+// menu reads like the desktop nav (Explore, Forums...) instead of
+// one long jumble of 20 links.
+//
+// Two items don't go to a page - they open a pop-up. Those get
+// `action` instead of `href`, and the menu turns them into buttons.
+const MOBILE_SECTIONS = [
+    {
+        title: 'Main',
+        links: [
+            { label: 'Home', href: '/' },
+            { label: 'Videos', href: '/videos' },
+            { label: 'Search', href: '/search' },
+            { label: 'Leaderboard', href: '/leaderboard' },
+        ],
+    },
+    // The same arrays the desktop dropdowns use, so the two menus
+    // can never get out of sync.
+    { title: 'Explore', links: EXPLORE_ITEMS },
+    { title: 'Forums', links: FORUM_ITEMS },
+    {
+        title: 'Help',
+        links: [
+            { label: 'Site Guide', action: 'tour' },
+            { label: 'Ask The Watcher', action: 'watcher' },
+            { label: 'About', href: '/about' },
+            { label: 'Contact', href: '/contact' },
+        ],
+    },
+]
+
+// Shared look for every item in the phone menu.
+// py-2.5 = a comfortable thumb-sized tap target.
+const MOBILE_ITEM = 'block w-full rounded-lg px-3 py-2.5 text-left text-sm transition-colors'
+
+
+// ---------------------------------------------------------------
+// HOW MANY UNREAD MESSAGES? (a small custom hook)
+//
+// It asks Django "how many unread?" when the page loads, when you go
+// to another page, and every 30 seconds (the same "polling" idea as
+// the Messages page).
+//
+// Why a hook and not inside MessagesLink? Because TWO places show
+// the number now: the header's icon (big screens) and the Messages
+// tab in the phone tab bar. Asking once here and handing the number
+// to both means one request, not two.
+//
+// `enabled` = only ask when someone is logged in.
+// ---------------------------------------------------------------
+function useUnreadMessages(enabled) {
     const [unread, setUnread] = useState(0)
 
     // location changes on every page change -> check again then too,
@@ -82,6 +185,8 @@ function MessagesLink() {
     const location = useLocation()
 
     useEffect(() => {
+        if (!enabled) return
+
         function check() {
             getUnreadCount()
                 .then(data => setUnread(data.unread))
@@ -91,14 +196,24 @@ function MessagesLink() {
         check()
         const timer = setInterval(check, 30000)
         return () => clearInterval(timer)
-    }, [location.pathname])
+    }, [enabled, location.pathname])
 
+    // Logged out -> always 0, even if an old number is still stored.
+    return enabled ? unread : 0
+}
+
+
+// The Messages icon (big screens), with a red number when you have
+// unread ones. The number comes from useUnreadMessages above.
+function MessagesLink({ unread }) {
     return (
         // relative = the anchor for the little red number.
-        <Link to='/messages' aria-label={`Messages${unread > 0 ? `, ${unread} unread` : ''}`} className={`relative ${ICON_BUTTON}`}>
+        <Link to='/messages' aria-label={`Messages${unread > 0 ? `, ${unread} unread` : ''}`} className={ICON_BUTTON}>
             <MessageCircleMore className='w-5 h-5' />
             {unread > 0 && (
-                <span className='absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold text-white'>
+                // ring-2 ring-slate-900 = a thin outline the colour of
+                // the header, so the badge looks "cut out" of the circle.
+                <span className='absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold text-white ring-2 ring-slate-900'>
                     {/* 100 unread -> "9+", so the badge stays small. */}
                     {unread > 9 ? '9+' : unread}
                 </span>
@@ -119,6 +234,42 @@ function Header() {
 
     // Is the phone menu open?
     const [menuOpen, setMenuOpen] = useState(false)
+
+    // Unread messages - shown on the header icon AND the phone tab bar.
+    const unreadMessages = useUnreadMessages(Boolean(user))
+
+    // Which page we're on - for the phone title, the back arrow, and
+    // highlighting the current page's link in the phone menu.
+    const location = useLocation()
+    const pageTitle = getPageTitle(location.pathname)
+    const showBack = !isMainScreen(location.pathname)
+
+    // Close the phone menu whenever the page changes - from a tab,
+    // the + button, the browser's Back button, anything. Otherwise the
+    // menu would stay open on top of the new page.
+    //
+    // This is React's "adjust state when a value changes" pattern:
+    // remember the last address, and when it's different, update.
+    // (A useEffect would also work, but it draws the page once with
+    // the menu still open, and then again closed.)
+    const [lastPath, setLastPath] = useState(location.pathname)
+    if (lastPath !== location.pathname) {
+        setLastPath(location.pathname)
+        setMenuOpen(false)
+    }
+
+    // ← goes back one page, like the browser's Back button.
+    // But if this is the FIRST page of the visit (someone opened a
+    // shared link), there's nothing to go back to - so go home.
+    // React Router keeps a counter (idx) in history.state: 0 = first.
+    const navigate = useNavigate()
+    function goBack() {
+        if (window.history.state?.idx > 0) {
+            navigate(-1)
+        } else {
+            navigate('/')
+        }
+    }
 
     // Is the pop-up search open? (components/SearchModal)
     const [searchOpen, setSearchOpen] = useState(false)
@@ -190,7 +341,11 @@ function Header() {
         // [logo + nav] on the left, [search + auth] on the right.
         // relative = the anchor for the phone menu panel below.
         // px-4 on phones, px-8 from the "sm" size up.
-        <header className='relative bg-slate-900 flex items-center justify-between px-4 py-3 sm:px-8'>
+        //
+        // sticky top-0 (phones and tablets only): the header stays
+        // at the top while you scroll, like an app's top bar.
+        // On big screens lg:relative puts it back to normal.
+        <header className='sticky top-0 z-50 bg-slate-900 flex items-center justify-between px-4 py-3 sm:px-8 lg:relative lg:z-auto'>
 
             {/* ---------- LEFT: logo + navigation ---------- */}
             {/* These two are wrapped together so they stay side by
@@ -198,13 +353,37 @@ function Header() {
                 the nav into the middle of the page. */}
             <div className='flex items-center gap-8 min-w-0'>
 
-                {/* The logo takes you home.
-                    On phones it's smaller (text-base), so it fits next to
-                    the 5 icons of a logged-in member. And if a phone is
-                    REALLY narrow, `truncate` cuts it with "..." instead of
-                    sliding under the icons. (truncate needs a block, and
-                    min-w-0 on the parent - see the div above.) */}
-                <Link to='/' className='block truncate text-base font-bold text-red-600 sm:text-2xl'>
+                {/* ----- PHONES AND TABLETS: [←] Page name ----- */}
+                {/* lg:hidden = this whole bit is gone on big screens. */}
+                <div className='flex min-w-0 items-center gap-1 lg:hidden'>
+                    {showBack && (
+                        // -ml-2 lines the arrow's ICON up with the page
+                        // edge (the button has some padding around it).
+                        <button
+                            type='button'
+                            onClick={goBack}
+                            aria-label='Go back'
+                            className='-ml-2 flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-gray-200 transition-colors hover:bg-white/10'
+                        >
+                            <ArrowLeft className='h-5 w-5' />
+                        </button>
+                    )}
+
+                    {/* The page's name, or the red logo on the home page.
+                        truncate = a long name ends in "..." instead of
+                        sliding under the icons. (truncate needs a block,
+                        and min-w-0 on the parents.) */}
+                    {pageTitle ? (
+                        <span className='block truncate text-xl font-bold text-white'>{pageTitle}</span>
+                    ) : (
+                        <Link to='/' className='block truncate text-xl font-bold text-red-600'>
+                            Silent Evidence
+                        </Link>
+                    )}
+                </div>
+
+                {/* ----- BIG SCREENS: the logo, always ----- */}
+                <Link to='/' className='hidden truncate text-2xl font-bold text-red-600 lg:block'>
                     Silent Evidence
                 </Link>
 
@@ -257,9 +436,22 @@ function Header() {
                 </nav>
             </div>
 
-            {/* ---------- RIGHT: search + auth ---------- */}
-            {/* gap-0 on phones (every pixel counts), gap-3 from "sm" up. */}
-            <div className='flex shrink-0 items-center gap-0 sm:gap-3'>
+            {/* ---------- RIGHT: the icon pill + auth ---------- */}
+            <div className='flex shrink-0 items-center gap-2 sm:gap-3'>
+
+                {/* The pill.
+                      big screens: search, messages, bell
+                      phones:      only the bell (search and messages are
+                                   in the tab bar at the bottom instead)
+                    Logged out on a phone there's nothing left to put in
+                    it, so the whole pill is hidden (hidden lg:flex). */}
+                <div className={`${ICON_PILL} ${user ? 'flex' : 'hidden lg:flex'}`}>
+
+                {/* "hidden lg:contents" = invisible on phones; on big
+                    screens the wrapper acts as if it isn't there
+                    (contents), so its two buttons sit straight in the
+                    pill like the bell does. */}
+                <div className='hidden lg:contents'>
 
                 {/* An icon-only button has no text, so a screen reader
                     would announce nothing. aria-label supplies the name.
@@ -272,9 +464,10 @@ function Header() {
                     onClick={() => setSearchOpen(true)}
                     aria-label='Search'
                     title='Search (Ctrl + K)'
-                    className={`rounded-lg p-1.5 transition-colors sm:p-2 ${
-                        searchOpen ? 'bg-red-600 text-white' : 'text-gray-300 hover:text-white'
-                    }`}
+                    // The ! at the end of a class = "important": it wins
+                    // over the text-gray-300 already in ICON_BUTTON, so
+                    // the open search turns red with a white icon.
+                    className={`${ICON_BUTTON} ${searchOpen ? 'bg-red-600 text-white!' : ''}`}
                 >
                     <svg
                         className='w-5 h-5'
@@ -288,24 +481,22 @@ function Header() {
                     </svg>
                 </button>
 
+                    {/* Messages: logged-in members only.
+                        `!loading &&` waits until Django has told us who
+                        is logged in, so nothing flashes on page load. */}
+                    {!loading && user && <MessagesLink unread={unreadMessages} />}
+                </div>
+
+                    {/* The bell + dropdown lives in its own component.
+                        On phones too - it's the one icon that stays up here. */}
+                    {!loading && user && <NotificationMenu />}
+                </div>
+
                 {/* One ternary swaps the whole auth area:
                     logged out -> Log In + Sign Up
-                    logged in  -> the avatar dropdown
-                    `!loading &&` hides both while we're still asking
-                    Django - otherwise a logged-in user would see the
-                    Log In button flash on every page load. */}
+                    logged in  -> the avatar dropdown */}
                 {!loading && (user ? (
-                    // Logged in: messages, notifications, then the avatar
-                    // menu. The icon links go to pages that don't exist
-                    // yet (they show "Page not found" for now).
-                    // aria-label gives an icon-only link a name for
-                    // screen readers, like the search button above.
-                    <>
-                        <MessagesLink />
-                        {/* The bell + dropdown lives in its own component. */}
-                        <NotificationMenu />
-                        <UserMenu user={user} onLogout={logout} onOpenTour={openTour} />
-                    </>
+                    <UserMenu user={user} onLogout={logout} onOpenTour={openTour} />
                 ) : (
                     // <>...</> is a "fragment": it groups both buttons
                     // without adding an extra <div> to the page.
@@ -329,67 +520,90 @@ function Header() {
                         </a>
                     </>
                 ))}
-
-                {/* ☰ / X - opens and closes the phone menu.
-                    lg:hidden = gone on big screens, where the nav fits. */}
-                <button
-                    type='button'
-                    onClick={() => setMenuOpen(!menuOpen)}
-                    aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-                    aria-expanded={menuOpen}
-                    className={`lg:hidden ${ICON_BUTTON}`}
-                >
-                    {menuOpen ? <X className='w-5 h-5' /> : <Menu className='w-5 h-5' />}
-                </button>
             </div>
 
+            {/* ---------- THE PHONE TAB BAR ---------- */}
+            {/* It lives HERE (not in SiteLayout) because its Search and
+                Menu buttons open things this component controls - the
+                pop-up search and the menu below. Passing the state and
+                the "open" functions down as props is how a child
+                component changes its parent's state. */}
+            <BottomNav
+                unreadMessages={unreadMessages}
+                searchOpen={searchOpen}
+                onSearch={() => {
+                    setMenuOpen(false)
+                    setSearchOpen(true)
+                }}
+                menuOpen={menuOpen}
+                onMenu={() => setMenuOpen(!menuOpen)}
+            />
+
             {/* ---------- THE PHONE MENU ---------- */}
-            {/* absolute + top-full = hangs right under the header,
-                on top of the page (z-40). */}
+            {/* Opened by the Menu tab, so it pops up from the BOTTOM,
+                just above the tab bar - a "sheet", like in phone apps.
+                fixed + bottom-[...] = sits above the tab bar (whose
+                height is --tabbar-space, see index.css). */}
             {menuOpen && (
-                <nav className='absolute left-0 right-0 top-full z-40 border-t border-slate-800 bg-slate-900 px-4 py-3 shadow-2xl lg:hidden'>
-                    <ul className='grid grid-cols-2 gap-1'>
-                        {/* Site Guide opens the tour, so it's a button,
-                            not one of the links below. */}
-                        <li>
-                            <button
-                                type='button'
-                                onClick={() => {
-                                    setMenuOpen(false)
-                                    openTour()
-                                }}
-                                className='block w-full rounded-lg px-3 py-2 text-left text-sm text-gray-200 hover:bg-slate-800 hover:text-white'
-                            >
-                                Site Guide
-                            </button>
-                        </li>
-                        {/* Ask The Watcher opens its pop-up - a button too. */}
-                        <li>
-                            <button
-                                type='button'
-                                onClick={() => {
-                                    setMenuOpen(false)
-                                    setWatcherOpen(true)
-                                    setTourOpen(false)
-                                }}
-                                className='block w-full rounded-lg px-3 py-2 text-left text-sm text-gray-200 hover:bg-slate-800 hover:text-white'
-                            >
-                                Ask The Watcher
-                            </button>
-                        </li>
-                        {MOBILE_LINKS.map(link => (
-                            <li key={link.href}>
-                                {/* onClick closes the menu when you pick a page. */}
-                                <Link
-                                    to={link.href}
-                                    onClick={() => setMenuOpen(false)}
-                                    className='block rounded-lg px-3 py-2 text-sm text-gray-200 hover:bg-slate-800 hover:text-white'
-                                >
-                                    {link.label}
-                                </Link>
-                            </li>
+                // max-h + overflow-y-auto: on a short phone screen the
+                // menu scrolls inside itself instead of running off the
+                // top. overscroll-contain stops the page behind from
+                // scrolling when you reach the end of the menu.
+                // scrollbar-none (index.css) = swipe to scroll, but no
+                // scrollbar drawn - like a phone app, and it keeps the
+                // rounded corners clean.
+                <nav className='scrollbar-none fixed inset-x-3 bottom-[calc(var(--tabbar-space)+0.5rem)] z-40 mx-auto max-h-[70dvh] max-w-md overflow-y-auto overscroll-contain rounded-3xl border border-white/10 bg-slate-950/95 px-3 py-2 shadow-[0_10px_40px_rgba(0,0,0,0.6)] backdrop-blur-xl lg:hidden'>
+                    {/* divide-y = a thin line between each section. */}
+                    <div className='divide-y divide-slate-800'>
+                        {MOBILE_SECTIONS.map(section => (
+                            <div key={section.title} className='py-3'>
+                                {/* Small grey heading, like the footer's. */}
+                                <h3 className='px-3 pb-1 text-xs font-bold uppercase tracking-wider text-gray-500'>
+                                    {section.title}
+                                </h3>
+
+                                <ul className='grid grid-cols-2 gap-1'>
+                                    {section.links.map(link => (
+                                        <li key={link.label}>
+                                            {link.action ? (
+                                                // Opens a pop-up, so it's a button.
+                                                <button
+                                                    type='button'
+                                                    onClick={() => {
+                                                        setMenuOpen(false)
+                                                        if (link.action === 'tour') {
+                                                            openTour()
+                                                        } else {
+                                                            setTourOpen(false)
+                                                            setWatcherOpen(true)
+                                                        }
+                                                    }}
+                                                    className={`${MOBILE_ITEM} text-gray-200 hover:bg-slate-800 hover:text-white`}
+                                                >
+                                                    {link.label}
+                                                </button>
+                                            ) : (
+                                                // A normal page. The page you're on now
+                                                // is highlighted red, so you can see
+                                                // where you are. onClick closes the menu.
+                                                <Link
+                                                    to={link.href}
+                                                    onClick={() => setMenuOpen(false)}
+                                                    className={`${MOBILE_ITEM} ${
+                                                        location.pathname === link.href
+                                                            ? 'bg-red-600/15 font-semibold text-red-500'
+                                                            : 'text-gray-200 hover:bg-slate-800 hover:text-white'
+                                                    }`}
+                                                >
+                                                    {link.label}
+                                                </Link>
+                                            )}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
                         ))}
-                    </ul>
+                    </div>
                 </nav>
             )}
             {/* ---------- THE POP-UP SEARCH ---------- */}

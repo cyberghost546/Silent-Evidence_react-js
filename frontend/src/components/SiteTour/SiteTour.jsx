@@ -108,7 +108,7 @@ function SiteTour({ onClose }) {
         <div
             role='dialog'
             aria-label='Site Guide tour'
-            className={`${styles.card} fixed bottom-4 left-4 right-4 z-50 overflow-hidden rounded-2xl border border-red-900/70 bg-slate-900 shadow-2xl shadow-black/60 sm:left-auto sm:w-[26rem]`}
+            className={`${styles.card} fixed bottom-[calc(var(--tabbar-space)+1rem)] left-4 right-4 z-50 overflow-hidden rounded-2xl border border-red-900/70 bg-slate-900 shadow-2xl shadow-black/60 sm:left-auto sm:w-[26rem]`}
         >
             {/* ---------- TOP: title, step count, close ---------- */}
             <div className='flex items-start justify-between bg-slate-800/60 px-5 pb-3 pt-4'>

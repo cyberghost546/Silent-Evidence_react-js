@@ -22,6 +22,8 @@ function SiteLayout() {
         // standard "sticky footer" trick: if the page content is short,
         // the footer still sits at the bottom of the window instead of
         // floating halfway up the screen.
+        // (The room for the phone tab bar is at the bottom of the
+        // Footer, so the gap is the footer's colour.)
         <div className='home min-h-screen flex flex-col'>
             {/* The admins' announcement (if one is switched on). */}
             <AnnouncementBanner />

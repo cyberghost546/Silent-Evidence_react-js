@@ -19,6 +19,9 @@ import { mediaUrl } from '../../api/client'
 
 // The Tailwind classes for each size, in one place.
 const SIZES = {
+    // header = the same height as the icon pill next to it in the
+    // header (40px on phones, 44px from "sm" up).
+    header: 'h-10 w-10 text-sm sm:h-11 sm:w-11',
     sm: 'h-10 w-10 text-sm',
     md: 'h-12 w-12 text-lg',
     lg: 'h-20 w-20 text-3xl',

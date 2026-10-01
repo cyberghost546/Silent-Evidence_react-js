@@ -85,9 +85,12 @@ function NotificationMenu() {
                 aria-haspopup='menu'
                 aria-expanded={open}
                 aria-label={`Notifications (${unreadCount} unread)`}
-                // When open, the button gets a dark box behind it so you
-                // can see which menu is showing.
-                className={`relative rounded-lg p-2 transition-colors hover:text-white ${open ? 'bg-slate-800 text-white' : 'text-gray-300'}`}
+                // The same round button as search and messages next to
+                // it (ICON_BUTTON in Header.jsx - keep the two the same).
+                // When open it's brighter, so you can see which menu is showing.
+                className={`relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-colors hover:bg-white/10 hover:text-white sm:h-9 sm:w-9 ${
+                    open ? 'bg-white/15 text-white' : 'text-gray-300'
+                }`}
             >
                 <Bell className='h-5 w-5' />
 

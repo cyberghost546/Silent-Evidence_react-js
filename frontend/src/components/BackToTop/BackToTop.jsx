@@ -43,13 +43,17 @@ function BackToTop() {
     return (
         // fixed = stays in the same spot on the SCREEN while the page
         // scrolls under it. z-40 keeps it above the page content.
+        //
+        // On phones it's smaller and dark grey (h-11, bg-slate-800),
+        // so it doesn't fight with the red Write button in the tab
+        // bar. From lg up (no tab bar) it's the big red circle again.
         <button
             type='button'
             onClick={scrollToTop}
             aria-label='Back to top'
-            className='fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-red-600 text-white shadow-lg shadow-red-900/50 transition hover:-translate-y-0.5 hover:bg-red-700'
+            className='fixed bottom-[calc(var(--tabbar-space)+1rem)] right-4 z-40 flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-slate-800/90 text-white shadow-lg shadow-black/40 backdrop-blur transition hover:-translate-y-0.5 lg:right-6 lg:bottom-6 lg:h-14 lg:w-14 lg:border-0 lg:bg-red-600 lg:shadow-red-900/50 lg:hover:bg-red-700'
         >
-            <ArrowUp className='h-6 w-6' />
+            <ArrowUp className='h-5 w-5 lg:h-6 lg:w-6' />
         </button>
     )
 }
