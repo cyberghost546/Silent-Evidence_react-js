@@ -42,25 +42,29 @@ function NotificationItem({ item, onOpen, role }) {
             to={item.link}
             role={role}
             onClick={onOpen}
-            // Unread rows get a slightly lighter background.
-            className={`flex items-start gap-3 px-4 py-3 transition-colors hover:bg-gray-800 ${item.is_read ? '' : 'bg-gray-800/40'}`}
+            // A rounded row (rounded-2xl), like in social apps.
+            // Unread rows get a faint red tint, so they stand out.
+            // py-3 = a comfortable size to tap with a thumb.
+            className={`flex items-center gap-3 rounded-2xl px-3 py-3 transition-colors hover:bg-white/5 ${item.is_read ? '' : 'bg-red-600/[0.07]'}`}
         >
-            {/* Coloured round icon */}
-            <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${color}`}>
-                <Icon className='h-4 w-4' />
+            {/* Coloured round icon - big (h-11), like an avatar in a
+                social app's notification list. */}
+            <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${color}`}>
+                <Icon className='h-5 w-5' />
             </span>
 
             {/* Text + time. min-w-0 lets long text wrap instead of
-                pushing the panel wider. */}
+                pushing the panel wider. leading-snug = lines a bit
+                closer together, so a 2-line notification stays compact. */}
             <div className='min-w-0 flex-1'>
-                <p className={`text-sm ${item.is_read ? 'text-gray-400' : 'text-gray-100'}`}>{item.text}</p>
-                <p className='mt-0.5 text-xs text-gray-500'>{timeAgo(item.created_at)}</p>
+                <p className={`text-sm leading-snug ${item.is_read ? 'text-gray-400' : 'font-medium text-white'}`}>{item.text}</p>
+                <p className={`mt-1 text-xs ${item.is_read ? 'text-gray-500' : 'font-semibold text-red-400'}`}>{timeAgo(item.created_at)}</p>
             </div>
 
-            {/* Little red dot = still unread. The text colour changes
-                too, so it's not colour alone. */}
+            {/* Red dot = still unread. The text gets bolder and the time
+                turns red too, so it's not the dot's colour alone. */}
             {!item.is_read && (
-                <span className='mt-1.5 h-2 w-2 shrink-0 rounded-full bg-red-500' aria-label='Unread' />
+                <span className='h-2.5 w-2.5 shrink-0 rounded-full bg-red-500' aria-label='Unread' />
             )}
         </Link>
     )

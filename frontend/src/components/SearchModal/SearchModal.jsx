@@ -62,7 +62,8 @@ function SearchModal({ onClose }) {
     return (
         // ---------- THE DARK BACKGROUND ----------
         // fixed inset-0 = covers the whole window (top/right/bottom/left 0).
-        // z-50 = on top of everything, header included.
+        // z-[60] = on top of everything - the header, the tab bar AND
+        // the cookie box (those are z-50 or lower).
         // bg-black/70 = black at 70%, so the page shows through a bit.
         // backdrop-blur-sm = blurs the page behind it.
         //
@@ -74,8 +75,18 @@ function SearchModal({ onClose }) {
             aria-modal='true'
             aria-label='Search the site'
             onClick={onClose}
-            className='fixed inset-0 z-50 bg-black/70 px-4 pt-20 backdrop-blur-sm sm:pt-24'
+            //
+            // PHONES: a full screen of its own (bg-slate-950, not
+            // see-through), like the search page in a phone app. The box
+            // sits at the TOP (pt-3), and env(safe-area-inset-top) keeps
+            // it below an iPhone's notch. Closed with the Cancel button
+            // (onCancel below) - a phone has no Esc key.
+            // From "sm" up: the dark see-through background with the box
+            // floating in it (pt-24), like before.
+            // overflow-y-auto: a long list of recent searches can scroll.
+            className='fixed inset-0 z-[60] overflow-y-auto bg-slate-950 px-4 pt-[calc(0.75rem+env(safe-area-inset-top))] sm:bg-black/70 sm:pt-24 sm:backdrop-blur-sm'
         >
+
             {/* ---------- THE BOX ---------- */}
             {/* event.stopPropagation(): a click INSIDE the box would
                 otherwise "bubble up" to the dark background and close
@@ -85,12 +96,14 @@ function SearchModal({ onClose }) {
             <div onClick={event => event.stopPropagation()} className='mx-auto max-w-3xl'>
                 {/* autoFocus: the cursor is in the input right away,
                     so you can start typing without clicking. */}
-                <SearchBox onSearch={handleSearch} autoFocus />
+                {/* onCancel: SearchBox shows a "Cancel" button on phones. */}
+                <SearchBox onSearch={handleSearch} onCancel={onClose} autoFocus />
             </div>
 
             {/* ---------- "ESC to close" ---------- */}
-            {/* <kbd> is the HTML tag for "a key on the keyboard". */}
-            <p className='mt-4 text-center text-sm text-gray-400'>
+            {/* <kbd> is the HTML tag for "a key on the keyboard".
+                hidden sm:block: phones have no Esc key, so no hint there. */}
+            <p className='mt-4 hidden text-center text-sm text-gray-400 sm:block'>
                 <kbd className='rounded-md border border-slate-600 bg-slate-800 px-2 py-0.5 text-xs font-semibold text-gray-300'>
                     ESC
                 </kbd>{' '}

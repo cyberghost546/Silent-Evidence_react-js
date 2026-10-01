@@ -12,6 +12,7 @@ import { LANGUAGES, MOODS, CONTENT_RATINGS, CONTENT_WARNINGS, TEMPLATES } from '
 import { LABEL_STYLE, INPUT_STYLE, BUTTON_STYLE, FIELD_ERROR_STYLE } from '../../styles/formStyles'
 import { countWords } from '../../utils/storyFormat'
 import SeriesPicker from './SeriesPicker'
+import FormSection from './FormSection'
 
 // The map picker, loaded only when the Write page needs it (Leaflet is big).
 const PlacePicker = lazy(() => import('../Map/PlacePicker'))
@@ -431,10 +432,11 @@ function WriteStory() {
         <div className='min-h-screen bg-[#020617]'>
 
         {/* The inner div keeps the form narrow and centred. */}
-        <div className='mx-auto max-w-2xl px-4 py-10'>
+        <div className='mx-auto max-w-2xl px-4 py-6 sm:py-10'>
 
             {/* ---------- PAGE TITLE ---------- */}
-            <h1 className='text-4xl font-bold text-white'>Write a Story</h1>
+            {/* text-2xl on phones: the app's top bar already says "Write a Story". */}
+            <h1 className='text-2xl font-bold text-white sm:text-4xl'>Write a Story</h1>
             {/* gray-300 (not 400) so the text is easy to read. */}
             <p className='mt-1 text-sm text-gray-300'>Share your experience with the Silent Evidence community.</p>
 
@@ -506,434 +508,475 @@ function WriteStory() {
 
             {/* noValidate: we show our own error messages instead of
                 the browser's little pop-ups. */}
-            <form onSubmit={handleSubmit} noValidate className='mt-6 space-y-6'>
+            <form onSubmit={handleSubmit} noValidate className='mt-6 space-y-4'>
 
-                {/* ---------- TITLE ---------- */}
-                <div>
-                    {/* htmlFor = the id of the input. Clicking the label
-                        then puts the cursor in the input. */}
-                    <label htmlFor='title' className={LABEL_STYLE}>Title<Required /></label>
-                    <input
-                        id='title'
-                        name='title'
-                        value={form.title}
-                        onChange={handleChange}
-                        maxLength={200}
-                        placeholder='Give your story a chilling title...'
-                        className={INPUT_STYLE}
-                    />
-                    <FieldError messages={errors.title} />
-                </div>
-
-                {/* ---------- CATEGORY ---------- */}
-                <div>
-                    <label htmlFor='category' className={LABEL_STYLE}>Category<Required /></label>
-                    <select id='category' name='category' value={form.category} onChange={handleChange} className={INPUT_STYLE}>
-                        <option value=''>Select a category...</option>
-                        {/* The value is the category's ID - that's what
-                            Django needs to link the story to it. */}
-                        {categories.map(category => (
-                            <option key={category.id} value={category.id}>{category.name}</option>
-                        ))}
-                    </select>
-                    <FieldError messages={errors.category} />
-                </div>
-
-                {/* ---------- LANGUAGE ---------- */}
-                <div>
-                    <label htmlFor='language' className={LABEL_STYLE}>
-                        Story Language<Hint>(what language is your story written in?)</Hint>
-                    </label>
-                    <select id='language' name='language' value={form.language} onChange={handleChange} className={INPUT_STYLE}>
-                        {LANGUAGES.map(language => (
-                            <option key={language.value} value={language.value}>{language.label}</option>
-                        ))}
-                    </select>
-                </div>
-
-                {/* ---------- COVER IMAGE ---------- */}
-                <div>
-                    <p className={LABEL_STYLE}>Cover Image<Hint>(optional)</Hint></p>
-
-                    {/* Our reusable toggle. It doesn't keep its own state -
-                        it shows form.coverMode and tells us when to change it. */}
-                    <SegmentedControl
-                        label='Cover image source'
-                        value={form.coverMode}
-                        onChange={mode => updateField('coverMode', mode)}
-                        options={[
-                            { value: 'upload', label: 'Upload from device' },
-                            { value: 'url', label: 'Paste URL' },
-                        ]}
-                    />
-
-                    <div className='mt-3'>
-                        {form.coverMode === 'upload' ? (
-                            // The real file input is hidden (sr-only) because
-                            // it can't be styled. The <label> around it is the
-                            // box you see - clicking a label clicks its input.
-                            <label className='flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed border-slate-600 bg-slate-800 px-4 py-6 text-sm text-gray-400 transition-colors hover:border-red-600 hover:text-white'>
-                                <ImagePlus className='h-5 w-5' />
-                                {coverFile ? coverFile.name : 'Choose an image (JPG or PNG)'}
-                                <input type='file' accept='image/*' onChange={handleFileChange} className='sr-only' />
-                            </label>
-                        ) : (
-                            <input
-                                name='coverUrl'
-                                type='url'
-                                value={form.coverUrl}
-                                onChange={handleChange}
-                                placeholder='https://example.com/image.jpg'
-                                aria-label='Cover image URL'
-                                className={INPUT_STYLE}
-                            />
-                        )}
-                        <FieldError messages={errors.cover_image || errors.cover_image_url} />
-
-                        {/* Small preview of whichever cover is picked. */}
-                        {/* aspect-[40/21] = the shape of a cover (1200 x 630),
-                            so the whole picture shows, not just a strip. */}
-                        {form.coverMode === 'upload' && coverPreview && (
-                            <img src={coverPreview} alt='Cover preview' className='mt-3 aspect-[40/21] w-full max-w-lg rounded-lg object-cover' />
-                        )}
-                        {form.coverMode === 'url' && form.coverUrl.startsWith('http') && (
-                            <img src={form.coverUrl} alt='Cover preview' className='mt-3 h-40 w-full rounded-lg object-cover' />
-                        )}
-                    </div>
-
-                    {/* Pro: draw a cover from the title. The made picture is
-                        used exactly like an uploaded one (coverFile). */}
-                    <CoverMaker
-                        title={form.title}
-                        onMake={file => {
-                            setCoverFile(file)
-                            updateField('coverMode', 'upload')
-                        }}
-                    />
-                </div>
-
-                {/* ---------- VIDEO URL ---------- */}
-                <div>
-                    <label htmlFor='videoUrl' className={LABEL_STYLE}>
-                        Video URL<Hint>(optional — YouTube link or direct .mp4)</Hint>
-                    </label>
-                    <input
-                        id='videoUrl'
-                        name='videoUrl'
-                        type='url'
-                        value={form.videoUrl}
-                        onChange={handleChange}
-                        placeholder='https://www.youtube.com/watch?v=...'
-                        className={INPUT_STYLE}
-                    />
-                    <FieldError messages={errors.video_url} />
-                </div>
-
-                {/* ---------- SHORT DESCRIPTION ---------- */}
-                <div>
-                    <label htmlFor='excerpt' className={LABEL_STYLE}>Short Description<Hint>(optional)</Hint></label>
-                    <textarea
-                        id='excerpt'
-                        name='excerpt'
-                        rows={2}
-                        value={form.excerpt}
-                        onChange={handleChange}
-                        maxLength={EXCERPT_MAX}
-                        placeholder='A one or two sentence teaser shown on story cards...'
-                        className={`${INPUT_STYLE} resize-none`}
-                    />
-                    {/* A little counter: 42 / 300 */}
-                    <p className='mt-1 text-right text-xs text-gray-500'>{form.excerpt.length} / {EXCERPT_MAX}</p>
-                    <FieldError messages={errors.excerpt} />
-                </div>
-
-                {/* ---------- THE STORY ---------- */}
-                <div>
-                    <div className='mb-2 flex items-center justify-between'>
-                        <label htmlFor='body' className='text-sm font-semibold text-gray-200'>Your Story<Required /></label>
-                        <div className='flex items-center gap-4'>
-                            {/* A <label> around a hidden file input = a button
-                                that opens the file picker. */}
-                            <label className='cursor-pointer text-xs font-semibold text-red-400 hover:text-red-300'>
-                                {importing ? 'Importing...' : 'Import from Word'}
-                                <input type='file' accept='.docx' onChange={handleImport} disabled={importing} className='sr-only' />
-                            </label>
-                            <span className='text-xs text-gray-500'>{countWords(form.body)} words</span>
-                        </div>
-                    </div>
-
-                    <StoryEditor id='body' value={form.body} onChange={text => updateField('body', text)} />
-                    <FieldError messages={errors.body} />
-
-                    {/* AI Writing Assistant - the button works, the
-                        assistant itself isn't built yet. */}
-                    <button
-                        type='button'
-                        onClick={() => setShowAssistant(!showAssistant)}
-                        className='mt-3 flex items-center gap-2 rounded-lg border border-purple-700 bg-purple-950/60 px-4 py-2 text-sm font-semibold text-purple-200 transition-colors hover:bg-purple-900/60'
-                    >
-                        <Sparkles className='h-4 w-4' />
-                        AI Writing Assistant
-                        <ChevronDown className={`h-4 w-4 transition-transform ${showAssistant ? 'rotate-180' : ''}`} />
-                    </button>
-                    {showAssistant && (
-                        <p className='mt-2 rounded-lg border border-purple-900 bg-purple-950/30 px-4 py-3 text-sm text-purple-300'>
-                            Coming soon: get help with titles, descriptions and fixing your grammar.
-                        </p>
-                    )}
-                </div>
-
-                {/* ---------- STORY SERIES (optional) ---------- */}
-                {/* Its own component (SeriesPicker.jsx) - it loads your
-                    series and can make a new one. */}
-                <div>
-                    <SeriesPicker value={form.series} onChange={id => updateField('series', id)} />
-                    <FieldError messages={errors.series} />
-                </div>
-
-                {/* ---------- LOCATION ---------- */}
-                <div>
-                    <label htmlFor='location' className={LABEL_STYLE}>
-                        Location<Hint>(optional — where did it happen?)</Hint>
-                    </label>
-                    <input
-                        id='location'
-                        name='location'
-                        value={form.location}
-                        onChange={handleChange}
-                        placeholder='e.g. Amityville, New York'
-                        className={INPUT_STYLE}
-                    />
-
-                    {/* Two inputs side by side. On a phone (below sm:)
-                        they stack instead. */}
-                    <div className='mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2'>
-                        <div>
-                            <input
-                                name='latitude'
-                                type='number'
-                                step='any'
-                                value={form.latitude}
-                                onChange={handleChange}
-                                placeholder='Latitude (e.g. 40.7128)'
-                                aria-label='Latitude'
-                                className={INPUT_STYLE}
-                            />
-                            <FieldError messages={errors.latitude} />
-                        </div>
-                        <div>
-                            <input
-                                name='longitude'
-                                type='number'
-                                step='any'
-                                value={form.longitude}
-                                onChange={handleChange}
-                                placeholder='Longitude (e.g. -74.0060)'
-                                aria-label='Longitude'
-                                className={INPUT_STYLE}
-                            />
-                            <FieldError messages={errors.longitude} />
-                        </div>
-                    </div>
-                    {/* target='_blank' opens a new tab. rel='noreferrer'
-                        stops that site from controlling our tab. */}
-                    <p className='mt-1 text-xs text-gray-500'>
-                        Or click the map - the story then shows up on the <Link to='/map' className='text-gray-300 hover:text-white'>Haunted Map</Link>.
-                    </p>
-                    {/* lazy: the map library only downloads when this shows. */}
-                    <Suspense fallback={<p className='mt-2 text-xs text-gray-500'>Loading map...</p>}>
-                        <div className='mt-2'>
-                            <PlacePicker
-                                latitude={form.latitude}
-                                longitude={form.longitude}
-                                onPick={(lat, lng) => setForm(current => ({ ...current, latitude: lat, longitude: lng }))}
-                            />
-                        </div>
-                    </Suspense>
-                </div>
-
-                {/* ---------- MOOD ---------- */}
-                <div>
-                    <label htmlFor='mood' className={LABEL_STYLE}>Story Mood<Hint>(optional)</Hint></label>
-                    <select id='mood' name='mood' value={form.mood} onChange={handleChange} className={INPUT_STYLE}>
-                        <option value=''>— No mood selected —</option>
-                        {MOODS.map(mood => (
-                            <option key={mood.value} value={mood.value}>{mood.label}</option>
-                        ))}
-                    </select>
-                </div>
-
-                {/* ---------- CONTENT RATING ---------- */}
-                <div>
-                    <p className={LABEL_STYLE}>Content Rating<Hint>(who can read this?)</Hint></p>
-                    <div className='grid grid-cols-3 gap-3'>
-                        {CONTENT_RATINGS.map(rating => {
-                            const Icon = rating.icon
-                            const isSelected = form.contentRating === rating.value
-
-                            return (
-                                <button
-                                    key={rating.value}
-                                    type='button'
-                                    onClick={() => updateField('contentRating', rating.value)}
-                                    aria-pressed={isSelected}
-                                    className={`rounded-lg border px-2 py-3 text-center transition-colors ${
-                                        isSelected
-                                            ? 'border-red-500 bg-red-600 text-white'
-                                            : 'border-slate-700 bg-slate-800 text-gray-300 hover:border-slate-500'
-                                    }`}
-                                >
-                                    <Icon className='mx-auto h-4 w-4' />
-                                    <p className='mt-1 text-sm font-semibold'>{rating.label}</p>
-                                    <p className={`text-xs ${isSelected ? 'text-white' : 'text-gray-500'}`}>{rating.hint}</p>
-                                </button>
-                            )
-                        })}
-                    </div>
-                </div>
-
-                {/* ---------- TAGS ---------- */}
-                <div>
-                    <p className={LABEL_STYLE}>Tags<Hint>(up to 5 - they help readers find your story)</Hint></p>
-                    <TagInput tags={form.tags} onChange={newTags => updateField('tags', newTags)} />
-                </div>
-
-                {/* ---------- CONTENT WARNINGS ---------- */}
-                <div>
-                    <p className={LABEL_STYLE}>Content Warnings<Hint>(select all that apply)</Hint></p>
-                    <div className='flex flex-wrap gap-2'>
-                        {CONTENT_WARNINGS.map(warning => {
-                            const isOn = form.warnings.includes(warning)
-                            return (
-                                <button
-                                    key={warning}
-                                    type='button'
-                                    onClick={() => toggleWarning(warning)}
-                                    aria-pressed={isOn}
-                                    className={`rounded-full border px-3 py-1 text-xs transition-colors ${
-                                        isOn
-                                            ? 'border-red-500 bg-red-600/20 text-red-300'
-                                            : 'border-slate-600 text-gray-300 hover:border-slate-400'
-                                    }`}
-                                >
-                                    {warning}
-                                </button>
-                            )
-                        })}
-                    </div>
-                </div>
-
-                {/* ---------- SCHEDULE ---------- */}
-                <div>
-                    <label htmlFor='publishAt' className={LABEL_STYLE}>
-                        Schedule Publishing<Hint>(optional — leave blank to publish now)</Hint>
-                    </label>
-                    {/* [color-scheme:dark] makes the browser's calendar
-                        pop-up dark too, instead of bright white. */}
-                    <input
-                        id='publishAt'
-                        name='publishAt'
-                        type='datetime-local'
-                        value={form.publishAt}
-                        onChange={handleChange}
-                        className={`${INPUT_STYLE} [color-scheme:dark]`}
-                    />
-                    <FieldError messages={errors.publish_at} />
-                </div>
-
-                {/* ---------- PRO EARLY ACCESS ---------- */}
-                {/* A tick box: `checked` instead of `value`, and we read
-                    event.target.checked (true/false) when it changes. */}
-                <div className='rounded-lg border border-yellow-800/50 bg-yellow-950/20 p-4'>
-                    <label htmlFor='earlyAccess' className='flex cursor-pointer items-start gap-3'>
+                {/* =========================================================
+                    The form is split into FOLDING CARDS (FormSection.jsx).
+                    The two with required fields start open everywhere
+                    (startOpen). The optional ones start CLOSED on phones,
+                    so the page isn't one endless form - and open by
+                    themselves if Django finds a mistake inside (forceOpen).
+                   ========================================================= */}
+                <FormSection title='The basics' subtitle='Title and category' startOpen>
+                    {/* ---------- TITLE ---------- */}
+                    <div>
+                        {/* htmlFor = the id of the input. Clicking the label
+                            then puts the cursor in the input. */}
+                        <label htmlFor='title' className={LABEL_STYLE}>Title<Required /></label>
                         <input
-                            id='earlyAccess'
-                            type='checkbox'
-                            checked={form.earlyAccess}
-                            onChange={event => updateField('earlyAccess', event.target.checked)}
-                            className='mt-1 h-4 w-4 accent-yellow-400'
+                            id='title'
+                            name='title'
+                            value={form.title}
+                            onChange={handleChange}
+                            maxLength={200}
+                            placeholder='Give your story a chilling title...'
+                            className={INPUT_STYLE}
                         />
-                        <span>
-                            <span className='block text-sm font-semibold text-yellow-100'>Pro early access (48 hours)</span>
-                            <span className='block text-sm text-gray-400'>
-                                Pro readers can read it straight away; everyone else 48 hours later.
-                                It still shows on the site meanwhile, with a PRO EARLY label.
-                            </span>
-                        </span>
-                    </label>
-                </div>
+                        <FieldError messages={errors.title} />
+                    </div>
 
-                {/* ---------- AUDIO ---------- */}
-                <div>
-                    <label htmlFor='audioUrl' className={LABEL_STYLE}>
-                        Audio Narration URL<Hint>(optional — MP3 link for listeners)</Hint>
-                    </label>
-                    <input
-                        id='audioUrl'
-                        name='audioUrl'
-                        type='url'
-                        value={form.audioUrl}
-                        onChange={handleChange}
-                        placeholder='https://example.com/narration.mp3'
-                        className={INPUT_STYLE}
-                    />
-                    <FieldError messages={errors.audio_url} />
+                    {/* ---------- CATEGORY ---------- */}
+                    <div>
+                        <label htmlFor='category' className={LABEL_STYLE}>Category<Required /></label>
+                        <select id='category' name='category' value={form.category} onChange={handleChange} className={INPUT_STYLE}>
+                            <option value=''>Select a category...</option>
+                            {/* The value is the category's ID - that's what
+                                Django needs to link the story to it. */}
+                            {categories.map(category => (
+                                <option key={category.id} value={category.id}>{category.name}</option>
+                            ))}
+                        </select>
+                        <FieldError messages={errors.category} />
+                    </div>
+                </FormSection>
 
-                    {/* ...or upload your own recording. accept= only shows
-                        sound files in the picker (Django checks again). */}
-                    <label htmlFor='audioFile' className='mt-3 block text-xs text-gray-400'>
-                        Or upload your own recording (MP3, M4A, OGG or WAV, up to {MAX_AUDIO_MB} MB)
-                    </label>
-                    <input
-                        id='audioFile'
-                        type='file'
-                        accept='audio/mpeg,audio/mp4,audio/ogg,audio/wav,.mp3,.m4a,.ogg,.wav'
-                        onChange={handleAudioChange}
-                        className='mt-1 block w-full text-sm text-gray-300 file:mr-3 file:rounded-md file:border-0 file:bg-slate-700 file:px-3 file:py-1.5 file:text-sm file:text-white hover:file:bg-slate-600'
-                    />
-                    {audioFile && <p className='mt-1 text-xs text-gray-400'>🎙️ {audioFile.name} - it plays on your story page.</p>}
-                    <FieldError messages={errors.audio_file} />
-                </div>
-
-                {/* ---------- PREMIUM (not built yet) ---------- */}
-                {/* <fieldset disabled> switches off EVERY input inside it
-                    at once - no need to put disabled on each one. */}
-                <fieldset disabled className='rounded-xl border border-amber-800/60 bg-amber-950/10 p-5'>
-                    <legend className='flex items-center gap-2 px-2 text-xs font-bold uppercase tracking-wider text-amber-500'>
-                        <Crown className='h-4 w-4' />
-                        Premium Options
-                        <span className='rounded bg-amber-900/60 px-1.5 py-0.5 text-[10px] normal-case tracking-normal text-amber-300'>Coming soon</span>
-                    </legend>
-
-                    <div className='space-y-4 opacity-60'>
-                        <div>
-                            <label htmlFor='price' className={LABEL_STYLE}>Price<Hint>(leave blank to publish free)</Hint></label>
-                            <input id='price' placeholder='$ 0.00' className={INPUT_STYLE} />
-                        </div>
-
-                        <div className='flex items-center justify-between'>
-                            <div>
-                                <p className='text-sm font-semibold text-gray-200'>Members-Only Story</p>
-                                <p className='text-xs text-gray-500'>Only members can read this story.</p>
+                <FormSection title='Your story' subtitle='Write it, import it from Word, or preview it' startOpen>
+                    {/* ---------- THE STORY ---------- */}
+                    <div>
+                        <div className='mb-2 flex items-center justify-between'>
+                            <label htmlFor='body' className='text-sm font-semibold text-gray-200'>Your Story<Required /></label>
+                            <div className='flex items-center gap-4'>
+                                {/* A <label> around a hidden file input = a button
+                                    that opens the file picker. */}
+                                <label className='cursor-pointer text-xs font-semibold text-red-400 hover:text-red-300'>
+                                    {importing ? 'Importing...' : 'Import from Word'}
+                                    <input type='file' accept='.docx' onChange={handleImport} disabled={importing} className='sr-only' />
+                                </label>
+                                <span className='text-xs text-gray-500'>{countWords(form.body)} words</span>
                             </div>
-                            {/* A fake switch - just two rounded boxes. */}
-                            <span className='flex h-5 w-9 items-center rounded-full bg-slate-700 p-0.5'>
-                                <span className='h-4 w-4 rounded-full bg-gray-300' />
-                            </span>
                         </div>
 
-                        <div>
-                            <label htmlFor='earlyAccess' className={LABEL_STYLE}>Early Access Until<Hint>(optional)</Hint></label>
-                            <input id='earlyAccess' type='datetime-local' className={`${INPUT_STYLE} [color-scheme:dark]`} />
+                        <StoryEditor id='body' value={form.body} onChange={text => updateField('body', text)} />
+                        <FieldError messages={errors.body} />
+
+                        {/* AI Writing Assistant - the button works, the
+                            assistant itself isn't built yet. */}
+                        <button
+                            type='button'
+                            onClick={() => setShowAssistant(!showAssistant)}
+                            className='mt-3 flex items-center gap-2 rounded-lg border border-purple-700 bg-purple-950/60 px-4 py-2 text-sm font-semibold text-purple-200 transition-colors hover:bg-purple-900/60'
+                        >
+                            <Sparkles className='h-4 w-4' />
+                            AI Writing Assistant
+                            <ChevronDown className={`h-4 w-4 transition-transform ${showAssistant ? 'rotate-180' : ''}`} />
+                        </button>
+                        {showAssistant && (
+                            <p className='mt-2 rounded-lg border border-purple-900 bg-purple-950/30 px-4 py-3 text-sm text-purple-300'>
+                                Coming soon: get help with titles, descriptions and fixing your grammar.
+                            </p>
+                        )}
+                    </div>
+                </FormSection>
+
+                <FormSection
+                    title='Cover & description'
+                    subtitle='The picture and teaser readers see on story cards'
+                    forceOpen={Boolean(errors.cover_image || errors.cover_image_url || errors.video_url || errors.excerpt)}
+                >
+                    {/* ---------- COVER IMAGE ---------- */}
+                    <div>
+                        <p className={LABEL_STYLE}>Cover Image<Hint>(optional)</Hint></p>
+
+                        {/* Our reusable toggle. It doesn't keep its own state -
+                            it shows form.coverMode and tells us when to change it. */}
+                        <SegmentedControl
+                            label='Cover image source'
+                            value={form.coverMode}
+                            onChange={mode => updateField('coverMode', mode)}
+                            options={[
+                                { value: 'upload', label: 'Upload from device' },
+                                { value: 'url', label: 'Paste URL' },
+                            ]}
+                        />
+
+                        <div className='mt-3'>
+                            {form.coverMode === 'upload' ? (
+                                // The real file input is hidden (sr-only) because
+                                // it can't be styled. The <label> around it is the
+                                // box you see - clicking a label clicks its input.
+                                <label className='flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed border-slate-600 bg-slate-800 px-4 py-6 text-sm text-gray-400 transition-colors hover:border-red-600 hover:text-white'>
+                                    <ImagePlus className='h-5 w-5' />
+                                    {coverFile ? coverFile.name : 'Choose an image (JPG or PNG)'}
+                                    <input type='file' accept='image/*' onChange={handleFileChange} className='sr-only' />
+                                </label>
+                            ) : (
+                                <input
+                                    name='coverUrl'
+                                    type='url'
+                                    value={form.coverUrl}
+                                    onChange={handleChange}
+                                    placeholder='https://example.com/image.jpg'
+                                    aria-label='Cover image URL'
+                                    className={INPUT_STYLE}
+                                />
+                            )}
+                            <FieldError messages={errors.cover_image || errors.cover_image_url} />
+
+                            {/* Small preview of whichever cover is picked. */}
+                            {/* aspect-[40/21] = the shape of a cover (1200 x 630),
+                                so the whole picture shows, not just a strip. */}
+                            {form.coverMode === 'upload' && coverPreview && (
+                                <img src={coverPreview} alt='Cover preview' className='mt-3 aspect-[40/21] w-full max-w-lg rounded-lg object-cover' />
+                            )}
+                            {form.coverMode === 'url' && form.coverUrl.startsWith('http') && (
+                                <img src={form.coverUrl} alt='Cover preview' className='mt-3 h-40 w-full rounded-lg object-cover' />
+                            )}
+                        </div>
+
+                        {/* Pro: draw a cover from the title. The made picture is
+                            used exactly like an uploaded one (coverFile). */}
+                        <CoverMaker
+                            title={form.title}
+                            onMake={file => {
+                                setCoverFile(file)
+                                updateField('coverMode', 'upload')
+                            }}
+                        />
+                    </div>
+
+                    {/* ---------- VIDEO URL ---------- */}
+                    <div>
+                        <label htmlFor='videoUrl' className={LABEL_STYLE}>
+                            Video URL<Hint>(optional — YouTube link or direct .mp4)</Hint>
+                        </label>
+                        <input
+                            id='videoUrl'
+                            name='videoUrl'
+                            type='url'
+                            value={form.videoUrl}
+                            onChange={handleChange}
+                            placeholder='https://www.youtube.com/watch?v=...'
+                            className={INPUT_STYLE}
+                        />
+                        <FieldError messages={errors.video_url} />
+                    </div>
+
+                    {/* ---------- SHORT DESCRIPTION ---------- */}
+                    <div>
+                        <label htmlFor='excerpt' className={LABEL_STYLE}>Short Description<Hint>(optional)</Hint></label>
+                        <textarea
+                            id='excerpt'
+                            name='excerpt'
+                            rows={2}
+                            value={form.excerpt}
+                            onChange={handleChange}
+                            maxLength={EXCERPT_MAX}
+                            placeholder='A one or two sentence teaser shown on story cards...'
+                            className={`${INPUT_STYLE} resize-none`}
+                        />
+                        {/* A little counter: 42 / 300 */}
+                        <p className='mt-1 text-right text-xs text-gray-500'>{form.excerpt.length} / {EXCERPT_MAX}</p>
+                        <FieldError messages={errors.excerpt} />
+                    </div>
+                </FormSection>
+
+                <FormSection
+                    title='Details'
+                    subtitle='Language, series, place, mood, rating, tags, warnings'
+                    forceOpen={Boolean(errors.series || errors.latitude || errors.longitude)}
+                >
+                    {/* ---------- LANGUAGE ---------- */}
+                    <div>
+                        <label htmlFor='language' className={LABEL_STYLE}>
+                            Story Language<Hint>(what language is your story written in?)</Hint>
+                        </label>
+                        <select id='language' name='language' value={form.language} onChange={handleChange} className={INPUT_STYLE}>
+                            {LANGUAGES.map(language => (
+                                <option key={language.value} value={language.value}>{language.label}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    {/* ---------- STORY SERIES (optional) ---------- */}
+                    {/* Its own component (SeriesPicker.jsx) - it loads your
+                        series and can make a new one. */}
+                    <div>
+                        <SeriesPicker value={form.series} onChange={id => updateField('series', id)} />
+                        <FieldError messages={errors.series} />
+                    </div>
+
+                    {/* ---------- LOCATION ---------- */}
+                    <div>
+                        <label htmlFor='location' className={LABEL_STYLE}>
+                            Location<Hint>(optional — where did it happen?)</Hint>
+                        </label>
+                        <input
+                            id='location'
+                            name='location'
+                            value={form.location}
+                            onChange={handleChange}
+                            placeholder='e.g. Amityville, New York'
+                            className={INPUT_STYLE}
+                        />
+
+                        {/* Two inputs side by side. On a phone (below sm:)
+                            they stack instead. */}
+                        <div className='mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2'>
+                            <div>
+                                <input
+                                    name='latitude'
+                                    type='number'
+                                    step='any'
+                                    value={form.latitude}
+                                    onChange={handleChange}
+                                    placeholder='Latitude (e.g. 40.7128)'
+                                    aria-label='Latitude'
+                                    className={INPUT_STYLE}
+                                />
+                                <FieldError messages={errors.latitude} />
+                            </div>
+                            <div>
+                                <input
+                                    name='longitude'
+                                    type='number'
+                                    step='any'
+                                    value={form.longitude}
+                                    onChange={handleChange}
+                                    placeholder='Longitude (e.g. -74.0060)'
+                                    aria-label='Longitude'
+                                    className={INPUT_STYLE}
+                                />
+                                <FieldError messages={errors.longitude} />
+                            </div>
+                        </div>
+                        {/* target='_blank' opens a new tab. rel='noreferrer'
+                            stops that site from controlling our tab. */}
+                        <p className='mt-1 text-xs text-gray-500'>
+                            Or click the map - the story then shows up on the <Link to='/map' className='text-gray-300 hover:text-white'>Haunted Map</Link>.
+                        </p>
+                        {/* lazy: the map library only downloads when this shows. */}
+                        <Suspense fallback={<p className='mt-2 text-xs text-gray-500'>Loading map...</p>}>
+                            <div className='mt-2'>
+                                <PlacePicker
+                                    latitude={form.latitude}
+                                    longitude={form.longitude}
+                                    onPick={(lat, lng) => setForm(current => ({ ...current, latitude: lat, longitude: lng }))}
+                                />
+                            </div>
+                        </Suspense>
+                    </div>
+
+                    {/* ---------- MOOD ---------- */}
+                    <div>
+                        <label htmlFor='mood' className={LABEL_STYLE}>Story Mood<Hint>(optional)</Hint></label>
+                        <select id='mood' name='mood' value={form.mood} onChange={handleChange} className={INPUT_STYLE}>
+                            <option value=''>— No mood selected —</option>
+                            {MOODS.map(mood => (
+                                <option key={mood.value} value={mood.value}>{mood.label}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    {/* ---------- CONTENT RATING ---------- */}
+                    <div>
+                        <p className={LABEL_STYLE}>Content Rating<Hint>(who can read this?)</Hint></p>
+                        <div className='grid grid-cols-3 gap-3'>
+                            {CONTENT_RATINGS.map(rating => {
+                                const Icon = rating.icon
+                                const isSelected = form.contentRating === rating.value
+
+                                return (
+                                    <button
+                                        key={rating.value}
+                                        type='button'
+                                        onClick={() => updateField('contentRating', rating.value)}
+                                        aria-pressed={isSelected}
+                                        className={`rounded-lg border px-2 py-3 text-center transition-colors ${
+                                            isSelected
+                                                ? 'border-red-500 bg-red-600 text-white'
+                                                : 'border-slate-700 bg-slate-800 text-gray-300 hover:border-slate-500'
+                                        }`}
+                                    >
+                                        <Icon className='mx-auto h-4 w-4' />
+                                        <p className='mt-1 text-sm font-semibold'>{rating.label}</p>
+                                        <p className={`text-xs ${isSelected ? 'text-white' : 'text-gray-500'}`}>{rating.hint}</p>
+                                    </button>
+                                )
+                            })}
                         </div>
                     </div>
-                </fieldset>
+
+                    {/* ---------- TAGS ---------- */}
+                    <div>
+                        <p className={LABEL_STYLE}>Tags<Hint>(up to 5 - they help readers find your story)</Hint></p>
+                        <TagInput tags={form.tags} onChange={newTags => updateField('tags', newTags)} />
+                    </div>
+
+                    {/* ---------- CONTENT WARNINGS ---------- */}
+                    <div>
+                        <p className={LABEL_STYLE}>Content Warnings<Hint>(select all that apply)</Hint></p>
+                        <div className='flex flex-wrap gap-2'>
+                            {CONTENT_WARNINGS.map(warning => {
+                                const isOn = form.warnings.includes(warning)
+                                return (
+                                    <button
+                                        key={warning}
+                                        type='button'
+                                        onClick={() => toggleWarning(warning)}
+                                        aria-pressed={isOn}
+                                        className={`rounded-full border px-3 py-1 text-xs transition-colors ${
+                                            isOn
+                                                ? 'border-red-500 bg-red-600/20 text-red-300'
+                                                : 'border-slate-600 text-gray-300 hover:border-slate-400'
+                                        }`}
+                                    >
+                                        {warning}
+                                    </button>
+                                )
+                            })}
+                        </div>
+                    </div>
+                </FormSection>
+
+                <FormSection
+                    title='Publishing'
+                    subtitle='Schedule, early access, audio narration'
+                    forceOpen={Boolean(errors.publish_at || errors.audio_url || errors.audio_file)}
+                >
+                    {/* ---------- SCHEDULE ---------- */}
+                    <div>
+                        <label htmlFor='publishAt' className={LABEL_STYLE}>
+                            Schedule Publishing<Hint>(optional — leave blank to publish now)</Hint>
+                        </label>
+                        {/* [color-scheme:dark] makes the browser's calendar
+                            pop-up dark too, instead of bright white. */}
+                        <input
+                            id='publishAt'
+                            name='publishAt'
+                            type='datetime-local'
+                            value={form.publishAt}
+                            onChange={handleChange}
+                            className={`${INPUT_STYLE} [color-scheme:dark]`}
+                        />
+                        <FieldError messages={errors.publish_at} />
+                    </div>
+
+                    {/* ---------- PRO EARLY ACCESS ---------- */}
+                    {/* A tick box: `checked` instead of `value`, and we read
+                        event.target.checked (true/false) when it changes. */}
+                    <div className='rounded-lg border border-yellow-800/50 bg-yellow-950/20 p-4'>
+                        <label htmlFor='earlyAccess' className='flex cursor-pointer items-start gap-3'>
+                            <input
+                                id='earlyAccess'
+                                type='checkbox'
+                                checked={form.earlyAccess}
+                                onChange={event => updateField('earlyAccess', event.target.checked)}
+                                className='mt-1 h-4 w-4 accent-yellow-400'
+                            />
+                            <span>
+                                <span className='block text-sm font-semibold text-yellow-100'>Pro early access (48 hours)</span>
+                                <span className='block text-sm text-gray-400'>
+                                    Pro readers can read it straight away; everyone else 48 hours later.
+                                    It still shows on the site meanwhile, with a PRO EARLY label.
+                                </span>
+                            </span>
+                        </label>
+                    </div>
+
+                    {/* ---------- AUDIO ---------- */}
+                    <div>
+                        <label htmlFor='audioUrl' className={LABEL_STYLE}>
+                            Audio Narration URL<Hint>(optional — MP3 link for listeners)</Hint>
+                        </label>
+                        <input
+                            id='audioUrl'
+                            name='audioUrl'
+                            type='url'
+                            value={form.audioUrl}
+                            onChange={handleChange}
+                            placeholder='https://example.com/narration.mp3'
+                            className={INPUT_STYLE}
+                        />
+                        <FieldError messages={errors.audio_url} />
+
+                        {/* ...or upload your own recording. accept= only shows
+                            sound files in the picker (Django checks again). */}
+                        <label htmlFor='audioFile' className='mt-3 block text-xs text-gray-400'>
+                            Or upload your own recording (MP3, M4A, OGG or WAV, up to {MAX_AUDIO_MB} MB)
+                        </label>
+                        <input
+                            id='audioFile'
+                            type='file'
+                            accept='audio/mpeg,audio/mp4,audio/ogg,audio/wav,.mp3,.m4a,.ogg,.wav'
+                            onChange={handleAudioChange}
+                            className='mt-1 block w-full text-sm text-gray-300 file:mr-3 file:rounded-md file:border-0 file:bg-slate-700 file:px-3 file:py-1.5 file:text-sm file:text-white hover:file:bg-slate-600'
+                        />
+                        {audioFile && <p className='mt-1 text-xs text-gray-400'>🎙️ {audioFile.name} - it plays on your story page.</p>}
+                        <FieldError messages={errors.audio_file} />
+                    </div>
+
+                    {/* ---------- PREMIUM (not built yet) ---------- */}
+                    {/* <fieldset disabled> switches off EVERY input inside it
+                        at once - no need to put disabled on each one. */}
+                    <fieldset disabled className='rounded-xl border border-amber-800/60 bg-amber-950/10 p-5'>
+                        <legend className='flex items-center gap-2 px-2 text-xs font-bold uppercase tracking-wider text-amber-500'>
+                            <Crown className='h-4 w-4' />
+                            Premium Options
+                            <span className='rounded bg-amber-900/60 px-1.5 py-0.5 text-[10px] normal-case tracking-normal text-amber-300'>Coming soon</span>
+                        </legend>
+
+                        <div className='space-y-4 opacity-60'>
+                            <div>
+                                <label htmlFor='price' className={LABEL_STYLE}>Price<Hint>(leave blank to publish free)</Hint></label>
+                                <input id='price' placeholder='$ 0.00' className={INPUT_STYLE} />
+                            </div>
+
+                            <div className='flex items-center justify-between'>
+                                <div>
+                                    <p className='text-sm font-semibold text-gray-200'>Members-Only Story</p>
+                                    <p className='text-xs text-gray-500'>Only members can read this story.</p>
+                                </div>
+                                {/* A fake switch - just two rounded boxes. */}
+                                <span className='flex h-5 w-9 items-center rounded-full bg-slate-700 p-0.5'>
+                                    <span className='h-4 w-4 rounded-full bg-gray-300' />
+                                </span>
+                            </div>
+
+                            <div>
+                                <label htmlFor='earlyAccess' className={LABEL_STYLE}>Early Access Until<Hint>(optional)</Hint></label>
+                                <input id='earlyAccess' type='datetime-local' className={`${INPUT_STYLE} [color-scheme:dark]`} />
+                            </div>
+                        </div>
+                    </fieldset>
+                </FormSection>
 
                 {/* ---------- SUBMIT ---------- */}
-                {/* border-gray-800: a thin line just above the button. */}
-                <div className='flex flex-col-reverse items-center gap-3 border-t border-gray-800 pt-6 sm:flex-row sm:justify-between'>
-                    <p className='text-xs text-gray-300'>Your draft is saved in this browser as you type.</p>
-                    <button type='submit' disabled={saving} className={`${BUTTON_STYLE} w-full sm:w-auto sm:px-8`}>
+                {/* PHONES: a bar that STICKS to the bottom of the screen,
+                    just above the tab bar (bottom = --tabbar-space, see
+                    index.css) - so Publish is always one tap away, not
+                    at the end of a long page. sticky (not fixed): it
+                    stays inside the form, so it stops at the form's end.
+                    -mx-4 px-4 = edge to edge; the see-through dark
+                    background + blur keeps it readable over the inputs.
+                    FROM "sm" UP: a normal row at the end of the form
+                    (sm:static), with a thin line above it. */}
+                <div className='sticky bottom-[var(--tabbar-space)] z-30 -mx-4 flex items-center justify-between gap-3 border-t border-white/10 bg-[#020617]/90 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-gray-800 sm:bg-transparent sm:px-0 sm:pt-6 sm:pb-0 sm:backdrop-blur-none'>
+                    {/* Phones: short text + the word count. Bigger screens: the full sentence. */}
+                    <p className='text-xs text-gray-300'>
+                        <span className='sm:hidden'>Draft saved · {countWords(form.body)} words</span>
+                        <span className='hidden sm:inline'>Your draft is saved in this browser as you type.</span>
+                    </p>
+                    <button type='submit' disabled={saving} className={`${BUTTON_STYLE} shrink-0 px-6 sm:px-8`}>
                         {saving ? 'Publishing...' : form.publishAt ? 'Schedule Story' : 'Publish Story'}
                     </button>
                 </div>

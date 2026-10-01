@@ -128,6 +128,8 @@ class StoryDetailSerializer(StoryCardSerializer):
     reactions = serializers.SerializerMethodField()
     # The writer's PRO badge + name colour (accounts/premium.py).
     author_look = serializers.SerializerMethodField()
+    # Do YOU follow the writer? For the Follow button on the story page.
+    author_followed = serializers.SerializerMethodField()
 
     # Meta inherits too: same model, and the card's field list with
     # more added on the end.
@@ -135,7 +137,7 @@ class StoryDetailSerializer(StoryCardSerializer):
         fields = StoryCardSerializer.Meta.fields + [
             'body', 'category_slug', 'author_tip_url', 'audio', 'word_count', 'like_count', 'comment_count', 'liked', 'saved',
             'coauthors', 'tags', 'series', 'lock', 'fear', 'reactions', 'is_draft', 'my_beta_feedback', 'my_progress',
-            'author_look',
+            'author_look', 'author_followed',
             # From the Write a Story page. The story page doesn't show
             # these yet, but they're here for when it does.
             'language', 'video_url', 'audio_url', 'location', 'latitude', 'longitude',
@@ -175,6 +177,15 @@ class StoryDetailSerializer(StoryCardSerializer):
 
     def get_author_look(self, story):
         return pro_look(get_profile(story.author))
+
+    # True / False. Logged out = False (you can't follow anyone yet).
+    # story.author.followers = everyone who follows the writer
+    # (related_name='followers' on Follow, accounts/models.py).
+    def get_author_followed(self, story):
+        user = self.context['request'].user
+        if not user.is_authenticated:
+            return False
+        return story.author.followers.filter(follower=user).exists()
 
     def get_lock(self, story):
         return story_lock(self.context['request'].user, story)

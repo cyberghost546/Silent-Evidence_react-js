@@ -18,6 +18,7 @@ import ProfilePage from './components/ProfilePage/ProfilePage'
 import { dashboardRoutes } from './routes/dashboardRoutes'
 import InfoPage from './components/InfoPage/InfoPage'
 import WatcherRoute from './components/SiteGuide/WatcherRoute'
+import MessagesRoute from './components/MessagesPage/MessagesRoute'
 import './App.css'
 
 // ---------------------------------------------------------------
@@ -76,7 +77,6 @@ const HistoryPage = lazy(() => import('./components/HistoryPage/HistoryPage'))
 const MyStoriesPage = lazy(() => import('./components/MyStoriesPage/MyStoriesPage'))
 const EditStoryPage = lazy(() => import('./components/EditStoryPage/EditStoryPage'))
 const InvitesPage = lazy(() => import('./components/InvitesPage/InvitesPage'))
-const MessagesPage = lazy(() => import('./components/MessagesPage/MessagesPage'))
 const NotificationsPage = lazy(() => import('./components/NotificationsPage/NotificationsPage'))
 
 
@@ -179,11 +179,12 @@ function App() {
         <Route path='/support' element={<ProtectedRoute><SupportPage /></ProtectedRoute>} />
         <Route path='/support/:id' element={<ProtectedRoute><SupportPage /></ProtectedRoute>} />
 
-        {/* Two URLs, one page: the list alone, or the list + a chat.
-            MessagesPage reads :username with useParams(). */}
-        <Route path='/messages' element={<ProtectedRoute><MessagesPage /></ProtectedRoute>} />
+        {/* Messages is a POP-UP now (MessagesPopup.jsx, in the Header).
+            These two old addresses open it - the list, or straight into
+            a chat with :username - on top of the home page. */}
+        <Route path='/messages' element={<ProtectedRoute><MessagesRoute /></ProtectedRoute>} />
+        <Route path='/messages/:username' element={<ProtectedRoute><MessagesRoute /></ProtectedRoute>} />
         <Route path='/notifications' element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
-        <Route path='/messages/:username' element={<ProtectedRoute><MessagesPage /></ProtectedRoute>} />
 
         {/* Writing challenges and story bundles - anyone can look.
             Each has a list page and a detail page (same component,

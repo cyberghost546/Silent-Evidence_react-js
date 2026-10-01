@@ -32,7 +32,10 @@ function ToolbarButton({ label, title, onClick, disabled }) {
             onMouseDown={e => e.preventDefault()}
             onClick={onClick}
             disabled={disabled}
-            className='rounded px-2 py-1 text-sm text-gray-300 transition-colors hover:bg-slate-700 hover:text-white disabled:opacity-40 disabled:hover:bg-transparent'
+            // shrink-0 + whitespace-nowrap: in the phone's sideways-scrolling
+            // toolbar a button keeps its size and never breaks over two lines.
+            // py-1.5 on phones = a bit bigger for a finger.
+            className='shrink-0 whitespace-nowrap rounded px-2 py-1.5 text-sm text-gray-300 transition-colors sm:py-1 hover:bg-slate-700 hover:text-white disabled:opacity-40 disabled:hover:bg-transparent'
         >
             {label}
         </button>
@@ -41,7 +44,7 @@ function ToolbarButton({ label, title, onClick, disabled }) {
 
 // The thin grey line between groups of buttons.
 function Divider() {
-    return <span className='mx-1 h-5 w-px bg-slate-600' />
+    return <span className='mx-1 h-5 w-px shrink-0 bg-slate-600' />
 }
 
 
@@ -117,41 +120,51 @@ function StoryEditor({ value, onChange, id }) {
         <div className='overflow-hidden rounded-xl border border-slate-700 bg-slate-800 focus-within:border-red-600'>
 
             {/* ---------- TOOLBAR ---------- */}
-            {/* flex-wrap: on a phone the buttons go onto a second row
-                instead of sticking out of the box. */}
-            <div className='flex flex-wrap items-center gap-0.5 border-b border-slate-700 px-3 py-2'>
-                <ToolbarButton label={<b>B</b>} title='Bold' onClick={() => wrapSelection('**')} disabled={preview} />
-                <ToolbarButton label={<i>I</i>} title='Italic' onClick={() => wrapSelection('*')} disabled={preview} />
-                <ToolbarButton label={<u>U</u>} title='Underline' onClick={() => wrapSelection('__')} disabled={preview} />
+            {/* Two parts side by side:
+                  left  - the format buttons
+                  right - Preview + the word count (always visible)
+                PHONES: the buttons are ONE row you swipe sideways
+                (overflow-x-auto, scrollbar-none) - like the formatting
+                bar in phone apps - instead of wrapping into 3 rows.
+                From "sm" up there's room: they wrap (sm:flex-wrap). */}
+            <div className='flex items-center border-b border-slate-700'>
+                <div className='scrollbar-none flex min-w-0 flex-1 items-center gap-0.5 overflow-x-auto px-3 py-2 sm:flex-wrap'>
+                    <ToolbarButton label={<b>B</b>} title='Bold' onClick={() => wrapSelection('**')} disabled={preview} />
+                    <ToolbarButton label={<i>I</i>} title='Italic' onClick={() => wrapSelection('*')} disabled={preview} />
+                    <ToolbarButton label={<u>U</u>} title='Underline' onClick={() => wrapSelection('__')} disabled={preview} />
 
-                <Divider />
-                <ToolbarButton label='H2' title='Heading' onClick={() => addToLineStart('## ')} disabled={preview} />
-                <ToolbarButton label='H3' title='Small heading' onClick={() => addToLineStart('### ')} disabled={preview} />
+                    <Divider />
+                    <ToolbarButton label='H2' title='Heading' onClick={() => addToLineStart('## ')} disabled={preview} />
+                    <ToolbarButton label='H3' title='Small heading' onClick={() => addToLineStart('### ')} disabled={preview} />
 
-                <Divider />
-                <ToolbarButton label='• List' title='Bullet list' onClick={() => addToLineStart('- ')} disabled={preview} />
-                <ToolbarButton label='1. List' title='Numbered list' onClick={() => addToLineStart('1. ')} disabled={preview} />
+                    <Divider />
+                    <ToolbarButton label='• List' title='Bullet list' onClick={() => addToLineStart('- ')} disabled={preview} />
+                    <ToolbarButton label='1. List' title='Numbered list' onClick={() => addToLineStart('1. ')} disabled={preview} />
 
-                <Divider />
-                <ToolbarButton label='“ Quote' title='Quote' onClick={() => addToLineStart('> ')} disabled={preview} />
-                <ToolbarButton label='— HR' title='Divider line' onClick={() => insertText('\n\n---\n\n')} disabled={preview} />
-                {/* Marks where a jump scare happens - readers can ask to
-                    be warned (utils/storyFormat.js, JUMP_SCARE_MARK). */}
-                <ToolbarButton label='⚠ Scare' title='Jump scare' onClick={() => insertText('\n\n!!scare\n\n')} disabled={preview} />
+                    <Divider />
+                    <ToolbarButton label='“ Quote' title='Quote' onClick={() => addToLineStart('> ')} disabled={preview} />
+                    <ToolbarButton label='— HR' title='Divider line' onClick={() => insertText('\n\n---\n\n')} disabled={preview} />
+                    {/* Marks where a jump scare happens - readers can ask to
+                        be warned (utils/storyFormat.js, JUMP_SCARE_MARK). */}
+                    <ToolbarButton label='⚠ Scare' title='Jump scare' onClick={() => insertText('\n\n!!scare\n\n')} disabled={preview} />
 
-                <Divider />
-                {/* Choose-your-path stories (utils/storyPaths.js): a new
-                    section, and a choice that jumps to one. Type over
-                    "name" / "What they do" - the Preview shows mistakes. */}
-                <ToolbarButton label='§ Section' title='New section (choose-your-path)' onClick={() => insertText('\n\n[[section: name]]\n')} disabled={preview} />
-                <ToolbarButton label='↳ Choice' title='Choice (choose-your-path)' onClick={() => insertText('\n[[choice: What they do -> name]]\n')} disabled={preview} />
+                    <Divider />
+                    {/* Choose-your-path stories (utils/storyPaths.js): a new
+                        section, and a choice that jumps to one. Type over
+                        "name" / "What they do" - the Preview shows mistakes. */}
+                    <ToolbarButton label='§ Section' title='New section (choose-your-path)' onClick={() => insertText('\n\n[[section: name]]\n')} disabled={preview} />
+                    <ToolbarButton label='↳ Choice' title='Choice (choose-your-path)' onClick={() => insertText('\n[[choice: What they do -> name]]\n')} disabled={preview} />
 
-                <Divider />
-                <ToolbarButton label={<Undo2 className='h-4 w-4' />} title='Undo' onClick={undo} disabled={preview} />
-                <ToolbarButton label={<Redo2 className='h-4 w-4' />} title='Redo' onClick={redo} disabled={preview} />
+                    <Divider />
+                    <ToolbarButton label={<Undo2 className='h-4 w-4' />} title='Undo' onClick={undo} disabled={preview} />
+                    <ToolbarButton label={<Redo2 className='h-4 w-4' />} title='Redo' onClick={redo} disabled={preview} />
+                </div>
 
-                {/* ml-auto pushes these two to the far right. */}
-                <div className='ml-auto flex items-center gap-3'>
+                {/* Preview + words, outside the scrolling row, so they
+                    never scroll out of sight. shrink-0 = never squashed.
+                    The line on the left (border-l) shows where the
+                    swipeable buttons end - phones only. */}
+                <div className='flex shrink-0 items-center gap-3 border-l border-slate-700 px-3 py-2 sm:border-l-0'>
                     <button
                         type='button'
                         onClick={() => setPreview(p => !p)}
@@ -159,7 +172,9 @@ function StoryEditor({ value, onChange, id }) {
                     >
                         {preview ? 'Edit' : 'Preview'}
                     </button>
-                    <span className='text-xs text-gray-500'>{words} words</span>
+                    {/* hidden on phones: the Write page shows the count
+                        right above the editor anyway. */}
+                    <span className='hidden text-xs text-gray-500 sm:inline'>{words} words</span>
                 </div>
             </div>
 

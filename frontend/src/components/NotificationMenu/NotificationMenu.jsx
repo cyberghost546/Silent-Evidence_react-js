@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Bell, CheckCheck } from 'lucide-react'
+import { Bell, CheckCheck, X } from 'lucide-react'
 import { useDropdown } from '../../hooks/useDropdown'
 import { getNotifications, markNotificationsRead } from '../../api/client'
-import NotificationItem from './NotificationItem'
+import NotificationList from './NotificationList'
 
 // The red "dropdown-scroll" scrollbar, same as UserMenu uses.
 import '../NavDropdown/NavDropdown.css'
@@ -105,53 +105,98 @@ function NotificationMenu() {
 
             {/* ---------- THE PANEL ---------- */}
             {open && (
-                <div
-                    role='menu'
-                    // w-80 but never wider than the phone screen minus a gap.
-                    className='absolute right-0 top-full z-50 mt-3 w-80 max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-gray-700/60 bg-gray-900 shadow-2xl'
-                >
-                    {/* ----- Top row: title + "mark all read" ----- */}
-                    <div className='flex items-center justify-between border-b border-gray-800 px-4 py-3'>
-                        <p className='font-bold text-white'>Notifications</p>
+                <>
+                    {/* PHONES: a dark layer over the page behind the sheet.
+                        Tapping it closes the sheet. sm:hidden = phones only
+                        (on big screens the panel is a normal dropdown).
+                        aria-hidden: it's only decoration for screen readers. */}
+                    <div onClick={close} aria-hidden='true' className='fixed inset-0 z-[60] bg-black/60 sm:hidden' />
 
-                        {/* No point showing this button if nothing is unread. */}
-                        {unreadCount > 0 && (
+                    <div
+                        role='menu'
+                        aria-label='Notifications'
+                        // PHONES: a "bottom sheet" - glued to the bottom of
+                        // the screen (fixed inset-x-0 bottom-0), round top
+                        // corners, at most 85% of the screen tall (85dvh).
+                        // flex flex-col: header on top, list in the middle
+                        // (it scrolls), link at the bottom.
+                        //
+                        // FROM "sm" UP: the normal dropdown under the bell -
+                        // every sm: class undoes a phone one (absolute
+                        // instead of fixed, w-96, round on all corners...).
+                        //
+                        // No border line on phones: a top-only border fades
+                        // out oddly where it bends into the round corners.
+                        // The slightly lighter colour (bg-slate-900) and the
+                        // shadow going UP (the -10px) show the edge instead.
+                        // sm: = a darker panel with a thin border all round.
+                        className='fixed inset-x-0 bottom-0 z-[60] flex max-h-[85dvh] flex-col overflow-hidden rounded-t-3xl bg-slate-900 shadow-[0_-10px_40px_rgba(0,0,0,0.6)] sm:absolute sm:border-white/10 sm:bg-slate-950 sm:shadow-2xl sm:inset-x-auto sm:bottom-auto sm:right-0 sm:top-full sm:mt-3 sm:max-h-[min(34rem,calc(100vh-6rem))] sm:w-96 sm:rounded-2xl sm:border'
+                    >
+                        {/* The little grey bar at the top of a phone sheet
+                            ("drag handle") - it tells people "this is a
+                            sheet". Just a picture, phones only. */}
+                        <div className='flex justify-center pt-3 sm:hidden' aria-hidden='true'>
+                            <span className='h-1.5 w-10 rounded-full bg-slate-700' />
+                        </div>
+
+                        {/* ----- Top row: title + "mark all read" + close ----- */}
+                        <div className='flex items-center gap-2 px-4 pt-3 pb-3 sm:pt-4'>
+                            <p className='mr-auto text-lg font-bold text-white'>Notifications</p>
+
+                            {/* No point showing this button if nothing is unread. */}
+                            {unreadCount > 0 && (
+                                <button
+                                    type='button'
+                                    onClick={markAllRead}
+                                    className='flex items-center gap-1 rounded-full px-2 py-1 text-xs font-semibold text-red-400 hover:bg-white/5 hover:text-red-300'
+                                >
+                                    <CheckCheck className='h-4 w-4' />
+                                    Mark all as read
+                                </button>
+                            )}
+
+                            {/* ✕ - phones only. Big screens close it by
+                                clicking anywhere else, or with Esc. */}
                             <button
                                 type='button'
-                                onClick={markAllRead}
-                                className='flex items-center gap-1 text-xs text-red-400 hover:text-red-300'
+                                onClick={close}
+                                aria-label='Close notifications'
+                                className='flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-gray-200 hover:bg-white/20 sm:hidden'
                             >
-                                <CheckCheck className='h-3.5 w-3.5' />
-                                Mark all as read
+                                <X className='h-4 w-4' />
                             </button>
-                        )}
+                        </div>
+
+                        {/* ----- The list ----- */}
+                        {/* flex-1 + min-h-0 + overflow-y-auto = this part
+                            takes the space that's left and scrolls by
+                            itself, while the top row and the link stay put.
+                            overscroll-contain: reaching the end doesn't
+                            scroll the page behind. */}
+                        <div className='dropdown-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain pb-2'>
+                            {data ? (
+                                <NotificationList
+                                    items={items}
+                                    itemRole='menuitem'
+                                    onOpen={item => { markRead(item); close() }}
+                                />
+                            ) : (
+                                <p className='px-4 py-10 text-center text-sm text-gray-500'>Loading...</p>
+                            )}
+                        </div>
+
+                        {/* ----- Bottom link to the full page ----- */}
+                        {/* pb-[...env(...)]: on an iPhone the link stays
+                            above the swipe bar at the very bottom. */}
+                        <Link
+                            to='/notifications'
+                            onClick={close}
+                            className='block border-t border-white/10 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] text-center text-sm font-semibold text-gray-300 hover:bg-white/5 hover:text-white sm:pb-3'
+                        >
+                            See all notifications
+                        </Link>
                     </div>
-
-                    {/* ----- The list (or an empty message) ----- */}
-                    {items.length === 0 ? (
-                        <p className='px-4 py-8 text-center text-sm text-gray-500'>
-                            {data ? "You're all caught up!" : 'Loading...'}
-                        </p>
-                    ) : (
-                        // max-h + overflow-y-auto = scrolls if the list is long.
-                        <ul className='dropdown-scroll max-h-96 overflow-y-auto'>
-                            {items.map(item => (
-                                <li key={item.id}>
-                                    <NotificationItem item={item} role='menuitem' onOpen={() => { markRead(item); close() }} />
-                                </li>
-                            ))}
-                        </ul>
-                    )}
-
-                    {/* ----- Bottom link to the full page ----- */}
-                    <Link
-                        to='/notifications'
-                        onClick={close}
-                        className='block border-t border-gray-800 py-2.5 text-center text-sm text-gray-300 hover:bg-gray-800 hover:text-white'
-                    >
-                        View all notifications
-                    </Link>
-                </div>
+                </>
             )}
         </div>
     )

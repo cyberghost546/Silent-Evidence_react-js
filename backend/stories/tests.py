@@ -94,6 +94,22 @@ class FeedTests(TestCase):
     def test_feed_needs_login(self):
         self.assertEqual(self.client.get('/api/stories/feed/').status_code, 403)
 
+    # The story page's Follow button needs to know where it starts.
+    def test_story_says_if_you_follow_the_author(self):
+        me = make_user('me')
+        writer = make_user('writer')
+        story = make_story(writer)
+        url = f'/api/stories/{story.id}/'
+
+        # Logged out: always False.
+        self.assertFalse(self.client.get(url).json()['author_followed'])
+
+        self.client.login(username='me', password=PASSWORD)
+        self.assertFalse(self.client.get(url).json()['author_followed'])
+
+        Follow.objects.create(follower=me, following=writer)
+        self.assertTrue(self.client.get(url).json()['author_followed'])
+
 
 class BlockedCommentsTests(TestCase):
     def test_comments_by_blocked_users_are_hidden(self):

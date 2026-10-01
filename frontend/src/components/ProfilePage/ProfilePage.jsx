@@ -14,6 +14,7 @@ import ReadingListsSection from '../ReadingLists/ReadingListsSection'
 import SupportWriterButton from '../SupportWriterButton/SupportWriterButton'
 import FancyAvatar from '../Avatar/FancyAvatar'
 import ProName from '../ProName/ProName'
+import { openMessages } from '../MessagesPage/openMessages'
 
 
 // ---------------------------------------------------------------
@@ -232,15 +233,18 @@ function ProfilePage() {
                             </div>
                         ) : (
                             <div className='flex gap-3'>
-                            {/* Only logged-in visitors can send messages. */}
+                            {/* Only logged-in visitors can send messages.
+                                Opens the Messages pop-up straight into a chat
+                                with this person (openMessages.js). */}
                             {user && (
-                                <Link
-                                    to={`/messages/${profile.username}`}
+                                <button
+                                    type='button'
+                                    onClick={() => openMessages(profile.username)}
                                     className='flex items-center gap-2 rounded-lg border border-slate-700 px-4 py-2 text-sm text-gray-300 transition-colors hover:border-slate-500 hover:text-white'
                                 >
                                     <MessageCircle className='h-4 w-4' />
                                     Message
-                                </Link>
+                                </button>
                             )}
                             <button
                                 type='button'

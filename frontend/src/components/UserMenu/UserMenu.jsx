@@ -7,6 +7,7 @@ import {
 import { useDropdown } from '../../hooks/useDropdown'
 import Avatar from '../Avatar/Avatar'
 import { openWatcher } from '../SiteGuide/openWatcher'
+import { openMessages } from '../MessagesPage/openMessages'
 
 // The red scrollbar with the little arrows ("menu-scroll").
 import './UserMenu.css'
@@ -36,7 +37,8 @@ const MENU_GROUPS = [
         { label: 'My Feed', to: '/feed', icon: PanelRight },
         { label: 'Random Story', to: '/random', icon: RefreshCw },
         { label: 'My Stories', to: '/my-stories', icon: BookOpen },
-        { label: 'Messages', to: '/messages', icon: MessageSquareMore },
+        // A pop-up now, not a page - see `action` below.
+        { label: 'Messages', action: 'messages', icon: MessageSquareMore },
         { label: 'Co-author Invites', to: '/invites', icon: Mail },
         { label: 'Reading History', to: '/history', icon: Clock },
         { label: 'My Lists', to: '/lists', icon: ClipboardList },
@@ -46,8 +48,9 @@ const MENU_GROUPS = [
     ],
     // Help - its own group, so it gets its own divider line.
     // action = NOT a link: a button that opens a pop-up.
-    //   'tour'    -> the Site Guide tour (components/SiteTour)
-    //   'watcher' -> Ask The Watcher (components/SiteGuide)
+    //   'tour'     -> the Site Guide tour (components/SiteTour)
+    //   'watcher'  -> Ask The Watcher (components/SiteGuide)
+    //   'messages' -> Messages (components/MessagesPage), in the group above
     // See the JSX below.
     [
         { label: 'Site Guide', action: 'tour', icon: BookOpenText },
@@ -155,8 +158,8 @@ function UserMenu({ user, onLogout, onOpenTour }) {
                                 // Capital letter so JSX treats it as one: <Icon />
                                 const Icon = item.icon
 
-                                // A button instead of a link (Site Guide,
-                                // Ask The Watcher) - both open a pop-up.
+                                // A button instead of a link (Messages, Site
+                                // Guide, Ask The Watcher) - they open a pop-up.
                                 if (item.action) {
                                     return (
                                         <button
@@ -166,6 +169,7 @@ function UserMenu({ user, onLogout, onOpenTour }) {
                                             onClick={() => {
                                                 close()
                                                 if (item.action === 'tour') onOpenTour()
+                                                else if (item.action === 'messages') openMessages()
                                                 else openWatcher()
                                             }}
                                             className={ITEM_STYLE}

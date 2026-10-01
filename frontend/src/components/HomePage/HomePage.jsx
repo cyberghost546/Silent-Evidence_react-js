@@ -31,11 +31,22 @@ function HomePage() {
                 homepage's big titles are in the slideshow, so this one is
                 hidden: sr-only = "only for screen readers". */}
             <h1 className='sr-only'>Silent Evidence - horror stories, fiction and true</h1>
-            <SlideShow />
+            {/* The dark background behind the slideshow: on phones the
+                slideshow is a rounded card with a gap around it, and
+                that gap should be the same dark colour as the page
+                below - not the grey from App.css.
+                pt-3 (not a margin on the slideshow): a child's top
+                margin "leaks" out through a parent with no padding
+                (CSS calls it margin collapsing) and shows grey again. */}
+            <div className='bg-gray-900 pt-3 sm:pt-0'>
+                <SlideShow />
+            </div>
 
             {/* One dark band behind all the sections.
-                space-y-20 = the same gap between every section. */}
-            <div className='space-y-20 bg-gray-900 px-4 py-14'>
+                space-y-20 = the same gap between every section.
+                Phones: smaller gaps (space-y-12, py-8) - on a small
+                screen big gaps just mean more scrolling. */}
+            <div className='space-y-12 bg-gray-900 px-4 py-8 sm:space-y-20 sm:py-14'>
                 {/* Only shows around Halloween, Friday the 13th...
                     (utils/horrorDays.js). Preview: /?season=halloween */}
                 <SeasonalTakeover />

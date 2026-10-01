@@ -33,6 +33,7 @@ import { useScareWarnings } from '../../hooks/useScareWarnings'
 import { BetaBanner, BetaFeedbackBox } from './BetaBox'
 import { useReadingProgress } from '../../hooks/useReadingProgress'
 import { useLineFocus } from '../../hooks/useLineFocus'
+import FollowButton from '../FollowButton/FollowButton'
 
 
 // The name the reader's text size is saved under in the browser.
@@ -256,6 +257,14 @@ function StoryPage() {
                                         <Link to={`/profile/${name}`} className='text-red-400 hover:text-red-300'>{name}</Link>
                                     </span>
                                 ))}
+
+                                {/* Follow the writer, right where you read
+                                    them. story.author_followed comes from
+                                    Django. Your own story = no button (the
+                                    FollowButton hides itself). */}
+                                <span className='ml-3 inline-block align-middle'>
+                                    <FollowButton username={story.author} following={story.author_followed} size='small' />
+                                </span>
                             </p>
                             {/* flex-wrap: on a phone the details wrap onto a
                                 second line instead of squashing together. */}

@@ -4,9 +4,9 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { getStories } from '../../api/client'
 import { MOODS } from '../WriteStory/storyOptions'
 import StoryGridCard from '../StorySections/StoryGridCard'
+import StoryPostCard from '../StorySections/StoryPostCard'
 import SectionHeading from '../StorySections/SectionHeading'
 import EmptyState from '../StorySections/EmptyState'
-import '../NavDropdown/NavDropdown.css'
 
 
 // The chips: "All" first, then the same moods writers pick on the
@@ -75,14 +75,19 @@ function LatestStories({ limit = 12 }) {
             </div>
 
             {/* ---------- MOOD CHIPS ---------- */}
+            {/* The arrows are hidden on phones (hidden sm:block) - you
+                swipe the row with your finger there instead. */}
             <div className='mb-6 flex items-center gap-2'>
-                <button type='button' onClick={() => scrollChips(-1)} aria-label='Scroll moods left' className='shrink-0 text-red-500 hover:text-red-400'>
+                <button type='button' onClick={() => scrollChips(-1)} aria-label='Scroll moods left' className='hidden shrink-0 text-red-500 hover:text-red-400 sm:block'>
                     <ChevronLeft className='h-5 w-5' />
                 </button>
 
                 {/* min-w-0 lets this row get narrower than its chips,
                     so overflow-x-auto can kick in and scroll. */}
-                <div ref={chipRowRef} className='dropdown-scroll flex min-w-0 flex-1 gap-2 overflow-x-auto pb-2'>
+                {/* No scrollbar (scrollbar-none, index.css), like the chip
+                    rows in phone apps: on a phone you swipe, on a big
+                    screen the arrows scroll it. */}
+                <div ref={chipRowRef} className='scrollbar-none flex min-w-0 flex-1 gap-2 overflow-x-auto pb-2'>
                     {MOOD_CHIPS.map(chip => {
                         const isSelected = chip.value === mood
                         return (
@@ -91,7 +96,8 @@ function LatestStories({ limit = 12 }) {
                                 type='button'
                                 onClick={() => pickMood(chip.value)}
                                 aria-pressed={isSelected}
-                                className={`shrink-0 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                                // py-1.5 on phones = a bigger target for a finger.
+                                className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors sm:py-1 ${
                                     isSelected
                                         ? 'border-red-600 bg-red-600 text-white'
                                         : 'border-slate-600 text-gray-300 hover:border-slate-400 hover:text-white'
@@ -103,7 +109,7 @@ function LatestStories({ limit = 12 }) {
                     })}
                 </div>
 
-                <button type='button' onClick={() => scrollChips(1)} aria-label='Scroll moods right' className='shrink-0 text-red-500 hover:text-red-400'>
+                <button type='button' onClick={() => scrollChips(1)} aria-label='Scroll moods right' className='hidden shrink-0 text-red-500 hover:text-red-400 sm:block'>
                     <ChevronRight className='h-5 w-5' />
                 </button>
             </div>
@@ -119,13 +125,24 @@ function LatestStories({ limit = 12 }) {
             )}
 
             {stories !== null && stories.length > 0 && (
-                // 1 column on phones, 2 on tablets, 3 on big screens.
-                <div className='grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3'>
-                    {/* The same card the category pages use. */}
-                    {stories.map(story => (
-                        <StoryGridCard key={story.id} story={story} />
-                    ))}
-                </div>
+                <>
+                    {/* PHONES: a social-media feed - one post under the
+                        other (StoryPostCard). sm:hidden = phones only. */}
+                    <div className='space-y-4 sm:hidden'>
+                        {stories.map(story => (
+                            <StoryPostCard key={story.id} story={story} />
+                        ))}
+                    </div>
+
+                    {/* TABLETS AND UP: the grid of cards, 2 across on
+                        tablets, 3 on big screens. hidden sm:grid = not on
+                        phones. The same card the category pages use. */}
+                    <div className='hidden gap-5 sm:grid sm:grid-cols-2 xl:grid-cols-3'>
+                        {stories.map(story => (
+                            <StoryGridCard key={story.id} story={story} />
+                        ))}
+                    </div>
+                </>
             )}
         </section>
     )

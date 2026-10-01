@@ -1,5 +1,6 @@
-import { NavLink, useLocation } from 'react-router-dom'
-import { Home, Search, Plus, MessageCircleMore, Menu, X } from 'lucide-react'
+import { NavLink } from 'react-router-dom'
+import { Home, Search, Plus, User, Menu, X } from 'lucide-react'
+import { useAuth } from '../../hooks/useAuth'
 
 
 // ===============================================================
@@ -10,8 +11,10 @@ import { Home, Search, Plus, MessageCircleMore, Menu, X } from 'lucide-react'
 // that makes a website feel like an APP: everything is one
 // thumb-tap away.
 //
-//      ⌂        🔍        (+)        💬        ☰
-//    Home     Search             Messages    Menu
+//      ⌂        🔍        (+)        👤        ☰
+//    Home     Search             Profile     Menu
+//
+// (Messages is in the Menu - see MOBILE_SECTIONS in Header.jsx.)
 //
 // The look:
 //   - a "frosted glass" card floating just above the bottom edge
@@ -20,7 +23,7 @@ import { Home, Search, Plus, MessageCircleMore, Menu, X } from 'lucide-react'
 //   - Write is a raised, glowing red button in the middle
 //
 // Two kinds of tab:
-//   - Home and Messages go to a PAGE      -> a <NavLink>
+//   - Home and Profile go to a PAGE       -> a <NavLink>
 //   - Search and Menu OPEN something      -> a <button>
 //     (the pop-up search, the menu sheet). Those live in Header.jsx,
 //     so the Header passes us "is it open?" and "open it" as props.
@@ -130,22 +133,18 @@ function WriteButton() {
 
 // ---------------------------------------------------------------
 // THE BAR. The props all come from Header.jsx:
-//   unreadMessages  the red number on Messages
 //   searchOpen      is the pop-up search showing?
 //   onSearch        open it
 //   menuOpen        is the menu sheet showing?
 //   onMenu          open / close it
 // ---------------------------------------------------------------
-function BottomNav({ unreadMessages, searchOpen, onSearch, menuOpen, onMenu }) {
+function BottomNav({ searchOpen, onSearch, menuOpen, onMenu }) {
     // While the search or the menu is open, THAT is the active tab -
-    // so the page tabs (Home, Messages) shouldn't light up as well.
+    // so the page tabs (Home, Profile) shouldn't light up as well.
     const somethingOpen = searchOpen || menuOpen
 
-    // Messages has more than one address (/messages/raven...), and
-    // they should all light up the Messages tab. NavLink does that by
-    // itself (without "end"), so this is only used for the badge.
-    const { pathname } = useLocation()
-    const onMessages = pathname.startsWith('/messages')
+    // Logged in -> your profile. Logged out -> the log in page.
+    const { user } = useAuth()
 
     return (
         // fixed = stays put on the SCREEN while the page scrolls.
@@ -172,13 +171,10 @@ function BottomNav({ unreadMessages, searchOpen, onSearch, menuOpen, onMenu }) {
 
                 <WriteButton />
 
-                {/* The red number hides while you're on the Messages
-                    page itself - you're already reading them. */}
                 <LinkTab
-                    to='/messages'
-                    icon={MessageCircleMore}
-                    label='Messages'
-                    badge={onMessages ? 0 : unreadMessages}
+                    to={user ? '/profile' : '/login'}
+                    icon={User}
+                    label={user ? 'Profile' : 'Log In'}
                     dimmed={somethingOpen}
                 />
 

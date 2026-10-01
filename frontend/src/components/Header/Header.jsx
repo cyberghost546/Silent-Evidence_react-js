@@ -12,6 +12,8 @@ import SearchModal from '../SearchModal/SearchModal'
 import SiteTour, { TOUR_SEEN_KEY } from '../SiteTour/SiteTour'
 import AskTheWatcher from '../SiteGuide/AskTheWatcher'
 import { OPEN_WATCHER_EVENT } from '../SiteGuide/openWatcher'
+import MessagesPopup from '../MessagesPage/MessagesPopup'
+import { OPEN_MESSAGES_EVENT, openMessages } from '../MessagesPage/openMessages'
 
 
 // ---------------------------------------------------------------
@@ -49,8 +51,9 @@ const NAV_LINK = 'text-gray-200 hover:text-red-500 transition-colors'
 // The small icon buttons on the right (search, messages, bell) all
 // sit together inside ONE rounded "pill", like a phone app:
 //
-//     ( 🔍  💬  🔔 )  (avatar)        <- phones: just ( 🔔 ), the
-//                                        others are in the tab bar
+//     ( 🔍  💬  🔔 )  (avatar)        <- phones: just ( 🔔 ) - search
+//                                        is in the tab bar, messages
+//                                        in the Menu
 //
 // Each button is a 32px circle (36px from "sm" up) with no
 // background of its own - the pill behind them is the background.
@@ -79,7 +82,6 @@ const PAGE_TITLES = [
     ['/forums', 'Forums'],
     ['/videos', 'Videos'],
     ['/profile', 'Profile'],
-    ['/messages', 'Messages'],
     ['/notifications', 'Notifications'],
     ['/settings', 'Settings'],
     ['/write', 'Write a Story'],
@@ -137,10 +139,12 @@ const MOBILE_SECTIONS = [
     {
         title: 'Main',
         links: [
-            { label: 'Home', href: '/' },
+            // Messages lives here on phones (it's not in the tab bar).
+            // A pop-up, so `action` (like Site Guide below).
+            { label: 'Messages', action: 'messages' },
             { label: 'Videos', href: '/videos' },
-            { label: 'Search', href: '/search' },
             { label: 'Leaderboard', href: '/leaderboard' },
+            { label: 'Notifications', href: '/notifications' },
         ],
     },
     // The same arrays the desktop dropdowns use, so the two menus
@@ -170,10 +174,8 @@ const MOBILE_ITEM = 'block w-full rounded-lg px-3 py-2.5 text-left text-sm trans
 // to another page, and every 30 seconds (the same "polling" idea as
 // the Messages page).
 //
-// Why a hook and not inside MessagesLink? Because TWO places show
-// the number now: the header's icon (big screens) and the Messages
-// tab in the phone tab bar. Asking once here and handing the number
-// to both means one request, not two.
+// A custom hook keeps that timer logic out of the Header's JSX:
+// one line, `useUnreadMessages(Boolean(user))`, gives the number.
 //
 // `enabled` = only ask when someone is logged in.
 // ---------------------------------------------------------------
@@ -205,10 +207,11 @@ function useUnreadMessages(enabled) {
 
 // The Messages icon (big screens), with a red number when you have
 // unread ones. The number comes from useUnreadMessages above.
+// A BUTTON, not a link: it opens the Messages pop-up (openMessages.js).
 function MessagesLink({ unread }) {
     return (
-        // relative = the anchor for the little red number.
-        <Link to='/messages' aria-label={`Messages${unread > 0 ? `, ${unread} unread` : ''}`} className={ICON_BUTTON}>
+        // relative (in ICON_BUTTON) = the anchor for the little red number.
+        <button type='button' onClick={() => openMessages()} aria-label={`Messages${unread > 0 ? `, ${unread} unread` : ''}`} className={ICON_BUTTON}>
             <MessageCircleMore className='w-5 h-5' />
             {unread > 0 && (
                 // ring-2 ring-slate-900 = a thin outline the colour of
@@ -218,7 +221,7 @@ function MessagesLink({ unread }) {
                     {unread > 9 ? '9+' : unread}
                 </span>
             )}
-        </Link>
+        </button>
     )
 }
 
@@ -235,7 +238,7 @@ function Header() {
     // Is the phone menu open?
     const [menuOpen, setMenuOpen] = useState(false)
 
-    // Unread messages - shown on the header icon AND the phone tab bar.
+    // Unread messages - the red number on the header's Messages icon.
     const unreadMessages = useUnreadMessages(Boolean(user))
 
     // Which page we're on - for the phone title, the back arrow, and
@@ -303,6 +306,14 @@ function Header() {
     // Esc-key effect lists onClose in its [ ].
     const closeWatcher = useCallback(() => setWatcherOpen(false), [])
 
+    // Is the Messages pop-up open, and with whom?
+    //   null     = closed
+    //   ''       = open, showing the list of conversations
+    //   'raven'  = open, in the chat with raven
+    const [messagesWith, setMessagesWith] = useState(null)
+    // useCallback: MessagesPopup's Esc-key effect lists onClose in its [ ].
+    const closeMessages = useCallback(() => setMessagesWith(null), [])
+
     function openTour() {
         setWatcherOpen(false)
         setTourOpen(true)
@@ -318,6 +329,17 @@ function Header() {
         }
         window.addEventListener(OPEN_WATCHER_EVENT, handleOpen)
         return () => window.removeEventListener(OPEN_WATCHER_EVENT, handleOpen)
+    }, [])
+
+    // The same for Messages: openMessages('raven') (openMessages.js)
+    // sends this event, with the username in event.detail.
+    useEffect(() => {
+        function handleOpen(event) {
+            setMenuOpen(false)
+            setMessagesWith(event.detail.username)
+        }
+        window.addEventListener(OPEN_MESSAGES_EVENT, handleOpen)
+        return () => window.removeEventListener(OPEN_MESSAGES_EVENT, handleOpen)
     }, [])
 
     // Keyboard shortcut: Ctrl + K (Cmd + K on a Mac) opens the search
@@ -441,8 +463,8 @@ function Header() {
 
                 {/* The pill.
                       big screens: search, messages, bell
-                      phones:      only the bell (search and messages are
-                                   in the tab bar at the bottom instead)
+                      phones:      only the bell (search is in the tab
+                                   bar at the bottom, messages in the Menu)
                     Logged out on a phone there's nothing left to put in
                     it, so the whole pill is hidden (hidden lg:flex). */}
                 <div className={`${ICON_PILL} ${user ? 'flex' : 'hidden lg:flex'}`}>
@@ -529,7 +551,6 @@ function Header() {
                 the "open" functions down as props is how a child
                 component changes its parent's state. */}
             <BottomNav
-                unreadMessages={unreadMessages}
                 searchOpen={searchOpen}
                 onSearch={() => {
                     setMenuOpen(false)
@@ -573,6 +594,8 @@ function Header() {
                                                         setMenuOpen(false)
                                                         if (link.action === 'tour') {
                                                             openTour()
+                                                        } else if (link.action === 'messages') {
+                                                            openMessages()
                                                         } else {
                                                             setTourOpen(false)
                                                             setWatcherOpen(true)
@@ -621,6 +644,15 @@ function Header() {
             {/* Same corner, same size as the tour. Opened from anywhere
                 with openWatcher() - see the useEffect above. */}
             {watcherOpen && <AskTheWatcher onClose={closeWatcher} />}
+
+            {/* ---------- MESSAGES ---------- */}
+            {/* A floating chat window (phones: a sheet from the bottom).
+                Opened from anywhere with openMessages() - see above.
+                key: a fresh pop-up every time it opens with someone new,
+                so it starts on the right screen (list or that chat). */}
+            {messagesWith !== null && user && (
+                <MessagesPopup key={messagesWith} startWith={messagesWith} onClose={closeMessages} />
+            )}
         </header>
     )
 }

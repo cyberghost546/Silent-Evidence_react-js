@@ -3,7 +3,7 @@ import { getNotifications, markNotificationsRead } from '../../api/client'
 import { usePageTitle } from '../../hooks/usePageTitle'
 import { useApi } from '../../hooks/useApi'
 import PageLayout, { PageMessage } from '../PageLayout/PageLayout'
-import NotificationItem from '../NotificationMenu/NotificationItem'
+import NotificationList from '../NotificationMenu/NotificationList'
 
 
 // ---------------------------------------------------------------
@@ -38,20 +38,15 @@ function NotificationsPage() {
             {error && <PageMessage title='Something went wrong' text={error} />}
             {!data && !error && <PageMessage title='Loading...' />}
 
-            {data?.items.length === 0 && (
-                <PageMessage title='Nothing yet' text="When someone likes your story or follows you, you'll see it here." />
-            )}
-
-            {data?.items.length > 0 && (
-                <>
-                    <ul className='divide-y divide-gray-800 overflow-hidden rounded-xl border border-gray-800 bg-gray-900/60'>
-                        {data.items.map(item => (
-                            <li key={item.id}>
-                                <NotificationItem item={item} onOpen={() => markRead(item)} />
-                            </li>
-                        ))}
-                    </ul>
-                </>
+            {/* The same list as the bell's panel (NotificationList):
+                All / Unread tabs, grouped into Today / This week /
+                Earlier. It shows its own "nothing yet" message.
+                -mx-4 on phones: the rows run closer to the screen
+                edges, like a phone app; sm: puts them back in a card. */}
+            {data && (
+                <div className='-mx-4 sm:mx-0 sm:rounded-3xl sm:border sm:border-white/10 sm:bg-slate-950/60 sm:py-4'>
+                    <NotificationList items={data.items} onOpen={markRead} />
+                </div>
             )}
         </PageLayout>
     )

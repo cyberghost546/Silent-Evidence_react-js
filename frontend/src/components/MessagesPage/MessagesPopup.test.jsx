@@ -1,12 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter, Routes, Route } from 'react-router-dom'
-import MessagesPage from './MessagesPage'
+import { MemoryRouter } from 'react-router-dom'
+import MessagesPopup from './MessagesPopup'
 import { getConversations, getConversation, sendMessage } from '../../api/client'
 
 
-// Private messages. Django is faked (vi.mock).
+// The Messages pop-up. Django is faked (vi.mock).
 vi.mock('../../api/client', async importOriginal => ({
     ...(await importOriginal()),
     getConversations: vi.fn(),
@@ -23,18 +23,18 @@ const CHAT = {
     ],
 }
 
-function renderMessages(path) {
+// MemoryRouter: the chat's name links to the profile page, and a
+// <Link> needs a router around it.
+function renderPopup(startWith = '', onClose = vi.fn()) {
     render(
-        <MemoryRouter initialEntries={[path]}>
-            <Routes>
-                <Route path='/messages' element={<MessagesPage />} />
-                <Route path='/messages/:username' element={<MessagesPage />} />
-            </Routes>
+        <MemoryRouter>
+            <MessagesPopup startWith={startWith} onClose={onClose} />
         </MemoryRouter>
     )
+    return onClose
 }
 
-describe('MessagesPage', () => {
+describe('MessagesPopup', () => {
     beforeEach(() => {
         vi.clearAllMocks()
         getConversations.mockResolvedValue([
@@ -42,16 +42,21 @@ describe('MessagesPage', () => {
         ])
     })
 
-    it('lists your conversations with the last message', async () => {
-        renderMessages('/messages')
-        expect(await screen.findByRole('link', { name: /moth/ })).toHaveAttribute('href', '/messages/moth')
-        expect(screen.getByText('Did you hear that?')).toBeInTheDocument()
+    it('lists your conversations, and tapping one opens the chat', async () => {
+        getConversation.mockResolvedValue(CHAT)
+        renderPopup()
+
+        expect(await screen.findByText('Did you hear that?')).toBeInTheDocument()
+        await userEvent.click(screen.getByRole('button', { name: /moth/ }))
+
+        expect(await screen.findByText('Hear what?')).toBeInTheDocument()
+        expect(getConversation).toHaveBeenCalledWith('moth')
     })
 
-    it('opens a chat and sends a message', async () => {
+    it('opens straight into a chat and sends a message', async () => {
         getConversation.mockResolvedValue(CHAT)
         sendMessage.mockResolvedValue({ id: 3, body: 'Nothing. Go to sleep.', is_mine: true, created_at: NOW })
-        renderMessages('/messages/moth')
+        renderPopup('moth')
 
         expect(await screen.findByText('Hear what?')).toBeInTheDocument()
         await userEvent.type(screen.getByLabelText('Your message'), 'Nothing. Go to sleep.')
@@ -62,16 +67,27 @@ describe('MessagesPage', () => {
         expect(screen.getByLabelText('Your message')).toHaveValue('')
     })
 
+    it('the back arrow goes to the list, the X closes the pop-up', async () => {
+        getConversation.mockResolvedValue(CHAT)
+        const onClose = renderPopup('moth')
+
+        await userEvent.click(await screen.findByRole('button', { name: 'Back to conversations' }))
+        expect(await screen.findByRole('heading', { name: 'Messages' })).toBeInTheDocument()
+
+        await userEvent.click(screen.getByRole('button', { name: 'Close messages' }))
+        expect(onClose).toHaveBeenCalled()
+    })
+
     it('no message box when you cannot message this person', async () => {
         getConversation.mockResolvedValue({ ...CHAT, blocked: true })
-        renderMessages('/messages/moth')
+        renderPopup('moth')
         expect(await screen.findByText("You can't message this user.")).toBeInTheDocument()
         expect(screen.queryByLabelText('Your message')).not.toBeInTheDocument()
     })
 
     it('a username that does not exist', async () => {
         getConversation.mockRejectedValue({ status: 404 })
-        renderMessages('/messages/nobody')
+        renderPopup('nobody')
         expect(await screen.findByText('There\'s nobody called "nobody".')).toBeInTheDocument()
     })
 })
