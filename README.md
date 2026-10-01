@@ -147,6 +147,19 @@ and [refactor exercises](docs/refactor-exercises.md) based on real repetition
 in this code.
 
 
+## Using the API in another project
+
+Everything the site does goes through Django's API, so another website,
+a phone app or a script can use it too.
+
+- **[docs/API.md](docs/API.md)** - the guide: logging in (cookies + CSRF),
+  calling it from another site or app (Python, Node, curl examples that were
+  run for real), errors, limits, pictures, and the main addresses with real
+  answers.
+- **[docs/API-reference.md](docs/API-reference.md)** - all 213 addresses,
+  generated from the code: `python manage.py api_reference` (run it again
+  after adding one).
+
 ## How it fits together
 
 1. React calls a function in **`frontend/src/api/client.js`** - e.g.
