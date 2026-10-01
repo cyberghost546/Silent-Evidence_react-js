@@ -56,7 +56,7 @@ export const INFO_PAGES = {
         title: 'Privacy Policy',
         intro: 'What we store about you, why, and what you can do about it.',
         isLegal: true,
-        updated: '26 September 2026',
+        updated: '1 October 2026',
         sections: [
             {
                 heading: 'What we store',
@@ -66,6 +66,7 @@ export const INFO_PAGES = {
                     'Your profile: avatar, bio, website and the choices on the Settings page.',
                     'What you create: stories, comments, Last Words and private messages.',
                     'What you do: likes, saved stories, follows, blocks and your reading history.',
+                    'If you pay (Pro or a candle): what you bought, the amount and the date. Your card details go to Stripe, our payment provider, and never reach us.',
                 ],
             },
             {
@@ -97,7 +98,7 @@ export const INFO_PAGES = {
         title: 'Terms of Service',
         intro: 'The agreement between you and Silent Evidence when you use the site.',
         isLegal: true,
-        updated: '26 September 2026',
+        updated: '1 October 2026',
         sections: [
             {
                 heading: 'Your account',
@@ -109,6 +110,12 @@ export const INFO_PAGES = {
                 heading: 'Your stories stay yours',
                 paragraphs: [
                     'You keep the rights to what you write. By publishing, you allow us to show it on the site. Unpublish or delete it and it disappears from the site.',
+                ],
+            },
+            {
+                heading: 'Pro and candles',
+                paragraphs: [
+                    'Pro is a single payment for 1 month or 1 year - it doesn\'t renew by itself, so there\'s nothing to cancel. Candles are tips for writers: the writer gets 90%, the site keeps 10% to keep running. Payments are handled by Stripe. Paid by mistake? Contact us through Help & Support.',
                 ],
             },
             {

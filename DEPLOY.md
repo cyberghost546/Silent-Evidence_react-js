@@ -116,6 +116,41 @@ Members can then switch on Settings → Notifications → **Phone
 notifications**. Without the keys the switch says "Coming soon" and
 nothing else changes.
 
+## 4c. Payments: Pro and candles (optional)
+
+Without this, the Pro page says "Payments open soon" and the candle
+button is hidden - everything else works. (On your computer there's a
+pretend payment page instead, so you can try it all without Stripe.)
+
+1. Make an account on [stripe.com](https://stripe.com). You must be 18+
+   to own it; it asks for a bank account to pay you.
+2. **Start in test mode** (the "Test mode" switch in Stripe's
+   dashboard). Test payments use fake cards like `4242 4242 4242 4242`
+   (any future date, any CVC) - no real money.
+3. Developers → API keys: copy the **Secret key** (`sk_test_...`).
+   On Render → Environment add `STRIPE_SECRET_KEY` = that key.
+4. Developers → Webhooks → **Add endpoint**:
+   - URL: `https://<your-render-address>/api/payments/stripe-webhook/`
+   - Events: `checkout.session.completed` and
+     `checkout.session.async_payment_succeeded`
+   - Copy its **Signing secret** (`whsec_...`) into
+     `STRIPE_WEBHOOK_SECRET` on Render.
+5. Buy Pro with the test card. After a few seconds the "Thank you"
+   page should say "You're Pro now". If it keeps waiting, the webhook
+   isn't arriving: check step 4 (Stripe shows each attempt and its
+   error under Developers → Webhooks).
+6. Ready for real money? Switch Stripe to live mode, make a **new**
+   webhook there (live mode has its own), and replace both keys with the
+   `sk_live_...` / live `whsec_...` ones.
+
+Both keys are secrets: only in Render's settings, never in git.
+Prices are in `backend/payments/prices.py`; the currency is
+`CURRENCY` in `config/settings.py` (EUR).
+
+**Candles:** the money arrives in YOUR Stripe account. Dashboard →
+Revenue lists what you owe each writer (90% of their candles); send it
+to them and click "Mark as paid out".
+
 ## 5. Check that everything works
 
 - [ ] The homepage loads, with categories

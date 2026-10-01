@@ -177,6 +177,7 @@ sends it along (plus the CSRF token), and `AuthContext.jsx` keeps
 | `slides` | The homepage slideshow |
 | `dashboard` | Admin dashboard numbers, site settings + rate limits (`SiteSettings.load()`), IP blocklist, audit log (both in `middleware.py`), SEO (`/sitemap.xml`, `/robots.txt`), heatmap |
 | `contact` | The contact form |
+| `payments` | Pro and candles (tips) with Stripe: prices in `prices.py`, "hand over what was bought" in `fulfil.py` (only the signed Stripe webhook calls it), a pretend payment page on your computer when there's no Stripe key. Setup: DEPLOY.md 4c |
 
 **One rule worth knowing:** "which stories may this person see?" is
 answered in one place - `stories_for(user)` in `backend/stories/models/story.py`.
@@ -198,6 +199,7 @@ rules are in `backend/accounts/age.py`; the lock screen is
 | `/category/:slug` | `CategoryPage/` | |
 | `/profile/:username` | `ProfilePage/` | |
 | `/search` | `SearchPage/` | |
+| `/premium`, `/payment/done/:id`, `/payment/fake/:id` | `PremiumPage/` | paying needs a login |
 | `/leaderboard` | `LeaderboardPage/` | |
 | `/about`, `/privacy`, `/terms`, `/cookies`... | `InfoPage/` (text in `infoPages.js`) | |
 | `/write` | `WriteStory/` | yes |
@@ -250,6 +252,8 @@ All routes live in `frontend/src/App.jsx`.
 | --- | --- |
 | `PageLayout` | A new simple page: background, title with the red bar, empty-state box |
 | `Avatar` | Anyone's photo or initials, in 3 sizes |
+| `FancyAvatar` | Wraps an Avatar with the border someone picked (pulse, orbit, flicker, Pro gold) |
+| `ProName` | A name with the Pro colour + PRO badge: `<ProName name={...} look={comment.author_look} />` |
 | `SegmentedControl` | A row of buttons where one is picked (sort, tabs) |
 | `StoryGridCard` / `StoryCard` | Showing a story (tall card / wide card) |
 | `EmptyState` | "Nothing here yet" |
