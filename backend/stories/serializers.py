@@ -5,6 +5,8 @@ from django.utils import timezone
 from rest_framework import serializers
 
 from accounts.age import story_lock
+from accounts.models import get_profile, loaded_profile
+from accounts.premium import pro_look
 from moderation.content_filter import check_text, BLOCKED_MESSAGE
 from .models import Story, Comment, LastWord, CoAuthorInvite, Tag, Series, wpm_for, stories_for, REACTION_KINDS, EARLY_ACCESS_HOURS
 
@@ -124,6 +126,8 @@ class StoryDetailSerializer(StoryCardSerializer):
     # How far YOU got last time (0-100), for "Continue where you left off".
     my_progress = serializers.SerializerMethodField()
     reactions = serializers.SerializerMethodField()
+    # The writer's PRO badge + name colour (accounts/premium.py).
+    author_look = serializers.SerializerMethodField()
 
     # Meta inherits too: same model, and the card's field list with
     # more added on the end.
@@ -131,6 +135,7 @@ class StoryDetailSerializer(StoryCardSerializer):
         fields = StoryCardSerializer.Meta.fields + [
             'body', 'category_slug', 'author_tip_url', 'audio', 'word_count', 'like_count', 'comment_count', 'liked', 'saved',
             'coauthors', 'tags', 'series', 'lock', 'fear', 'reactions', 'is_draft', 'my_beta_feedback', 'my_progress',
+            'author_look',
             # From the Write a Story page. The story page doesn't show
             # these yet, but they're here for when it does.
             'language', 'video_url', 'audio_url', 'location', 'latitude', 'longitude',
@@ -167,6 +172,9 @@ class StoryDetailSerializer(StoryCardSerializer):
     # if there's none, the link. '' = no narration.
     def get_audio(self, story):
         return story.audio_file.url if story.audio_file else story.audio_url
+
+    def get_author_look(self, story):
+        return pro_look(get_profile(story.author))
 
     def get_lock(self, story):
         return story_lock(self.context['request'].user, story)
@@ -395,13 +403,20 @@ class CommentSerializer(serializers.ModelSerializer):
     # fills in the author from whoever is logged in - otherwise anyone
     # could post a comment "as" someone else.
     author = serializers.CharField(source='author.username', read_only=True)
+    # { is_pro, name_color } - the PRO badge and name colour.
+    author_look = serializers.SerializerMethodField()
 
     class Meta:
         model = Comment
         # parent: the id of the comment this answers (or null). Sent in
         # when replying, and shown so React can put replies under it.
-        fields = ['id', 'author', 'body', 'created_at', 'parent']
+        fields = ['id', 'author', 'author_look', 'body', 'created_at', 'parent']
         extra_kwargs = {'parent': {'required': False, 'allow_null': True}}
+
+    # loaded_profile: the view already fetched the profiles together
+    # with the comments (select_related), so no extra query per comment.
+    def get_author_look(self, comment):
+        return pro_look(loaded_profile(comment.author))
 
     # validate_<field> runs by itself during is_valid(). A blocked word
     # (Content Filter) refuses the comment.

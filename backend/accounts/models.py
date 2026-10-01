@@ -70,6 +70,17 @@ class Profile(models.Model):
         ('pulse', 'Pulse Glow'),
         ('orbit', 'Orbit Ring'),
         ('flicker', 'Flicker'),
+        ('gold', 'Gold Crown (Pro)'),   # Pro only - see accounts/premium.py
+    ]
+    # Pro only: your name in colour (comments, stories, profile).
+    # '' = the normal white. The real colours are in React (nameColors.js).
+    NAME_COLORS = [
+        ('', 'Normal'),
+        ('blood', 'Blood red'),
+        ('ember', 'Ember'),
+        ('toxic', 'Toxic green'),
+        ('void', 'Void purple'),
+        ('ghost', 'Ghost blue'),
     ]
 
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='profile')
@@ -116,6 +127,7 @@ class Profile(models.Model):
     # --- Appearance ---
     profile_theme = models.CharField(max_length=20, choices=THEMES, default='blood-red')
     avatar_border = models.CharField(max_length=20, choices=BORDERS, default='none')
+    name_color = models.CharField(max_length=10, choices=NAME_COLORS, blank=True, default='')
 
     # --- Account ---
     is_private = models.BooleanField(default=False)
@@ -133,7 +145,8 @@ class Profile(models.Model):
     # A checkmark next to the name: "this person is who they say".
     is_verified = models.BooleanField(default=False)
 
-    # The PRO badge. (There's no payment system - an admin switches it on.)
+    # The PRO badge + perks. Switched on by paying (the payments app)
+    # or by an admin; accounts/premium.py keeps it in step.
     is_premium = models.BooleanField(default=False)
 
     def __str__(self):

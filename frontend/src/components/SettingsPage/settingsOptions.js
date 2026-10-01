@@ -1,7 +1,7 @@
 import {
     Clock, BookOpen, Zap,
     Droplet, Ghost, CircleSlash, Skull, Moon, Radiation,
-    Square, Sparkle, Orbit, ZapOff,
+    Square, Sparkle, Orbit, ZapOff, Crown,
 } from 'lucide-react'
 
 
@@ -86,10 +86,12 @@ export const THEMES = [
 ]
 
 // "Avatar Border Animation". The animation classes themselves are in
-// AppearanceSettings.jsx / SettingsPage.module.css.
+// Avatar/FancyAvatar.jsx + FancyAvatar.module.css.
 export const BORDERS = [
     { value: 'none', label: 'None', icon: Square },
     { value: 'pulse', label: 'Pulse Glow', icon: Sparkle },
     { value: 'orbit', label: 'Orbit Ring', icon: Orbit },
     { value: 'flicker', label: 'Flicker', icon: ZapOff },
+    // pro: true = only Pro members can pick it (Django checks too).
+    { value: 'gold', label: 'Gold Crown', icon: Crown, pro: true },
 ]

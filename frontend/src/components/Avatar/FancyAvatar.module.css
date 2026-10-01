@@ -1,5 +1,6 @@
 /* ---------------------------------------------------------------
-   The avatar border animations for the Appearance preview.
+   The avatar border animations (Settings -> Appearance), used by
+   FancyAvatar.jsx - on the profile page and the Settings preview.
 
    Why a CSS Module and not Tailwind? Tailwind has a few ready-made
    animations (animate-pulse, animate-spin), but a glow in the
@@ -60,12 +61,39 @@
 }
 
 
+/* GOLD CROWN (Pro only) - a gold ring with a slow shimmer. Always
+   gold, whatever the theme colour: it's the Pro sign.
+
+   The avatar inside already has a Tailwind ring (ring-red-900...).
+   Tailwind draws it with the --tw-ring-color variable, so setting
+   that variable on the avatar turns ITS ring gold. (!important,
+   because Tailwind's own class sets the same variable.) */
+.gold > * {
+    --tw-ring-color: #facc15 !important;
+}
+
+.gold {
+    animation: gold-shimmer 3s ease-in-out infinite;
+}
+
+@keyframes gold-shimmer {
+    0%,
+    100% {
+        box-shadow: 0 0 10px 2px rgba(250, 204, 21, 0.35);
+    }
+    50% {
+        box-shadow: 0 0 24px 7px rgba(250, 204, 21, 0.6);
+    }
+}
+
+
 /* Some people turn off animations in their computer's settings
    (motion can make them feel sick). Respect that. */
 @media (prefers-reduced-motion: reduce) {
     .pulse,
     .orbit,
-    .flicker {
+    .flicker,
+    .gold {
         animation: none;
     }
 }

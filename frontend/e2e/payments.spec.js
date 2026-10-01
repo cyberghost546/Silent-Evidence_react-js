@@ -65,3 +65,27 @@ test('Pro early access: Pro readers first, everyone else later', async ({ page }
     await page.goto(storyUrl)
     await expect(page.getByText('Nobody else has read this yet.').first()).toBeVisible()
 })
+
+test('Pro looks: a gold border and a coloured name on your profile', async ({ page }) => {
+    await logIn(page, 'e2e_pro')
+    await page.goto('/settings')
+    await page.getByRole('button', { name: /Gold Crown/ }).click()
+    await page.getByRole('button', { name: 'Ember' }).click()
+    await page.getByRole('button', { name: 'Save Appearance' }).click()
+    await expect(page.getByText('Appearance saved.')).toBeVisible()
+
+    await page.goto('/profile/e2e_pro')
+    const title = page.getByRole('heading', { level: 1 })
+    await expect(title).toContainText('e2e_pro')
+    await expect(title).toContainText('PRO')
+    // Ember = Tailwind's amber-300.
+    await expect(title.getByText('e2e_pro', { exact: true })).toHaveClass(/text-amber-300/)
+    await page.screenshot({ path: 'test-results/pro-profile.png' })
+})
+
+test('free members see the Pro looks locked', async ({ page }) => {
+    await logIn(page, 'e2e_writer')
+    await page.goto('/settings')
+    await expect(page.getByRole('button', { name: /Gold Crown/ })).toBeDisabled()
+    await expect(page.getByRole('button', { name: 'Ember' })).toBeDisabled()
+})

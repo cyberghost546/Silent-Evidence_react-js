@@ -21,7 +21,7 @@ from .age import is_adult
 from .badges import badge_report
 from stories.models import Like, Bookmark, Comment, published_stories
 from .models import Follow, Block, get_profile
-from .premium import refresh_premium
+from .premium import refresh_premium, pro_look, shown_border
 from .serializers import SignUpSerializer, ProfileSettingsSerializer, RESERVED_USERNAMES
 
 
@@ -351,6 +351,14 @@ class ProfileView(APIView):
         # An empty ImageField has no .url, so check first.
         avatar = profile.avatar.url if profile.avatar else ''
 
+        # How their avatar and name look (Settings -> Appearance).
+        # Shown on locked profiles too - it's just the name and picture.
+        look = {
+            'profile_theme': profile.profile_theme,
+            'avatar_border': shown_border(profile),
+            **pro_look(profile),
+        }
+
         if is_locked:
             return Response({
                 'username': person.username,
@@ -361,6 +369,7 @@ class ProfileView(APIView):
                 'is_me': False,
                 'is_private': True,
                 'is_locked': True,
+                **look,
             })
 
         return Response({
@@ -379,6 +388,7 @@ class ProfileView(APIView):
             'total_likes': total_likes,
             'is_following': is_following,
             'is_me': is_me,
+            **look,
             # Badges + reading streak (accounts/badges.py). Everyone
             # sees the earned badges; on your OWN profile you also see
             # the ones still to earn, with how far along you are.
@@ -402,6 +412,8 @@ def settings_data(user):
     # Username and email live on the User, not on the Profile.
     data['username'] = user.username
     data['email'] = user.email
+    # So the Appearance section knows whether to unlock the Pro looks.
+    data['is_premium'] = profile.is_premium
     return data
 
 

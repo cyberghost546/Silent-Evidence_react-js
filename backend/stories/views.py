@@ -291,7 +291,8 @@ class CommentListView(generics.ListCreateAPIView):
         # related_name). select_related('author') fetches the usernames
         # in the same query.
         # is_hidden=False: leave out comments an admin hid (Moderation).
-        comments = self.get_story().comments.filter(is_hidden=False).select_related('author')
+        # author__profile: their profile too (for the PRO badge), still one query.
+        comments = self.get_story().comments.filter(is_hidden=False).select_related('author', 'author__profile')
         # A reply under a HIDDEN comment would float around without its
         # conversation - hide it too.
         comments = comments.exclude(parent__is_hidden=True)

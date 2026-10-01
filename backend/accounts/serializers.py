@@ -73,9 +73,21 @@ class ProfileSettingsSerializer(serializers.ModelSerializer):
             'content_access', 'fear_moods', 'reading_speed',
             'weekly_digest', 'comment_digest', 'follow_digest',
             'notify_likes', 'notify_comments', 'notify_follows',
-            'profile_theme', 'avatar_border',
+            'profile_theme', 'avatar_border', 'name_color',
             'is_private',
         ]
+
+    # The Pro looks can only be PICKED while you're Pro.
+    def validate_avatar_border(self, value):
+        from .premium import PRO_BORDERS   # here, to avoid a circular import
+        if value in PRO_BORDERS and not self.instance.is_premium:
+            raise serializers.ValidationError('That border is for Pro members.')
+        return value
+
+    def validate_name_color(self, value):
+        if value and not self.instance.is_premium:
+            raise serializers.ValidationError('A coloured name is for Pro members.')
+        return value
 
     # "creepy,gore,dark" -> max 3 moods.
     # "Full Access" (18+ stories too) needs a confirmed age of 18+.

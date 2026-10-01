@@ -12,6 +12,8 @@ import { usePageTitle } from '../../hooks/usePageTitle'
 import ProfileBadges from './ProfileBadges'
 import ReadingListsSection from '../ReadingLists/ReadingListsSection'
 import SupportWriterButton from '../SupportWriterButton/SupportWriterButton'
+import FancyAvatar from '../Avatar/FancyAvatar'
+import ProName from '../ProName/ProName'
 
 
 // ---------------------------------------------------------------
@@ -131,6 +133,11 @@ function ProfilePage() {
     // ---------- THE PAGE ----------
     const initials = profile.username.slice(0, 2).toUpperCase()
 
+    // The soft red glow around the avatar - only when they didn't pick
+    // a border of their own (it would fight with the animation).
+    // shadow-[...] = a custom shadow Tailwind doesn't have built in.
+    const plainGlow = !profile.avatar_border || profile.avatar_border === 'none' ? 'shadow-[0_0_40px_rgba(220,38,38,0.45)]' : ''
+
     // "2026-09-25T22:13:34Z" -> "September 2026"
     const memberSince = new Date(profile.date_joined).toLocaleDateString(undefined, { month: 'long', year: 'numeric' })
 
@@ -145,23 +152,29 @@ function ProfilePage() {
                     {/* ----- Avatar + name + buttons ----- */}
                     {/* flex-wrap: on a phone the buttons drop under the name. */}
                     <div className='flex flex-wrap items-center gap-6'>
-                        {/* shadow-[...] = a custom red glow around the circle.
-                            Their photo if they uploaded one (Settings page),
-                            otherwise their initials. */}
-                        {profile.avatar ? (
-                            <img
-                                src={mediaUrl(profile.avatar)}
-                                alt={`${profile.username}'s avatar`}
-                                className='h-24 w-24 shrink-0 rounded-full object-cover ring-4 ring-red-900 shadow-[0_0_40px_rgba(220,38,38,0.45)]'
-                            />
-                        ) : (
-                            <span className='flex h-24 w-24 shrink-0 items-center justify-center rounded-full bg-red-600 text-3xl text-white ring-4 ring-red-900 shadow-[0_0_40px_rgba(220,38,38,0.45)]'>
-                                {initials}
-                            </span>
-                        )}
+                        {/* Their photo if they uploaded one (Settings page),
+                            otherwise their initials. FancyAvatar adds the
+                            border they picked in Settings -> Appearance
+                            (none = the plain red glow below). */}
+                        <FancyAvatar theme={profile.profile_theme} border={profile.avatar_border}>
+                            {profile.avatar ? (
+                                <img
+                                    src={mediaUrl(profile.avatar)}
+                                    alt={`${profile.username}'s avatar`}
+                                    className={`h-24 w-24 shrink-0 rounded-full object-cover ring-4 ring-red-900 ${plainGlow}`}
+                                />
+                            ) : (
+                                <span className={`flex h-24 w-24 shrink-0 items-center justify-center rounded-full bg-red-600 text-3xl text-white ring-4 ring-red-900 ${plainGlow}`}>
+                                    {initials}
+                                </span>
+                            )}
+                        </FancyAvatar>
 
                         <div className='min-w-0 flex-1'>
-                            <h1 className='truncate text-3xl font-bold text-white'>{profile.username}</h1>
+                            {/* ProName: their name colour + PRO badge, if they're Pro. */}
+                            <h1 className='truncate text-3xl font-bold text-white'>
+                                <ProName name={profile.username} look={profile} big />
+                            </h1>
 
                             <div className='mt-2 flex flex-wrap items-center gap-2'>
                                 <p className='inline-flex items-center gap-1.5 rounded-full border border-slate-700 bg-slate-900/60 px-3 py-1 text-xs text-gray-400'>

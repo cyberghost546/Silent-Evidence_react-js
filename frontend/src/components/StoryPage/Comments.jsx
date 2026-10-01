@@ -8,6 +8,7 @@ import { Flag, Reply } from 'lucide-react'
 import ReportDialog from '../ReportDialog/ReportDialog'
 import { INPUT_STYLE, BUTTON_STYLE } from '../../styles/formStyles'
 import SpoilerText from '../SpoilerText/SpoilerText'
+import ProName from '../ProName/ProName'
 
 
 // ---------------------------------------------------------------
@@ -201,7 +202,10 @@ function CommentItem({ comment, replies = [], canReply, onReport, onReply, isRep
             </span>
             <div className='min-w-0 flex-1'>
                 <p className='flex items-center gap-2 text-sm'>
-                    <span className='font-semibold text-white'>{comment.author}</span>
+                    {/* Name colour + PRO badge for Pro members (ProName). */}
+                    <span className='font-semibold'>
+                        <ProName name={comment.author} look={comment.author_look} className='text-white' />
+                    </span>
                     <span className='text-gray-500'>&middot; {formatLongDate(comment.created_at)}</span>
                     {/* ml-auto = pushed to the right. Quiet grey
                         until you hover it. */}

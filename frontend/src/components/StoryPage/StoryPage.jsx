@@ -22,6 +22,7 @@ import styles from './StoryPage.module.css'
 import { usePageTitle } from '../../hooks/usePageTitle'
 import StoryLock from './StoryLock'
 import EarlyAccessLock from './EarlyAccessLock'
+import ProName from '../ProName/ProName'
 import FearMeter from './FearMeter'
 import ReactionBar from './ReactionBar'
 import { useAuth } from '../../hooks/useAuth'
@@ -244,7 +245,9 @@ function StoryPage() {
                             {/* The author (and co-authors, if anyone accepted
                                 a Co-author Invite), each a link to their profile. */}
                             <p className='font-semibold text-red-400'>
-                                <Link to={`/profile/${story.author}`} className='hover:text-red-300'>{story.author}</Link>
+                                <Link to={`/profile/${story.author}`} className='hover:text-red-300'>
+                                    <ProName name={story.author} look={story.author_look} />
+                                </Link>
                                 {/* story.coauthors = ['night_owl', ...] or [].
                                     Each one gets " & name" after the author. */}
                                 {story.coauthors?.map(name => (

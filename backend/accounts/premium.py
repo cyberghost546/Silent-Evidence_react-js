@@ -16,6 +16,32 @@ from .models import PremiumMembership, get_profile
 # may have been switched on by hand on the Users page.
 # ---------------------------------------------------------------
 
+# ---------------------------------------------------------------
+# THE PRO LOOKS - what other people see.
+#
+# A name colour or a Pro border stays SAVED when someone's Pro runs
+# out (so it comes back if they buy again), but it's only SHOWN while
+# they're Pro. These two helpers do that check, so every page agrees.
+# ---------------------------------------------------------------
+PRO_BORDERS = {'gold'}
+
+
+# { is_pro: True, name_color: 'ember' } - for a name next to a
+# comment, a story, a profile...
+def pro_look(profile):
+    return {
+        'is_pro': profile.is_premium,
+        'name_color': profile.name_color if profile.is_premium else '',
+    }
+
+
+# The border to SHOW: a Pro one falls back to 'none' when not Pro.
+def shown_border(profile):
+    if profile.avatar_border in PRO_BORDERS and not profile.is_premium:
+        return 'none'
+    return profile.avatar_border
+
+
 # How long each plan lasts. None = forever.
 PLAN_DAYS = {'monthly': 30, 'yearly': 365, 'lifetime': None}
 
