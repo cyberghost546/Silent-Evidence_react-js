@@ -104,11 +104,11 @@ function NavDropdown({ label, items }) {
                                 // still hanging open on the next page.
                                 onClick={close}
 
-                                // No divider lines between rows - the hover
+                                // No divider lines between rows - the red hover
                                 // background already shows which row you're on.
                                 // (To bring them back: add
                                 // border-b border-slate-700 last:border-b-0)
-                                className='block px-4 py-3 text-sm text-gray-200 hover:bg-slate-700 hover:text-white transition-colors'
+                                className='block px-4 py-3 text-sm text-gray-200 hover:bg-red-600 hover:text-white transition-colors'
                             >
                                 {item.label}
                             </a>
