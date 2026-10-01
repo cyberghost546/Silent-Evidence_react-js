@@ -15,6 +15,7 @@ import StoryBody from './StoryBody'
 import FocusView from './FocusView'
 import LikeButton from './LikeButton'
 import SupportWriterButton from '../SupportWriterButton/SupportWriterButton'
+import CandleBox from './CandleBox'
 import Comments from './Comments'
 import { SeriesLabel, SeriesNav } from './SeriesNav'
 import styles from './StoryPage.module.css'
@@ -423,6 +424,8 @@ function StoryPage() {
                                 <ReactionBar key={`reactions-${story.id}`} storyId={story.id} initial={story.reactions} />
                                 {/* Only if the writer set a Support link (Settings). */}
                                 <SupportWriterButton url={story.author_tip_url} name={story.author} />
+                                {/* A tip paid on our site (payments app). Hidden on your own story. */}
+                                <CandleBox key={`candle-${story.id}`} storyId={story.id} writer={story.author} isAuthor={isAuthor} />
                             </div>
                             <Comments key={`comments-${story.id}`} storyId={story.id} />
                         </>

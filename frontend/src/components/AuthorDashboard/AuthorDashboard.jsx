@@ -10,6 +10,7 @@ import Panel from '../Dashboard/Panel'
 import BarChart from '../Dashboard/BarChart'
 import TopStoriesTable from './TopStoriesTable'
 import AuthorTrends from './AuthorTrends'
+import AuthorCandles from './AuthorCandles'
 import { formatShortDate } from '../../utils/format'
 
 
@@ -237,6 +238,9 @@ function AuthorDashboard() {
                     Its own request, so the 7/30-day switch above
                     doesn't reload it. */}
                 <AuthorTrends />
+
+                {/* ========== CANDLES (tips from readers) ========== */}
+                <AuthorCandles />
 
                 {/* ========== TOP STORIES + RECENT COMMENTS ========== */}
                 <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>

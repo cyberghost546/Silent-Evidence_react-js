@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { DollarSign } from 'lucide-react'
 import { getRevenue } from '../../api/client'
 import { formatMoney } from '../../utils/format'
+import TipsOwed from './TipsOwed'
 
 
 // ---------------------------------------------------------------
@@ -56,7 +57,7 @@ function RevenueDashboard() {
                 <DollarSign className='h-7 w-7 text-green-400' />
                 Revenue
             </h1>
-            <p className='mt-1 text-gray-400'>Money from premium memberships.</p>
+            <p className='mt-1 text-gray-400'>Money from Pro memberships (paid online or recorded by hand) and candles.</p>
 
             <div className='mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4'>
                 <StatBox
@@ -110,7 +111,7 @@ function RevenueDashboard() {
             <section className='mt-6 rounded-2xl border border-slate-800 bg-slate-900/60 p-6'>
                 <h2 className='text-sm font-semibold uppercase tracking-wider text-gray-400'>By plan (all time)</h2>
                 {data.by_plan.length === 0 ? (
-                    <p className='mt-3 text-sm text-gray-500'>No paid memberships yet. Record them on the Premium Members page.</p>
+                    <p className='mt-3 text-sm text-gray-500'>No paid memberships yet. Online Pro payments show up here by themselves; others can be recorded on the Premium Members page.</p>
                 ) : (
                     <table className='mt-3 w-full text-sm'>
                         <tbody>
@@ -125,6 +126,9 @@ function RevenueDashboard() {
                     </table>
                 )}
             </section>
+
+            {/* ---------- CANDLES: what we owe writers ---------- */}
+            <TipsOwed money={money} />
         </div>
     )
 }

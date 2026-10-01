@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Heart, MessageSquare, UserPlus, Mail, LifeBuoy, Bell, Reply, Eye, Trophy } from 'lucide-react'
+import { Heart, MessageSquare, UserPlus, Mail, LifeBuoy, Bell, Reply, Eye, Trophy, Flame } from 'lucide-react'
 import { timeAgo } from '../../utils/format'
 
 
@@ -19,6 +19,7 @@ const KINDS = {
     reply: { icon: Reply, color: 'bg-sky-500/15 text-sky-300' },
     truestory: { icon: Eye, color: 'bg-orange-500/15 text-orange-300' },
     challenge: { icon: Trophy, color: 'bg-yellow-500/15 text-yellow-300' },
+    tip: { icon: Flame, color: 'bg-amber-500/15 text-amber-300' },
 }
 const FALLBACK = { icon: Bell, color: 'bg-slate-500/15 text-slate-300' }
 
